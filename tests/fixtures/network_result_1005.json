@@ -1,0 +1,143 @@
+{
+ "recommended_mbps": 50,
+ "clean_mbps": 80,
+ "limited_by": "network",
+ "message": "Network test: clean up to 80 Mbit/s on Ethernet (data arrived late at 150 Mbit/s); using 50 Mbit/s.",
+ "pace_mbps": 920,
+ "lossless_mbps": 300,
+ "failures": 0,
+ "steps": [
+  {
+   "rate_mbps": 80,
+   "packet_loss_pct": 0,
+   "frame_loss_pct": 0,
+   "spread_p95_ms": 5.472,
+   "jitter_p95_ms": 4.987,
+   "received_mbps": 80.6,
+   "achieved_mbps": 80.6,
+   "local_drops": 0,
+   "warmup": true
+  },
+  {
+   "rate_mbps": 80,
+   "packet_loss_pct": 0,
+   "frame_loss_pct": 0,
+   "spread_p95_ms": 5.879,
+   "jitter_p95_ms": 3.961,
+   "received_mbps": 80.6,
+   "achieved_mbps": 80.6,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 150,
+   "packet_loss_pct": 0,
+   "frame_loss_pct": 0,
+   "spread_p95_ms": 9.498,
+   "jitter_p95_ms": 4.74,
+   "received_mbps": 150.4,
+   "achieved_mbps": 150.4,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 200,
+   "packet_loss_pct": 0,
+   "frame_loss_pct": 0,
+   "spread_p95_ms": 11.031,
+   "jitter_p95_ms": 5.457,
+   "received_mbps": 200.8,
+   "achieved_mbps": 200.8,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 250,
+   "packet_loss_pct": 0,
+   "frame_loss_pct": 0,
+   "spread_p95_ms": 12.396,
+   "jitter_p95_ms": 5.341,
+   "received_mbps": 250.3,
+   "achieved_mbps": 250.3,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 300,
+   "packet_loss_pct": 0,
+   "frame_loss_pct": 0,
+   "spread_p95_ms": 16.226,
+   "jitter_p95_ms": 7.763,
+   "received_mbps": 300.7,
+   "achieved_mbps": 300.7,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 400,
+   "packet_loss_pct": 1.6184,
+   "frame_loss_pct": 4,
+   "spread_p95_ms": 17.265,
+   "jitter_p95_ms": 13.754,
+   "received_mbps": 394.2,
+   "achieved_mbps": 400.7,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 500,
+   "packet_loss_pct": 4.8098,
+   "frame_loss_pct": 24,
+   "spread_p95_ms": 20.011,
+   "jitter_p95_ms": 15.649,
+   "received_mbps": 476.6,
+   "achieved_mbps": 500.6,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 600,
+   "packet_loss_pct": 16.4569,
+   "frame_loss_pct": 69.333,
+   "spread_p95_ms": 23.075,
+   "jitter_p95_ms": 17.853,
+   "received_mbps": 501.8,
+   "achieved_mbps": 600.6,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 750,
+   "packet_loss_pct": 25.9156,
+   "frame_loss_pct": 94.667,
+   "spread_p95_ms": 23.403,
+   "jitter_p95_ms": 1.693,
+   "received_mbps": 555.7,
+   "achieved_mbps": 750.1,
+   "local_drops": 0,
+   "warmup": false
+  },
+  {
+   "rate_mbps": 900,
+   "packet_loss_pct": 39.8271,
+   "frame_loss_pct": 98.667,
+   "spread_p95_ms": 22.429,
+   "jitter_p95_ms": null,
+   "received_mbps": 541.8,
+   "achieved_mbps": 900.5,
+   "local_drops": 0,
+   "warmup": false
+  }
+ ],
+ "receiver": {
+  "arrival_clock": "kernel",
+  "counts_local_drops": true,
+  "receive_buffer_bytes": 8388608
+ },
+ "time": 1791415422.0,
+ "link": {
+  "kind": "wired",
+  "speed_mbps": 1000,
+  "usb_adapter": true
+ }
+}

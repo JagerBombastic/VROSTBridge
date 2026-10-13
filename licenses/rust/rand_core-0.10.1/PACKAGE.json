@@ -1,0 +1,51 @@
+{
+  "crate": "rand_core",
+  "version": "0.10.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-random/rand_core",
+  "authors": [
+    "The Rand Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYRIGHT",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYRIGHT",
+      "sha256": "92b81db30f7ab6d693e0af5661a40d273ca1947e891123ed823924192c10cbc7",
+      "bytes": 478,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "6df43f6f4b5d4587f3d8d71e45532c688fd168afa5fe89d571cb32fa09c4ef51",
+      "bytes": 10282,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "8b6e9feec03e7c9a5facb26855cecd31662bf989b636bcfe79521bdf8ac863f0",
+      "bytes": 1076,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69",
+    "windows_client": "63b8176103e19a2643978565ca18b50549f6101881c443590420e4dc998a3c69"
+  },
+  "source_url": "https://crates.io/crates/rand_core/0.10.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5cd7df496d0bff1d95534ac8b66a2610f5bf7808"
+    },
+    "path_in_vcs": ""
+  }
+}

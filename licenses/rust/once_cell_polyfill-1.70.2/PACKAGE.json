@@ -1,0 +1,40 @@
+{
+  "crate": "once_cell_polyfill",
+  "version": "1.70.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/polyfill-rs/once_cell_polyfill",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_client": "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
+  },
+  "source_url": "https://crates.io/crates/once_cell_polyfill/1.70.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "a97fc91d318cd1142d158e7a7ea251b989280aaf"
+    },
+    "path_in_vcs": ""
+  }
+}

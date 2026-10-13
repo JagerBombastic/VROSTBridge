@@ -1,0 +1,9 @@
+{
+  "dist/client/libvrostbridge_transport.so": "204c1661cbb300325759133d84f96a2a76cab0b085ae6b14e9f920a602800bf8",
+  "dist/client/lib/libavcodec.so.60": "5a3bd1641d776b07c880ca3b2d47b9dd5bbafa5d301d6a86488ca646e81a56d8",
+  "dist/client/lib/libavutil.so.58": "9a3de19e0a04400e94fba75fbe511e09826c1c74441221ef8fb81bff0312f091",
+  "dist/client/lib/libswscale.so.7": "5b2863736559e17d43a541272dc30113b459edaa1e6ca7f0845f0c965deb004f",
+  "dist/client/VROSTBridgeLease": "51139c2b8bfe09999080fd266daa41e7fa25df520b93e1828ec694a7380e4082",
+  "launcher/windows_tray.py": "415ce5e85bb4a64ab8fcba386f9be88ef35a11bf7161ea9986a8101cca3ecaaf",
+  "client/device/view_geometry.hpp": "2edfeaf11c4e25904e6da427ec2b3ad78e8f5b42f7f869aeb798c6cb2d6c02d4"
+}

@@ -1,0 +1,35 @@
+{
+  "crate": "tower-layer",
+  "version": "0.3.3",
+  "license": "MIT",
+  "repository": "https://github.com/tower-rs/tower",
+  "authors": [
+    "Tower Maintainers <team@tower-rs.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "4249c8e6c5ebb85f97c77e6457c6fafc1066406eb8f1ef61e796fbdc5ff18482",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "121c2a6cda46980bb0fcd1647ffaf6cd3fc79a013de288782836f6df9c48780e"
+  },
+  "source_url": "https://crates.io/crates/tower-layer/0.3.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "fec9e559e276ba9609f939d3b0d2e4fa0504de6f"
+    },
+    "path_in_vcs": "tower-layer"
+  }
+}

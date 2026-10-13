@@ -1,0 +1,35 @@
+{
+  "crate": "combine",
+  "version": "4.6.7",
+  "license": "MIT",
+  "repository": "https://github.com/Marwes/combine",
+  "authors": [
+    "Markus Westerlind <marwes91@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "9bbc1b3dc4674a9ebb12c2a62f54fe3c08672539717f8d05828f684b6cc419a3",
+      "bytes": 1085,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "ba5a308b75df32fe02788e748662718f03fde005016435c444eea572398219fd"
+  },
+  "source_url": "https://crates.io/crates/combine/4.6.7",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f726b8f943f44d258686911907c0324771a2d09f"
+    },
+    "path_in_vcs": ""
+  }
+}

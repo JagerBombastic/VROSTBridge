@@ -1,0 +1,29 @@
+{
+  "crate": "settings-schema",
+  "version": "0.2.0",
+  "license": "MIT",
+  "repository": "https://github.com/zarik5/settings-schema-rs",
+  "authors": [
+    "Riccardo Zaglia <riccardo.zaglia5@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "6e2c306436978ed5d32d16312afd224639ac93c423b71086453b22d9f7c23a5a",
+      "bytes": 1072,
+      "origin": "upstream repository"
+    }
+  ],
+  "source": "git+https://github.com/alvr-org/settings-schema-rs?rev=676185f#676185f35869f05a90fcc81f66a4bbd9d86f9c12",
+  "cargo_package_checksums": {},
+  "source_url": "git+https://github.com/alvr-org/settings-schema-rs?rev=676185f#676185f35869f05a90fcc81f66a4bbd9d86f9c12"
+}

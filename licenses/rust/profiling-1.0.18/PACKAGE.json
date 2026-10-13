@@ -1,0 +1,48 @@
+{
+  "crate": "profiling",
+  "version": "1.0.18",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/aclysma/profiling",
+  "authors": [
+    "Philip Degarmo <aclysma@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE-APACHE",
+    "upstream/LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE-MIT",
+      "sha256": "c8167fdeeed46d3f244d3f85c5bf998ce889343691c32be2c61a8bc4b5c08333",
+      "bytes": 1093,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/aclysma/profiling/8271551172eb6fa4cba47369aedd93790c623df9/LICENSE-MIT",
+      "commit": "8271551172eb6fa4cba47369aedd93790c623df9"
+    },
+    {
+      "file": "upstream/LICENSE-APACHE",
+      "sha256": "10d30a673cd5e9349bdc02aeb48f14b3386d27d0da32df8f0a555d4aa16aa551",
+      "bytes": 10818,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/aclysma/profiling/8271551172eb6fa4cba47369aedd93790c623df9/LICENSE-APACHE",
+      "commit": "8271551172eb6fa4cba47369aedd93790c623df9"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "3d595e54a326bc53c1c197b32d295e14b169e3cfeaa8dc82b529f947fba6bcf5",
+    "windows_client": "3d595e54a326bc53c1c197b32d295e14b169e3cfeaa8dc82b529f947fba6bcf5"
+  },
+  "source_url": "https://crates.io/crates/profiling/1.0.18",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "8271551172eb6fa4cba47369aedd93790c623df9"
+    },
+    "path_in_vcs": "profiling"
+  }
+}

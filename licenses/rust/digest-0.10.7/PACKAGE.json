@@ -1,0 +1,42 @@
+{
+  "crate": "digest",
+  "version": "0.10.7",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/traits",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "9e0dfd2dd4173a530e238cb6adb37aa78c34c6bc7444e0e10c1ab5d8881f63ba",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
+  },
+  "source_url": "https://crates.io/crates/digest/0.10.7",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "344389411fd9718a0742435152e933a9e71461ee"
+    },
+    "path_in_vcs": "digest"
+  }
+}

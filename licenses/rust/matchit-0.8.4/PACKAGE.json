@@ -1,0 +1,42 @@
+{
+  "crate": "matchit",
+  "version": "0.8.4",
+  "license": "MIT AND BSD-3-Clause",
+  "repository": "https://github.com/ibraheemdev/matchit",
+  "authors": [
+    "Ibraheem Ahmed <ibraheem@ibraheem.ca>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE",
+    "LICENSE.httprouter"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "de701d0618d694feb1af90f02181a1763d9b0bdeb70a3a592781e529077dba65",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE.httprouter",
+      "sha256": "162ce11ad71338d0a0c6ebaf5c48af72c6ae237b468859d3656fe2d9ed3f3a85",
+      "bytes": 1522,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
+  },
+  "source_url": "https://crates.io/crates/matchit/0.8.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "413f6e785808b7fa1d6a5d317614447362e1f09e"
+    },
+    "path_in_vcs": ""
+  }
+}

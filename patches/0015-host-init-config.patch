@@ -1,0 +1,511 @@
+diff --git a/alvr/server_core/src/connection.rs b/alvr/server_core/src/connection.rs
+index 6884f445..6ffb5292 100644
+--- a/alvr/server_core/src/connection.rs
++++ b/alvr/server_core/src/connection.rs
+@@ -59,6 +59,62 @@ fn align32(value: f32) -> u32 {
+     ((value / 32.).floor() * 32.) as u32
+ }
+ 
++// VROSTBridge: negotiation helpers shared with vrostbridge_init, which derives the same
++// headset configuration before SteamVR starts (see that module).
++pub(crate) fn view_resolution(config: FrameSize, default_res: UVec2) -> UVec2 {
++    let res = match config {
++        FrameSize::Scale(scale) => default_res.as_vec2() * scale,
++        FrameSize::Absolute { width, height } => {
++            let width = width as f32;
++            Vec2::new(
++                width,
++                height.map_or_else(
++                    || {
++                        let default_res = default_res.as_vec2();
++                        width * default_res.y / default_res.x
++                    },
++                    |h| h as f32,
++                ),
++            )
++        }
++    };
++
++    UVec2::new(align32(res.x), align32(res.y))
++}
++
++/// Largest resolution at the same aspect ratio that the client supports.
++pub(crate) fn clamp_view_resolution(resolution: UVec2, max_view_resolution: UVec2) -> UVec2 {
++    if resolution.x <= max_view_resolution.x && resolution.y <= max_view_resolution.y {
++        return resolution;
++    }
++    let transcoding_ratio = resolution.x as f32 / resolution.y as f32;
++    if transcoding_ratio > max_view_resolution.x as f32 / max_view_resolution.y as f32 {
++        UVec2::new(
++            align32(max_view_resolution.x as f32),
++            align32(max_view_resolution.x as f32 / transcoding_ratio),
++        )
++    } else {
++        UVec2::new(
++            align32(max_view_resolution.y as f32 * transcoding_ratio),
++            align32(max_view_resolution.y as f32),
++        )
++    }
++}
++
++/// The client refresh rate closest to the preferred one (first wins on a tie).
++pub(crate) fn best_refresh_rate(refresh_rates: &[f32], preferred_fps: f32) -> f32 {
++    let mut best_match = 0_f32;
++    let mut min_diff = f32::MAX;
++    for rate in refresh_rates {
++        let diff = (*rate - preferred_fps).abs();
++        if diff < min_diff {
++            best_match = *rate;
++            min_diff = diff;
++        }
++    }
++    best_match
++}
++
+ fn is_streaming(client_hostname: &str) -> bool {
+     SESSION_MANAGER
+         .read()
+@@ -579,63 +635,24 @@ fn connection_pipeline(
+ 
+     let initial_settings = session_manager_lock.settings().clone();
+ 
+-    fn get_view_res(config: FrameSize, default_res: UVec2) -> UVec2 {
+-        let res = match config {
+-            FrameSize::Scale(scale) => default_res.as_vec2() * scale,
+-            FrameSize::Absolute { width, height } => {
+-                let width = width as f32;
+-                Vec2::new(
+-                    width,
+-                    height.map_or_else(
+-                        || {
+-                            let default_res = default_res.as_vec2();
+-                            width * default_res.y / default_res.x
+-                        },
+-                        |h| h as f32,
+-                    ),
+-                )
+-            }
+-        };
+-
+-        UVec2::new(align32(res.x), align32(res.y))
+-    }
+-
+-    let mut transcoding_view_resolution = get_view_res(
++    let requested_view_resolution = view_resolution(
+         initial_settings.video.transcoding_view_resolution.clone(),
+         streaming_caps.default_view_resolution,
+     );
+-    if transcoding_view_resolution.x > streaming_caps.max_view_resolution.x
+-        || transcoding_view_resolution.y > streaming_caps.max_view_resolution.y
+-    {
++    let transcoding_view_resolution =
++        clamp_view_resolution(requested_view_resolution, streaming_caps.max_view_resolution);
++    if transcoding_view_resolution != requested_view_resolution {
+         warn!(
+             "Chosen resolution {}x{} exceeds client maximum supported resolution of {}x{}. \
+             Using maximum supported resolution at same aspect ratio.",
+-            transcoding_view_resolution.x,
+-            transcoding_view_resolution.y,
++            requested_view_resolution.x,
++            requested_view_resolution.y,
+             streaming_caps.max_view_resolution.x,
+             streaming_caps.max_view_resolution.y,
+         );
+-
+-        let transcoding_ratio =
+-            transcoding_view_resolution.x as f32 / transcoding_view_resolution.y as f32;
+-
+-        if transcoding_ratio
+-            > streaming_caps.max_view_resolution.x as f32
+-                / streaming_caps.max_view_resolution.y as f32
+-        {
+-            transcoding_view_resolution = UVec2::new(
+-                align32(streaming_caps.max_view_resolution.x as f32),
+-                align32(streaming_caps.max_view_resolution.x as f32 / transcoding_ratio),
+-            );
+-        } else {
+-            transcoding_view_resolution = UVec2::new(
+-                align32(streaming_caps.max_view_resolution.y as f32 * transcoding_ratio),
+-                align32(streaming_caps.max_view_resolution.y as f32),
+-            );
+-        }
+     }
+ 
+-    let emulated_headset_view_resolution = get_view_res(
++    let emulated_headset_view_resolution = view_resolution(
+         initial_settings
+             .video
+             .emulated_headset_view_resolution
+@@ -643,18 +660,7 @@ fn connection_pipeline(
+         streaming_caps.default_view_resolution,
+     );
+ 
+-    let fps = {
+-        let mut best_match = 0_f32;
+-        let mut min_diff = f32::MAX;
+-        for rate in &streaming_caps.refresh_rates {
+-            let diff = (*rate - initial_settings.video.preferred_fps).abs();
+-            if diff < min_diff {
+-                best_match = *rate;
+-                min_diff = diff;
+-            }
+-        }
+-        best_match
+-    };
++    let fps = best_refresh_rate(&streaming_caps.refresh_rates, initial_settings.video.preferred_fps);
+ 
+     if !streaming_caps
+         .refresh_rates
+diff --git a/alvr/server_core/src/vrostbridge_init.rs b/alvr/server_core/src/vrostbridge_init.rs
+new file mode 100644
+index 00000000..6a638964
+--- /dev/null
++++ b/alvr/server_core/src/vrostbridge_init.rs
+@@ -0,0 +1,307 @@
++//! VROSTBridge: start SteamVR with the headset configuration the client is about to negotiate.
++//!
++//! ALVR registers the virtual headset from `steamvr_hmd_init_config` in session.json: the
++//! resolution and refresh rate negotiated by the previous connection. When the headset, the
++//! stream size or an encoder setting changed since then, the first connection negotiates new
++//! values and ALVR restarts SteamVR to apply them, which costs a full SteamVR restart at the
++//! start of the session.
++//!
++//! The VROSTBridge companion learns the client's display before it starts SteamVR, so it
++//! writes `vrostbridge-init.json` next to session.json with what the client will advertise
++//! (its default view resolution and refresh rate). At driver start, before the headset is
++//! registered, this module derives the configuration the negotiation will produce, with the
++//! negotiation's own code, and stores it with its restart hash, so the connection finds
++//! nothing to restart for.
++//!
++//! The hint is consumed when read, so a restart that the negotiation still asks for keeps what
++//! the client actually negotiated. A missing, invalid or wrong hint changes nothing else: ALVR
++//! then restarts SteamVR exactly as before.
++//!
++//! The companion watches session.json's restart hash to recognise ALVR's restart request. The
++//! outcome is therefore recorded in `vrostbridge-init.applied.json` (with the hint's nonce and
++//! the hash it left in session.json), written just after session.json is saved: from then on
++//! any other hash, including the one before this startup, is a negotiation restart.
++
++use crate::connection::{
++    best_refresh_rate, clamp_view_resolution, compute_restart_settings_hash, view_resolution,
++};
++use alvr_common::glam::UVec2;
++use alvr_server_io::ServerSessionManager;
++use alvr_session::{Settings, SteamvrHmdInitConfig};
++use std::{path::Path, sync::OnceLock};
++
++pub const INIT_FILE: &str = "vrostbridge-init.json";
++pub const APPLIED_FILE: &str = "vrostbridge-init.applied.json";
++/// The VROSTBridge client advertises this maximum view resolution.
++pub const CLIENT_MAX_VIEW: UVec2 = UVec2::new(8192, 8192);
++
++static REPORT: OnceLock<String> = OnceLock::new();
++
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub struct ClientDisplay {
++    pub default_view: UVec2,
++    pub refresh_rate: f32,
++}
++
++/// The companion's nonce for this launch: up to 64 lowercase hexadecimal characters.
++fn nonce(value: &serde_json::Value) -> String {
++    value
++        .get("nonce")
++        .and_then(|v| v.as_str())
++        .filter(|v| v.len() <= 64 && v.bytes().all(|c| matches!(c, b'0'..=b'9' | b'a'..=b'f')))
++        .unwrap_or_default()
++        .to_owned()
++}
++
++pub fn parse(text: &str) -> Option<ClientDisplay> {
++    let value: serde_json::Value = serde_json::from_str(text).ok()?;
++    let width = value.get("default_view_width")?.as_u64()?;
++    let height = value.get("default_view_height")?.as_u64()?;
++    let refresh = value.get("refresh_rate")?.as_f64()?;
++    ((64..=8192).contains(&width)
++        && (64..=8192).contains(&height)
++        && refresh.is_finite()
++        && (30.0..=240.0).contains(&refresh))
++    .then(|| ClientDisplay {
++        default_view: UVec2::new(width as u32, height as u32),
++        refresh_rate: refresh as f32,
++    })
++}
++
++fn saved_hash(session_file: &Path) -> Option<u64> {
++    let text = std::fs::read_to_string(session_file).ok()?;
++    serde_json::from_str::<serde_json::Value>(&text)
++        .ok()?
++        .get("restart_settings_hash")?
++        .as_u64()
++}
++
++/// Atomic (temporary file and rename); false if the record could not be written.
++fn write_outcome(path: &Path, outcome: &serde_json::Value) -> bool {
++    let temporary = path.with_extension("tmp");
++    std::fs::write(&temporary, format!("{outcome}\n")).is_ok()
++        && std::fs::rename(&temporary, path).is_ok()
++}
++
++/// The init configuration a client with this display negotiates under these settings.
++pub fn expected_config(settings: &Settings, display: &ClientDisplay) -> SteamvrHmdInitConfig {
++    let transcoding = clamp_view_resolution(
++        view_resolution(
++            settings.video.transcoding_view_resolution.clone(),
++            display.default_view,
++        ),
++        CLIENT_MAX_VIEW,
++    );
++    let emulated = view_resolution(
++        settings.video.emulated_headset_view_resolution.clone(),
++        display.default_view,
++    );
++    let fps = best_refresh_rate(&[display.refresh_rate], settings.video.preferred_fps);
++    SteamvrHmdInitConfig {
++        eye_resolution_width: transcoding.x,
++        eye_resolution_height: transcoding.y,
++        target_eye_resolution_width: emulated.x,
++        target_eye_resolution_height: emulated.y,
++        refresh_rate: fps as _,
++    }
++}
++
++/// Called once at driver start, before the headset is registered. Logging is not yet
++/// initialised; the outcome is kept for `report()`.
++pub fn apply(manager: &mut ServerSessionManager, session_file: &Path) {
++    let path = session_file.with_file_name(INIT_FILE);
++    let applied = session_file.with_file_name(APPLIED_FILE);
++    let Ok(text) = std::fs::read_to_string(&path) else {
++        REPORT.set("VROST_INIT_CONFIG hint=none".into()).ok();
++        return;
++    };
++    // Consume the hint: a later restart in this session must keep the negotiated values.
++    std::fs::remove_file(&path).ok();
++    let nonce = serde_json::from_str::<serde_json::Value>(&text)
++        .map(|value| nonce(&value))
++        .unwrap_or_default();
++    let Some(display) = parse(&text) else {
++        write_outcome(&applied, &serde_json::json!({ "nonce": nonce, "applied": false }));
++        REPORT.set("VROST_INIT_CONFIG hint=invalid".into()).ok();
++        return;
++    };
++    let settings = manager.settings().clone();
++    let config = expected_config(&settings, &display);
++    let hash = compute_restart_settings_hash(&config, &settings);
++    let changed = manager.session().restart_settings_hash != hash;
++    if changed {
++        {
++            // Saved when the lock is dropped, before the record below.
++            let mut session = manager.session_mut();
++            session.steamvr_hmd_init_config = config.clone();
++            session.restart_settings_hash = hash;
++        }
++        // The lock ignores save errors. Without the new hash on disk the companion sees no
++        // change, and a record would make it restart SteamVR for nothing.
++        if saved_hash(session_file) != Some(hash) {
++            REPORT.set("VROST_INIT_CONFIG hint=applied saved=0".into()).ok();
++            return;
++        }
++    }
++    // Recorded after session.json: once the companion sees this record, session.json already
++    // holds this hash. Without the record it treats the change as a restart after a short wait.
++    let recorded = write_outcome(
++        &applied,
++        &serde_json::json!({
++            "nonce": nonce,
++            "applied": true,
++            "changed": changed,
++            "restart_settings_hash": hash,
++            "eye_resolution": [config.eye_resolution_width, config.eye_resolution_height],
++            "target_eye_resolution": [config.target_eye_resolution_width, config.target_eye_resolution_height],
++            "refresh_rate": config.refresh_rate,
++        }),
++    );
++    REPORT
++        .set(format!(
++            "VROST_INIT_CONFIG hint=applied changed={} recorded={} eye={}x{} target={}x{} refresh_hz={}",
++            u8::from(changed),
++            u8::from(recorded),
++            config.eye_resolution_width,
++            config.eye_resolution_height,
++            config.target_eye_resolution_width,
++            config.target_eye_resolution_height,
++            config.refresh_rate
++        ))
++        .ok();
++}
++
++pub fn report() -> Option<&'static str> {
++    REPORT.get().map(String::as_str)
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use alvr_session::FrameSize;
++
++    fn settings(width: u32, height: Option<u32>, fps: f32) -> Settings {
++        let mut settings = alvr_session::SessionConfig::default().to_settings();
++        settings.video.transcoding_view_resolution = FrameSize::Absolute { width, height };
++        settings.video.emulated_headset_view_resolution = FrameSize::Absolute { width, height };
++        settings.video.preferred_fps = fps;
++        settings
++    }
++
++    #[test]
++    fn hint_is_validated() {
++        assert_eq!(parse(""), None);
++        assert_eq!(parse(r#"{"default_view_width": 1424, "default_view_height": 1424}"#), None);
++        assert_eq!(
++            parse(r#"{"default_view_width": 10, "default_view_height": 1424, "refresh_rate": 75}"#),
++            None
++        );
++        assert_eq!(
++            parse(r#"{"default_view_width": 1424, "default_view_height": 1424, "refresh_rate": 500}"#),
++            None
++        );
++        assert_eq!(
++            parse(r#"{"default_view_width": 1424, "default_view_height": 1424, "refresh_rate": 75.0}"#),
++            Some(ClientDisplay { default_view: UVec2::new(1424, 1424), refresh_rate: 75.0 })
++        );
++    }
++
++    #[test]
++    fn nonce_is_lowercase_hex_only() {
++        let value = |text: &str| serde_json::from_str::<serde_json::Value>(text).unwrap();
++        assert_eq!(nonce(&value(r#"{"nonce": "0a1b2c"}"#)), "0a1b2c");
++        assert_eq!(nonce(&value(r#"{"nonce": "../x"}"#)), "");
++        assert_eq!(nonce(&value(r#"{"nonce": 5}"#)), "");
++        assert_eq!(nonce(&value(&format!(r#"{{"nonce": "{}"}}"#, "a".repeat(65)))), "");
++        assert_eq!(nonce(&value("{}")), "");
++    }
++
++    #[test]
++    fn hint_is_consumed_and_the_outcome_recorded_after_the_session() {
++        let directory = std::env::temp_dir().join(format!("vrost-init-{}", std::process::id()));
++        std::fs::create_dir_all(&directory).unwrap();
++        let session_file = directory.join("session.json");
++        std::fs::remove_file(&session_file).ok();
++        std::fs::write(
++            directory.join(INIT_FILE),
++            r#"{"default_view_width": 1424, "default_view_height": 1424, "refresh_rate": 75, "nonce": "ab12"}"#,
++        )
++        .unwrap();
++        let mut manager = ServerSessionManager::new(Some(session_file.clone()));
++        let before = manager.session().restart_settings_hash;
++        apply(&mut manager, &session_file);
++        assert!(!directory.join(INIT_FILE).exists());
++        let outcome: serde_json::Value =
++            serde_json::from_str(&std::fs::read_to_string(directory.join(APPLIED_FILE)).unwrap())
++                .unwrap();
++        assert_eq!(outcome["nonce"], "ab12");
++        assert_eq!(outcome["applied"], true);
++        let hash = outcome["restart_settings_hash"].as_u64().unwrap();
++        assert_eq!(manager.session().restart_settings_hash, hash);
++        assert_eq!(outcome["changed"], before != hash);
++        // The saved session carries the same hash and configuration.
++        let saved: serde_json::Value =
++            serde_json::from_str(&std::fs::read_to_string(&session_file).unwrap()).unwrap();
++        assert_eq!(saved["restart_settings_hash"].as_u64(), Some(hash));
++        assert_eq!(saved["steamvr_hmd_init_config"]["refresh_rate"], 75);
++        std::fs::remove_dir_all(&directory).ok();
++    }
++
++    #[test]
++    fn square_display_keeps_requested_width() {
++        // Beyond: square client view, 2016-pixel stream width, 75 Hz.
++        let display = ClientDisplay { default_view: UVec2::new(1424, 1424), refresh_rate: 75.0 };
++        let config = expected_config(&settings(2016, None, 75.0), &display);
++        assert_eq!(
++            (config.eye_resolution_width, config.eye_resolution_height, config.refresh_rate),
++            (2016, 2016, 75)
++        );
++        assert_eq!(
++            (config.target_eye_resolution_width, config.target_eye_resolution_height),
++            (2016, 2016)
++        );
++    }
++
++    #[test]
++    fn height_follows_the_client_aspect_and_is_aligned() {
++        // Index: 1.1 aspect; 2016 * 1600 / 1440 = 2240 (already aligned to 32).
++        let display = ClientDisplay { default_view: UVec2::new(1440, 1600), refresh_rate: 90.0 };
++        let config = expected_config(&settings(2016, None, 90.0), &display);
++        assert_eq!((config.eye_resolution_width, config.eye_resolution_height), (2016, 2240));
++        // Unaligned values are floored to 32 like the negotiation.
++        let config = expected_config(&settings(2000, Some(2001), 90.0), &display);
++        assert_eq!((config.eye_resolution_width, config.eye_resolution_height), (1984, 1984));
++    }
++
++    #[test]
++    fn refresh_rate_is_the_clients_own() {
++        // The client offers one rate; the negotiation uses it whatever the preference.
++        let display = ClientDisplay { default_view: UVec2::new(1424, 1424), refresh_rate: 75.0 };
++        assert_eq!(expected_config(&settings(2016, None, 90.0), &display).refresh_rate, 75);
++    }
++
++    #[test]
++    fn hash_matches_the_negotiation_for_the_same_inputs() {
++        let display = ClientDisplay { default_view: UVec2::new(1424, 1424), refresh_rate: 75.0 };
++        let settings = settings(2016, None, 75.0);
++        let config = expected_config(&settings, &display);
++        // The negotiation builds the same struct from the same helpers and hashes it with
++        // the same function, so equal inputs give an equal hash (no restart).
++        let negotiated = SteamvrHmdInitConfig {
++            eye_resolution_width: 2016,
++            eye_resolution_height: 2016,
++            target_eye_resolution_width: 2016,
++            target_eye_resolution_height: 2016,
++            refresh_rate: 75,
++        };
++        assert_eq!(
++            compute_restart_settings_hash(&config, &settings),
++            compute_restart_settings_hash(&negotiated, &settings)
++        );
++        let other = SteamvrHmdInitConfig { refresh_rate: 90, ..negotiated };
++        assert_ne!(
++            compute_restart_settings_hash(&config, &settings),
++            compute_restart_settings_hash(&other, &settings)
++        );
++    }
++}
+diff --git a/alvr/server_core/src/lib.rs b/alvr/server_core/src/lib.rs
+index dfa77673..d6b8fb55 100644
+--- a/alvr/server_core/src/lib.rs
++++ b/alvr/server_core/src/lib.rs
+@@ -5,6 +5,7 @@ mod hand_gestures;
+ mod vrostbridge_vsync;
+ pub mod vrostbridge_stream;
+ pub mod vrostbridge_gaze;
++pub mod vrostbridge_init;
+ mod haptics;
+ mod input_mapping;
+ mod logging_backend;
+@@ -71,6 +72,12 @@ pub fn initialize_environment(layout: afs::Layout) {
+ 
+     // This ensures that the session is written to disk
+     SESSION_MANAGER.write().session_mut();
++
++    // VROSTBridge: register the headset with the configuration the client is about to
++    // negotiate, so the first connection does not restart SteamVR.
++    if let Some(layout) = FILESYSTEM_LAYOUT.get() {
++        vrostbridge_init::apply(&mut SESSION_MANAGER.write(), &layout.session());
++    }
+ }
+ 
+ pub struct ServerNegotiatedStreamingConfig {
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index af1985b5..7c2ba40b 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -903,6 +903,10 @@ pub extern "C" fn initialize_runtime() {
+             Some(filesystem_layout.crash_log()),
+         );
+ 
++        if let Some(report) = alvr_server_core::vrostbridge_init::report() {
++            alvr_common::info!("{report}");
++        }
++
+         unsafe {
+             g_sessionPath = CString::new(filesystem_layout.session().to_string_lossy().to_string())
+                 .unwrap()

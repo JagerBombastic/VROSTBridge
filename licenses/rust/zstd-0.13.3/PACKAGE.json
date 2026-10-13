@@ -1,0 +1,35 @@
+{
+  "crate": "zstd",
+  "version": "0.13.3",
+  "license": "MIT",
+  "repository": "https://github.com/gyscos/zstd-rs",
+  "authors": [
+    "Alexandre Bury <alexandre.bury@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "129e8edef29e9abcd2ebabe252f4ef1b1289cdca356bf0040284a2fbccfb96c8",
+      "bytes": 1080,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e91ee311a569c327171651566e07972200e76fcfe2242a4fa446149a3881c08a"
+  },
+  "source_url": "https://crates.io/crates/zstd/0.13.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "52e9d41a645fb49edcf1ed3df765f380dbcf13b2"
+    },
+    "path_in_vcs": ""
+  }
+}

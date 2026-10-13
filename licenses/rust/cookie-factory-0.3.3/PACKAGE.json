@@ -1,0 +1,38 @@
+{
+  "crate": "cookie-factory",
+  "version": "0.3.3",
+  "license": "MIT",
+  "repository": "https://github.com/rust-bakery/cookie-factory",
+  "authors": [
+    "Geoffroy Couprie <geo.couprie@gmail.com>",
+    "Pierre Chifflier <chifflier@wzdftpd.net>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSES/MIT.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSES/MIT.txt",
+      "sha256": "d09216dc1ea5f273997667935a8d6514d80f00b89fb6954ecc3a43e0a6e360de",
+      "bytes": 1065,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/rust-bakery/cookie-factory/d36b805dbd7dd65f2df947235c5bcc573afe2c76/LICENSES/MIT.txt",
+      "commit": "d36b805dbd7dd65f2df947235c5bcc573afe2c76"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "9885fa71e26b8ab7855e2ec7cae6e9b380edff76cd052e07c683a0319d51b3a2"
+  },
+  "source_url": "https://crates.io/crates/cookie-factory/0.3.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d36b805dbd7dd65f2df947235c5bcc573afe2c76"
+    },
+    "path_in_vcs": ""
+  }
+}

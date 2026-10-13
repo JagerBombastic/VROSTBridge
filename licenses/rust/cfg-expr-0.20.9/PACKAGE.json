@@ -1,0 +1,43 @@
+{
+  "crate": "cfg-expr",
+  "version": "0.20.9",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/EmbarkStudios/cfg-expr",
+  "authors": [
+    "Embark <opensource@embark-studios.com>",
+    "Jake Shadle <jake.shadle@embark-studios.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90",
+      "bytes": 10850,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "090a294a492ab2f41388252312a65cf2f0e423330b721a68c6665ac64766753b",
+      "bytes": 1058,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "fe4ece8474b5f766c63426647e7b4b316b67431ade1036a8313cee24a03ae917"
+  },
+  "source_url": "https://crates.io/crates/cfg-expr/0.20.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "8625ce6f9146292e0e862519591bbe446d23f04e"
+    },
+    "path_in_vcs": ""
+  }
+}

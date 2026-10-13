@@ -1,0 +1,38 @@
+{
+  "crate": "ordered-float",
+  "version": "4.6.0",
+  "license": "MIT",
+  "repository": "https://github.com/reem/rust-ordered-float",
+  "authors": [
+    "Jonathan Reem <jonathan.reem@gmail.com>",
+    "Matt Brubeck <mbrubeck@limpet.net>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "f7715d38a3fa1b4ac97c5729740752505a39cb92ee83ab5b102aeb5eaa7cdea4",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951",
+    "windows_client": "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951"
+  },
+  "source_url": "https://crates.io/crates/ordered-float/4.6.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "1b0686eb27accab2bc897f0e186d8890a575879a"
+    },
+    "path_in_vcs": ""
+  }
+}

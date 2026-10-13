@@ -1,0 +1,42 @@
+{
+  "crate": "pbkdf2",
+  "version": "0.12.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/password-hashes/tree/master/pbkdf2",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "8ea5cea8ddecc46a64a004406414d25529fca7eb71cfd8c0cfe49c343bff79c5",
+      "bytes": 1115,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "f8ed6a7761f76e3b9f92dfb0a60a6a6477c61024b775147ff0973a02653abaf2"
+  },
+  "source_url": "https://crates.io/crates/pbkdf2/0.12.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5af3bb038e73a9e9a1b95c7074f93ec78c66606d"
+    },
+    "path_in_vcs": "pbkdf2"
+  }
+}

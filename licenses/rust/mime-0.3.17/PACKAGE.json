@@ -1,0 +1,42 @@
+{
+  "crate": "mime",
+  "version": "0.3.17",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/hyperium/mime",
+  "authors": [
+    "Sean McArthur <sean@seanmonstar.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "df9cfd06d8a44d9a671eadd39ffd97f166481da015a30f45dfd27886209c5922",
+      "bytes": 1058,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
+  },
+  "source_url": "https://crates.io/crates/mime/0.3.17",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ce5062d216bf757a0ed3fc70f0fe255d1c8d74ae"
+    },
+    "path_in_vcs": ""
+  }
+}

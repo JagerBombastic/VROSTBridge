@@ -1,0 +1,5 @@
+{
+  "protocol_source": "https://raw.githubusercontent.com/wayland-mirror/wayland-protocols/main/staging/drm-lease/drm-lease-v1.xml",
+  "sha256": "18f325e92285473eca0567ea1038abb16849b8638b36e458ff551f3ca68ef80c",
+  "library": "Ubuntu Noble libwayland-server0 1.22.0-2.1build1"
+}

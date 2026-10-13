@@ -1,0 +1,40 @@
+{
+  "crate": "bindgen",
+  "version": "0.72.1",
+  "license": "BSD-3-Clause",
+  "repository": "https://github.com/rust-lang/rust-bindgen",
+  "authors": [
+    "Jyun-Yan You <jyyou.tw@gmail.com>",
+    "Emilio Cobos \u00c1lvarez <emilio@crisal.io>",
+    "Nick Fitzgerald <fitzgen@gmail.com>",
+    "The Servo project developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "c23953d9deb0a3312dbeaf6c128a657f3591acee45067612fa68405eaa4525db",
+      "bytes": 1512,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "993776b509cfb49c750f11b8f07a46fa23e0a1386ffc01fb1e7d343efc387895",
+    "linux_client": "993776b509cfb49c750f11b8f07a46fa23e0a1386ffc01fb1e7d343efc387895"
+  },
+  "source_url": "https://crates.io/crates/bindgen/0.72.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d874de8d646d9b8a3e7ba2db2bcd52f2fba8f1f5"
+    },
+    "path_in_vcs": "bindgen"
+  }
+}

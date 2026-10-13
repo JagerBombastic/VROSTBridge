@@ -1,0 +1,42 @@
+{
+  "crate": "aes",
+  "version": "0.8.4",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/block-ciphers",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "f7e8ab639afef15573680c97f796166835cbeb3865175882fea41c60d106b733",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "b169f7a6d4742236a0a00c541b845991d0ac43e546831af1249753ab4c3aa3a0"
+  },
+  "source_url": "https://crates.io/crates/aes/0.8.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f2dbee516b4d0cf4cb4f3045d09e35b5fd80087b"
+    },
+    "path_in_vcs": "aes"
+  }
+}

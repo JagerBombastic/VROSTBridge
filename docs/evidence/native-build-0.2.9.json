@@ -1,0 +1,37 @@
+[
+  {
+    "path": "dist/client/libvrostbridge_transport.so",
+    "sha256": "204c1661cbb300325759133d84f96a2a76cab0b085ae6b14e9f920a602800bf8",
+    "unchanged": true
+  },
+  {
+    "path": "dist/client/VROSTBridgeLease",
+    "sha256": "51139c2b8bfe09999080fd266daa41e7fa25df520b93e1828ec694a7380e4082",
+    "unchanged": true
+  },
+  {
+    "path": "dist/client/lib/libavcodec.so.60",
+    "sha256": "5a3bd1641d776b07c880ca3b2d47b9dd5bbafa5d301d6a86488ca646e81a56d8",
+    "unchanged": true
+  },
+  {
+    "path": "dist/client/lib/libavutil.so.58",
+    "sha256": "9a3de19e0a04400e94fba75fbe511e09826c1c74441221ef8fb81bff0312f091",
+    "unchanged": true
+  },
+  {
+    "path": "dist/client/lib/libswscale.so.7",
+    "sha256": "5b2863736559e17d43a541272dc30113b459edaa1e6ca7f0845f0c965deb004f",
+    "unchanged": true
+  },
+  {
+    "path": "dist/client/assets/convert.spv",
+    "sha256": "0c5ef6ff8ea7d1e59b471988ef4954dfd905ff77a2873c5b939dd385fc3b4daa",
+    "unchanged": true
+  },
+  {
+    "path": "dist/client/VROSTBridgeClient",
+    "sha256": "dd35e7cc841bb90a44aa2cd5c7b0339dd610a09aa371866f19b59f0c4f287785",
+    "rebuilt": true
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "crate": "mio",
+  "version": "1.2.0",
+  "license": "MIT",
+  "repository": "https://github.com/tokio-rs/mio",
+  "authors": [
+    "Carl Lerche <me@carllerche.com>",
+    "Thomas de Zeeuw <thomasdezeeuw@gmail.com>",
+    "Tokio Contributors <team@tokio.rs>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "07919255c7e04793d8ea760d6c2ce32d19f9ff02bdbdde3ce90b1e1880929a9b",
+      "bytes": 1082,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "50b7e5b27aa02a74bac8c3f23f448f8d87ff11f92d3aac1a6ed369ee08cc56c1"
+  },
+  "source_url": "https://crates.io/crates/mio/1.2.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ce39a6be2cc739165daaeb10cce609b9b77242ac"
+    },
+    "path_in_vcs": ""
+  }
+}

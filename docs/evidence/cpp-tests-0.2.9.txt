@@ -1,0 +1,49 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring done (0.4s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/work029/VROSTBridge-0.2.9/build-tests
+[ 20%] Building CXX object CMakeFiles/geometry_tests.dir/tests/geometry_tests.cpp.o
+[ 20%] Building CXX object CMakeFiles/input_tests.dir/tests/input_tests.cpp.o
+[ 30%] Building CXX object CMakeFiles/stream_tests.dir/tests/stream_tests.cpp.o
+[ 40%] Building CXX object CMakeFiles/core_tests.dir/tests/core_tests.cpp.o
+[ 50%] Linking CXX executable core_tests
+[ 50%] Built target core_tests
+[ 60%] Building CXX object CMakeFiles/runtime_settings_tests.dir/tests/runtime_settings_tests.cpp.o
+[ 70%] Linking CXX executable input_tests
+[ 70%] Built target input_tests
+[ 80%] Linking CXX executable geometry_tests
+[ 80%] Built target geometry_tests
+[ 90%] Linking CXX executable stream_tests
+[ 90%] Built target stream_tests
+[100%] Linking CXX executable runtime_settings_tests
+[100%] Built target runtime_settings_tests
+Internal ctest changing into directory: /workspace/scratch/647ea6e3ae16/work029/VROSTBridge-0.2.9/build-tests
+Test project /workspace/scratch/647ea6e3ae16/work029/VROSTBridge-0.2.9/build-tests
+    Start 1: core_contracts
+1/5 Test #1: core_contracts ...................   Passed    0.00 sec
+    Start 2: stream_contracts
+2/5 Test #2: stream_contracts .................   Passed    0.00 sec
+    Start 3: live_geometry_contracts
+3/5 Test #3: live_geometry_contracts ..........   Passed    0.00 sec
+    Start 4: input_contracts
+4/5 Test #4: input_contracts ..................   Passed    0.00 sec
+    Start 5: runtime_settings_contracts
+5/5 Test #5: runtime_settings_contracts .......   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 5
+
+Total Test time (real) =   0.01 sec

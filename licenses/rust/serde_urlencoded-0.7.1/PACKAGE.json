@@ -1,0 +1,42 @@
+{
+  "crate": "serde_urlencoded",
+  "version": "0.7.1",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/nox/serde_urlencoded",
+  "authors": [
+    "Anthony Ramine <n.oxyde@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "b9eb266294324f672cbe945fe8f2e32f85024f0d61a1a7d14382cdde0ac44769",
+      "bytes": 1058,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "d3491c14715ca2294c4d6a88f15e84739788c1d030eed8c110436aafdaa2f3fd"
+  },
+  "source_url": "https://crates.io/crates/serde_urlencoded/0.7.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d8bc15d16adf6b3ba6ae46d199d7109cf5079efa"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "crate": "tokio-tungstenite",
+  "version": "0.29.0",
+  "license": "MIT",
+  "repository": "https://github.com/snapview/tokio-tungstenite",
+  "authors": [
+    "Daniel Abramov <dabramov@snapview.de>",
+    "Alexey Galakhov <agalakhov@snapview.de>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "fdd55e2b2da854b0fbdc1e607df7c2ba1e1ebf91ecb77c515511ebeef972bc8f",
+      "bytes": 1093,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "8f72a05e828585856dacd553fba484c242c46e391fb0e58917c942ee9202915c"
+  },
+  "source_url": "https://crates.io/crates/tokio-tungstenite/0.29.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7930ff2f825a69cad44b928b19b6fb81bffc3f7a"
+    },
+    "path_in_vcs": ""
+  }
+}

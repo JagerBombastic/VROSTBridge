@@ -1,0 +1,8 @@
+$ g++ -std=c++17 -O2 -pthread -Wall -Wextra -Wno-missing-field-initializers -I. -Ithird_party/openvr -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include/x86_64-linux-gnu -c client/platform/linux/main.cpp -o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/main.o
+
+$ g++ -std=c++17 -O2 -pthread -Wall -Wextra -Wno-missing-field-initializers -I. -Ithird_party/openvr -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include/x86_64-linux-gnu -c client/platform/linux/vulkan.cpp -o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/vulkan.o
+
+$ g++ -std=c++17 -O2 -pthread -Wall -Wextra -Wno-missing-field-initializers -I. -Ithird_party/openvr -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include/x86_64-linux-gnu -c client/platform/linux/decoder.cpp -o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/decoder.o
+
+$ g++ -std=c++17 -O2 -pthread -Wall -Wextra -Wno-missing-field-initializers -I. -Ithird_party/openvr -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include -I/workspace/scratch/647ea6e3ae16/deps029/root/usr/include/x86_64-linux-gnu -c client/device/openvr_device.cpp -o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/openvr_device.o
+

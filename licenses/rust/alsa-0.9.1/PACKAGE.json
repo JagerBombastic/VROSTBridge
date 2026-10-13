@@ -1,0 +1,42 @@
+{
+  "crate": "alsa",
+  "version": "0.9.1",
+  "license": "Apache-2.0/MIT",
+  "repository": "https://github.com/diwic/alsa-rs",
+  "authors": [
+    "David Henningsson <coding@diwic.se>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "bytes": 10174,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "3cc33f8e76680b9cba2e2a5bc94de5a92420045863ab2fadbef290a55b4d8530",
+      "bytes": 1104,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "ed7572b7ba83a31e20d1b48970ee402d2e3e0537dcfe0a3ff4d6eb7508617d43"
+  },
+  "source_url": "https://crates.io/crates/alsa/0.9.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "3e3195cada635a73685066ec97315cfebd6e3bca"
+    },
+    "path_in_vcs": ""
+  }
+}

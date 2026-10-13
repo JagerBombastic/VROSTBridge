@@ -1,0 +1,46 @@
+{
+  "crate": "flume",
+  "version": "0.11.1",
+  "license": "Apache-2.0/MIT",
+  "repository": "https://github.com/zesterer/flume",
+  "authors": [
+    "Joshua Barretto <joshua.s.barretto@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "d8621ec2eee5b9ca3c65f8492505f3590de8574fac0fdf5132a77232dba47abc",
+      "bytes": 11326,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "30fefc3a7d6a0041541858293bcbea2dde4caa4c0a5802f996a7f7e8c0085652",
+      "bytes": 1022,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "da0e4dd2a88388a1f4ccc7c9ce104604dab68d9f408dc34cd45823d5a9069095",
+    "linux_client": "da0e4dd2a88388a1f4ccc7c9ce104604dab68d9f408dc34cd45823d5a9069095",
+    "windows_client": "da0e4dd2a88388a1f4ccc7c9ce104604dab68d9f408dc34cd45823d5a9069095"
+  },
+  "source_url": "https://crates.io/crates/flume/0.11.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d185c566060402370d00f0ec7f918fa97f3919b1"
+    },
+    "path_in_vcs": ""
+  }
+}

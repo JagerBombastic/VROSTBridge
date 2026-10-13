@@ -1,0 +1,42 @@
+{
+  "crate": "windows_x86_64_msvc",
+  "version": "0.53.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/microsoft/windows-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "windows_client"
+  ],
+  "notice_files": [
+    "license-apache-2.0",
+    "license-mit"
+  ],
+  "notice_details": [
+    {
+      "file": "license-apache-2.0",
+      "sha256": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+      "bytes": 11351,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "license-mit",
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+      "bytes": 1141,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650",
+    "windows_client": "d6bbff5f0aada427a1e5a6da5f1f98158182f26556f345ac9e04d36d0ebed650"
+  },
+  "source_url": "https://crates.io/crates/windows_x86_64_msvc/0.53.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d468916ac27a36fb8a12bafc1bf5c0ec2fe92238"
+    },
+    "path_in_vcs": "crates/targets/x86_64_msvc"
+  }
+}

@@ -1,0 +1,2 @@
+node tests/test_desktop_ui.js
+Desktop connection workflow smoke checks passed.

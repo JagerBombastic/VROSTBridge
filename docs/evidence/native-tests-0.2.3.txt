@@ -1,0 +1,35 @@
+Start testing: Sep 23 21:09 CDT
+----------------------------------------------------------
+1/2 Testing: core_contracts
+1/2 Test: core_contracts
+Command: "/workspace/scratch/647ea6e3ae16/build-tools/native-build/core_tests"
+Directory: /workspace/scratch/647ea6e3ae16/build-tools/native-build
+"core_contracts" start time: Sep 23 21:09 CDT
+Output:
+----------------------------------------------------------
+26 core checks passed
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"core_contracts" end time: Sep 23 21:09 CDT
+"core_contracts" time elapsed: 00:00:00
+----------------------------------------------------------
+
+2/2 Testing: stream_contracts
+2/2 Test: stream_contracts
+Command: "/workspace/scratch/647ea6e3ae16/build-tools/native-build/stream_tests"
+Directory: /workspace/scratch/647ea6e3ae16/build-tools/native-build
+"stream_contracts" start time: Sep 23 21:09 CDT
+Output:
+----------------------------------------------------------
+Stream ABI, rotations, pose provenance, geometry mismatch, queue ownership, bounds and epoch tests passed
+<end of output>
+Test time =   0.00 sec
+----------------------------------------------------------
+Test Passed.
+"stream_contracts" end time: Sep 23 21:09 CDT
+"stream_contracts" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Sep 23 21:09 CDT

@@ -1,0 +1,18 @@
+{
+  "release": "0.2.14.1",
+  "input_report_sha256": "524098d080c96f934ef1a35cb156aa535d5914c5bd46f8f1da5d1868019702ef",
+  "observed_host_version": "0.2.14",
+  "primary_error": "Host driver version mismatch: expected 21.0.0-dev14+nightly.2026.09.18, received 21.0.0-dev14",
+  "secondary_cleanup_error": "The running host version changed. Its runtime was not stopped.",
+  "host_new_api_version": "21.0.0-dev14",
+  "retained_profile_api_version": "21.0.0-dev14+nightly.2026.09.18",
+  "native_wire_protocol_unchanged": true,
+  "supported_client": "0.2.14",
+  "python_tests": {
+    "cases": 247,
+    "platform_skips": 2,
+    "success": true
+  },
+  "desktop_dom_tests": "passed",
+  "physical_execution": false
+}

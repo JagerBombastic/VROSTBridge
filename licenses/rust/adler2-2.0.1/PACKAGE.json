@@ -1,0 +1,52 @@
+{
+  "crate": "adler2",
+  "version": "2.0.1",
+  "license": "0BSD OR MIT OR Apache-2.0",
+  "repository": "https://github.com/oyvindln/adler2",
+  "authors": [
+    "Jonas Schievink <jonasschievink@gmail.com>",
+    "oyvindln <oyvindln@users.noreply.github.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-0BSD",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-0BSD",
+      "sha256": "861399f8c21c042b110517e76dc6b63a2b334276c8cf17412fc3c8908ca8dc17",
+      "bytes": 665,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb",
+      "bytes": 10860,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa",
+    "linux_client": "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
+  },
+  "source_url": "https://crates.io/crates/adler2/2.0.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "89a031a0f42eeff31c70dc598b398cbf31f1680f"
+    },
+    "path_in_vcs": ""
+  }
+}

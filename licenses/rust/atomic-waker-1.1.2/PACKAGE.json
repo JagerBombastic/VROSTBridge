@@ -1,0 +1,50 @@
+{
+  "crate": "atomic-waker",
+  "version": "1.1.2",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/smol-rs/atomic-waker",
+  "authors": [
+    "Stjepan Glavina <stjepang@gmail.com>",
+    "Contributors to futures-rs"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "LICENSE-THIRD-PARTY"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-THIRD-PARTY",
+      "sha256": "6226d0632e2e1a80c23597e964da9812ae193c535fe058154afb034e94167aa5",
+      "bytes": 1849,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
+  },
+  "source_url": "https://crates.io/crates/atomic-waker/1.1.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "9969a29ccd1fe298e2df7346849c0095ba303a64"
+    },
+    "path_in_vcs": ""
+  }
+}

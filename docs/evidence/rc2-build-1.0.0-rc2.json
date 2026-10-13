@@ -1,0 +1,88 @@
+{
+  "version": "1.0.0-rc2",
+  "date": "2026-10-02",
+  "compatible_host": "1.0.0-rc1 or 1.0.0-rc2",
+  "physical_validation": false,
+  "scope": "Client-side motion prediction; controller/proximity decoupled from head-pose validity and compositor focus; full-length haptics with stop and minimal pulse; non-blocking bounded native diagnostics; per-window cadence classification and compositor throttle reporting; session-only Wi-Fi power-save control; adapter-scoped host Private-network check; DSCP marking in the host profile; single-source version labels.",
+  "unchanged": [
+    "RC1.3 projection conversion",
+    "RC1.2 Beyond refresh reconciliation",
+    "six ALVR patches",
+    "native ALVR transport and host driver",
+    "FFmpeg libraries",
+    "conversion shader",
+    "codec/resolution/bitrate defaults",
+    "protocol identity"
+  ],
+  "toolchain": {
+    "os": "Ubuntu 24.04.5",
+    "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+    "glibc": "2.39",
+    "flags": [
+      "-std=c++17",
+      "-O2",
+      "-Wall",
+      "-Wextra",
+      "-Wno-missing-field-initializers"
+    ],
+    "ffmpeg_headers": "third_party/ffmpeg/ffmpeg-n6.1.4-source.tar.xz (configure + install-headers)",
+    "vulkan_headers": "KhronosGroup/Vulkan-Headers v1.3.275",
+    "pyinstaller": "6.22.3 from pyinstaller/pyinstaller tag v6.22.3 with locally built Linux bootloader",
+    "python": "3.12.3 (Ubuntu 24.04)",
+    "equivalence_check": "RC1.3 sources rebuilt here produced .text/.rodata byte-identical to the shipped RC1.3 VROSTBridgeClient (sha256 7ecc82454a66b2231daf9a247dbe79c49881078a0578e712a5c2206943077312); only the build ID differed."
+  },
+  "native_rebuilt_sha256": {
+    "VROSTBridgeClient": "f4ea7230b588ad30f079c73b510e19048d534cb33fb310bc7614658fb57b80c3",
+    "VROSTBridgeRuntimeProbe": "a29cb97823935b34b4f1786f9fc2b95cd2a51ef8e4f645348ead906cba2f82f5"
+  },
+  "native_symbol_ceiling": "GLIBC_2.38, GLIBCXX_3.4.32, CXXABI_1.3.9 (same as RC1.3)",
+  "native_reused_sha256": {
+    "VROSTBridgeLease": "21c759b56606ad3b87ab2c08a5dcdf2dccbaa185d219c8d8e94f81a500fbaccf",
+    "libvrostbridge_transport.so": "2f3c9fe56b1d86abb16f2532457e73d294bd042d1f9729cc78549f3396270dc5",
+    "libopenvr_api.so": "cb68c5788b0ddab32c0402e58820956a489ef6cb99ecf2e1fa997533ead54475",
+    "assets/convert.spv": "20d34ae3b17cfd2653f1bbdca23be4a3baf3c8d4fa262b44a6b6409bfec130eb",
+    "lib/libavcodec.so.60": "5a3bd1641d776b07c880ca3b2d47b9dd5bbafa5d301d6a86488ca646e81a56d8",
+    "lib/libavutil.so.58": "9a3de19e0a04400e94fba75fbe511e09826c1c74441221ef8fb81bff0312f091",
+    "lib/libswscale.so.7": "5b2863736559e17d43a541272dc30113b459edaa1e6ca7f0845f0c965deb004f",
+    "lib/libSDL2-2.0.so.0": "2507acbbe40afe7d3e2e775dd8af00a1dba93579b9e837563032f3d751a9a45b",
+    "lib/libwayland-server.so.0": "d6cc42aff7539831152735f58958fd3d854c77881b053c771fbe7a819df5392f",
+    "tools/go-bsb-cams": "42288d4d851c1a1b0d1ae496e9823cf72bb3c7ed7d56eeb13f33038dea8702ce"
+  },
+  "source_sha256": {
+    "client/device/openvr_device.cpp": "17de65dc5733b34fd85bd8310efe888438df5d9f430d2076d51bdb40408db1df",
+    "client/device/prediction.hpp": "66c119270431f12f5b0f6a2b9a14283740db5e0618a7e020d60f1c0f86096100",
+    "client/device/haptic_scheduler.hpp": "5424d671e6d4588c881feb420e9db512293d1c7781999f4ea893c16d4ae5f67a",
+    "client/device/skeletal.hpp": "3653571cf29db4169ef0e8eec6ce713f3e736fcd3b442ef8b49bc87386732def",
+    "client/platform/linux/main.cpp": "1b748dff2a309178042a56c90a521648ef8de1d7ba57e2c0748ae3c9ba31615d",
+    "client/platform/linux/vulkan.cpp": "7649fba35eae96f31f77fea3fcd9dffb6a5d8adad8e4e71f5e74e1f5a4089397",
+    "client/presentation_trace.hpp": "ff35e50cf69d6fef8921a2502db9f4cf3c3e1996f6b95aa8bbc8d8f3addce9c6",
+    "core/stream.hpp": "1693c3f3feb4532ab14fec0e06f1567276a0d55ef70769e54577b922cce15c2d",
+    "core/version.hpp": "2c4cdfd838dee8c8e7e9b9385b53348440904c81970728669aba191712948830",
+    "launcher/app.py": "25094c0ecad3e7fcda4b6bd33b1a2aa40c23a75b52f8e54b2e5e8d8a836c11b8",
+    "launcher/wifi_session.py": "4bfcd05393d48e53ec6ae7cd72cad50a6e2539ec13363a373d628799c3567ed4",
+    "launcher/session_link.py": "1e54579dc2b02d76b797515664d6fc4cdef3111e31f474d64ba59106b92e33a1",
+    "host/control.py": "37052c84f75bcf7956b1464538fd0c52352e8009980deced23b69f0fc04b97b7",
+    "host/profile.py": "43428f41f7bfd8f78503ac7681ae24e9f90270a37e031db9a2ff22f117825826"
+  },
+  "tests": {
+    "native": "9/9 ctest suites passed (stream, video handshake, presentation, geometry, input, skeletal, runtime settings, chaperone, core) including new RC2 contracts",
+    "python": "307 tests passed (full discover), including tests/test_rc2_updates.py; one intermittent failure observed once under parallel compiler load, not reproduced in five further full runs",
+    "desktop_ui": "tests/test_desktop_ui.js passed (includes motion_prediction toggle)",
+    "package": [
+      "frozen launcher --self-test passed in assembled payload",
+      "payload SHA256SUMS verified",
+      "managed upgrade over simulated RC1.3 install retained client-settings.json and session-client.json and removed the old owned release",
+      "same-version repair passed",
+      "packaged companion served version 1.0.0-rc2, retained saved codec/bitrate/late-frame settings, motion_prediction default true, UI toggle and Wi-Fi note present, authenticated quit exited cleanly"
+    ],
+    "host_payload": "companion-only repack over the verified RC1 host payload: input manifest and ALVR pin verified; host launcher, helper EXEs and ALVR driver byte-identical to RC1; 74 companion Python files compile under Python 3.13"
+  },
+  "remaining_validation": [
+    "Index and Beyond physical sessions with motion prediction on and off",
+    "Beyond projection (RC1.3 fix) and cadence class during any half-rate period",
+    "controller occlusion/focus behaviour and full-length haptics in games",
+    "Wi-Fi power-save control under NetworkManager on Bazzite",
+    "host RC2 installer on Windows: upgrade from RC1, tray, sign-in startup, SteamVR session",
+    "Game Mode and calibrated gaze acceptance"
+  ]
+}

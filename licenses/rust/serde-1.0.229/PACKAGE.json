@@ -1,0 +1,45 @@
+{
+  "crate": "serde",
+  "version": "1.0.229",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/serde-rs/serde",
+  "authors": [
+    "Erick Tryzelaar <erick.tryzelaar@gmail.com>",
+    "David Tolnay <dtolnay@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba",
+    "windows_client": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
+  },
+  "source_url": "https://crates.io/crates/serde/1.0.229",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7fc3b4c30c94f73a96ebd1553f2b090d928fc3a8"
+    },
+    "path_in_vcs": "serde"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "crate": "litrs",
+  "version": "1.0.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/LukasKalbertodt/litrs",
+  "authors": [
+    "Lukas Kalbertodt <lukas.kalbertodt@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7dc1552e88f49132cb358b1b962fc5e79fa42d70bcbb88c526d33e45b8e98036",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092",
+    "windows_client": "11d3d7f243d5c5a8b9bb5d6dd2b1602c0cb0b9db1621bafc7ed66e35ff9fe092"
+  },
+  "source_url": "https://crates.io/crates/litrs/1.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "66ceed89adfd30d1fd04fabfdfe436aedc4cadbf"
+    },
+    "path_in_vcs": ""
+  }
+}

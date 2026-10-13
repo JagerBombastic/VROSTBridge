@@ -1,0 +1,43 @@
+{
+  "crate": "tungstenite",
+  "version": "0.29.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/snapview/tungstenite-rs",
+  "authors": [
+    "Alexey Galakhov",
+    "Daniel Abramov"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7fea0ee51a4ca5d5cea7464135fd55e8b09caf3a61da3d451ac8a22af95c033f",
+      "bytes": 1092,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6c01152af293afb9c7c2a57e4b559c5620b421f6d133261c60dd2d0cdb38e6b8"
+  },
+  "source_url": "https://crates.io/crates/tungstenite/0.29.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c2921718b76f0ed8c69a895397ed981e4a321f6f"
+    },
+    "path_in_vcs": ""
+  }
+}

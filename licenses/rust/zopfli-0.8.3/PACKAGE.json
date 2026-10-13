@@ -1,0 +1,33 @@
+{
+  "crate": "zopfli",
+  "version": "0.8.3",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/zopfli-rs/zopfli",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "COPYING"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "018b1cb87efdf7a04c2fcc13d57ed63f62149113fb207b27ea13430d64f13513",
+      "bytes": 11341,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "f05cd8797d63865425ff89b5c4a48804f35ba0ce8d125800027ad6017d2b5249"
+  },
+  "source_url": "https://crates.io/crates/zopfli/0.8.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "91a34e5d2ce57883a82145158bc74222d7da5229"
+    },
+    "path_in_vcs": ""
+  }
+}

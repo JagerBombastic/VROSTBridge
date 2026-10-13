@@ -1,0 +1,79 @@
+{
+  "version": "1.0.0-rc1.3",
+  "scope": "Bazzite client vertical projection conversion and retained optical diagnostics",
+  "compatible_host": "1.0.0-rc1",
+  "physical_projection_fix_verified": false,
+  "observed_report": {
+    "client_version": "1.0.0-rc1.2",
+    "streaming": true,
+    "refresh_hz": 75,
+    "codec": "H264",
+    "per_eye_resolution": [
+      2016,
+      2016
+    ],
+    "bitrate_requested_mbps": 200,
+    "optical_projection_values_available": false,
+    "user_observation": "Eye sides correct; view/projection appears wrong."
+  },
+  "confirmed_code_defect": "Client up=atan(-raw_top), down=atan(-raw_bottom) became host raw_top=-raw_bottom, raw_bottom=-raw_top, mirroring the asymmetric vertical optical-centre offset.",
+  "correction": "ALVR up=atan(OpenVR raw_bottom), down=atan(OpenVR raw_top). Horizontal projection, complete eye transforms, texture layout, bitrate and pacing unchanged.",
+  "sources": [
+    "https://github.com/ValveSoftware/openvr/blob/master/docs/Driver_API_Documentation.md",
+    "https://github.com/alvr-org/ALVR/blob/f5023f8e78fa14ea57fb1038548d7820289a8524/alvr/server_openvr/cpp/alvr_server/Utils.h",
+    "https://github.com/alvr-org/ALVR/blob/f5023f8e78fa14ea57fb1038548d7820289a8524/alvr/server_openvr/cpp/alvr_server/HMD.cpp"
+  ],
+  "native_rebuilt_sha256": {
+    "VROSTBridgeClient": "7ecc82454a66b2231daf9a247dbe79c49881078a0578e712a5c2206943077312",
+    "VROSTBridgeRuntimeProbe": "99caa7a0013a46c6432da238b5ad2e7f3220992c528e5f5302c94eaa78c20d82"
+  },
+  "native_reused_sha256": {
+    "VROSTBridgeLease": "21c759b56606ad3b87ab2c08a5dcdf2dccbaa185d219c8d8e94f81a500fbaccf",
+    "libvrostbridge_transport.so": "2f3c9fe56b1d86abb16f2532457e73d294bd042d1f9729cc78549f3396270dc5",
+    "libopenvr_api.so": "cb68c5788b0ddab32c0402e58820956a489ef6cb99ecf2e1fa997533ead54475",
+    "assets/convert.spv": "20d34ae3b17cfd2653f1bbdca23be4a3baf3c8d4fa262b44a6b6409bfec130eb",
+    "lib/libavcodec.so.60": "5a3bd1641d776b07c880ca3b2d47b9dd5bbafa5d301d6a86488ca646e81a56d8",
+    "lib/libavutil.so.58": "9a3de19e0a04400e94fba75fbe511e09826c1c74441221ef8fb81bff0312f091",
+    "lib/libswscale.so.7": "5b2863736559e17d43a541272dc30113b459edaa1e6ca7f0845f0c965deb004f",
+    "lib/libSDL2-2.0.so.0": "2507acbbe40afe7d3e2e775dd8af00a1dba93579b9e837563032f3d751a9a45b",
+    "lib/libwayland-server.so.0": "d6cc42aff7539831152735f58958fd3d854c77881b053c771fbe7a819df5392f",
+    "tools/go-bsb-cams": "42288d4d851c1a1b0d1ae496e9823cf72bb3c7ed7d56eeb13f33038dea8702ce"
+  },
+  "source_sha256": {
+    "client/device/openvr_projection.hpp": "17b27e8179d52745b07e04fdcf28b140351d502c1be0904721a62f1a0095f3e0",
+    "client/device/openvr_device.cpp": "02c1a76d2e7acd646db5374b027a2dba3952c6e15be73948454221c5a2f9f9cf",
+    "client/device/view_geometry.hpp": "2edfeaf11c4e25904e6da427ec2b3ad78e8f5b42f7f869aeb798c6cb2d6c02d4",
+    "client/platform/linux/main.cpp": "636e84eeacc2b452a2bb652e9a8194fff4964e1af047a3a8a996122dbd968c7f",
+    "client/platform/linux/runtime_probe.cpp": "c739bf659ea1c351f83d1530a93d5e11192a48007fa1254c564d20804cd7af37",
+    "launcher/app.py": "5e69c077b253d1c4c95fa926b40d23b4aa1058fe48a2ffcfb1688748d400a605",
+    "tests/geometry_tests.cpp": "24517dea0b269dc8c5b6aa8e9d52983d9cf7690efda845091b5fc5a8bf54deba",
+    "tests/test_session_lifecycle.py": "cc9adaaf9291e92124db4c57f66bcc9604be6d8d96b386db9035031cdfd1161d"
+  },
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "compiler_flags": [
+    "-std=c++17",
+    "-O2",
+    "-Wall",
+    "-Wextra"
+  ],
+  "linking": "Existing pinned ALVR transport and LGPL FFmpeg shared libraries, system Vulkan loader and dynamic C++ runtime. RUNPATH=$ORIGIN:$ORIGIN/lib; no absolute build paths in DT_NEEDED.",
+  "ffmpeg_headers_source": "third_party/ffmpeg/ffmpeg-n6.1.4-source.tar.xz",
+  "ffmpeg_headers_sha256": "735b0713aa8f7218b1f77bf0407d6db6c9c4dde77d75f2e9e2d19f9b5c46ef55",
+  "vulkan_headers_source": "https://github.com/KhronosGroup/Vulkan-Headers/tree/v1.3.275",
+  "vulkan_headers_tar_sha256": "7161da645dbd33fd4ea61eec08e0d77389a640010acbf4afc00234f84df9b314",
+  "python": "Python 3.12.14",
+  "pyinstaller": "6.22.3",
+  "new_runtime_dependencies": [],
+  "tests": {
+    "python": "70 selected tests passed",
+    "native_geometry": "Passed: asymmetric/symmetric projection, optical centre, eye transforms, live IPD, old/new frame provenance, invalid updates, concurrent snapshots",
+    "native_readiness": "Passed: RC1.2 refresh reconciliation and strict Index startup guards",
+    "native_build": "Both executables rebuilt without warnings and help commands launch",
+    "package": "see client-package-1.0.0-rc1.3.json"
+  },
+  "remaining_validation": [
+    "Physical Beyond projection correctness and head-motion stability",
+    "Physical Index regression",
+    "Separate investigation of intermittent client presentation at half refresh"
+  ]
+}

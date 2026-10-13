@@ -1,0 +1,43 @@
+{
+  "crate": "static_assertions",
+  "version": "1.1.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/nvzqz/static-assertions-rs",
+  "authors": [
+    "Nikolai Vazquez"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "ea084a2373ebc1f0902c09266e7bf25a05ab3814c1805bb017ffa7308f90c061",
+      "bytes": 1072,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f",
+    "windows_client": "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
+  },
+  "source_url": "https://crates.io/crates/static_assertions/1.1.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "18bc65a094d890fe1faa5d3ccb70f12b89eabf56"
+    }
+  }
+}

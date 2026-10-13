@@ -1,0 +1,42 @@
+{
+  "crate": "ntapi",
+  "version": "0.4.3",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/MSxDOS/ntapi",
+  "authors": [
+    "MSxDOS <melcodos@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "cf90d659de5c1e6418267ab8043b756e65508ee5d8d50b29eb2d2fe444c2c3eb",
+      "bytes": 11360,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "11a7964ccc0dd115d16720ab1d826c5d03e52838748ffaba3d21bae8bcacd82a",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "c3b335231dfd352ffb0f8017f3b6027a4917f7df785ea2143d8af2adc66980ae"
+  },
+  "source_url": "https://crates.io/crates/ntapi/0.4.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "3f8ac79fdfea53d8fbe1282237173cee8c4f198c"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "crate": "mdns-sd",
+  "version": "0.19.2",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/keepsimple1/mdns-sd",
+  "authors": [
+    "keepsimple <keepsimple@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "1118360170ac75117538c65db992cfec5d0ffa28a6b990e46ab45602b638c8fd",
+      "bytes": 10857,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "cf0547f95d22b91b11540bc053d4973ad8beed39f98b614254c074ca4ed6b6af",
+      "bytes": 1091,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "18148fee27e99e76dbf6e137f27727113d31f766e578d1b93a93c3615fca7081",
+    "windows_client": "18148fee27e99e76dbf6e137f27727113d31f766e578d1b93a93c3615fca7081"
+  },
+  "source_url": "https://crates.io/crates/mdns-sd/0.19.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f113ab3610bd638a1fea05cbebf00f948bfff5a0"
+    },
+    "path_in_vcs": ""
+  }
+}

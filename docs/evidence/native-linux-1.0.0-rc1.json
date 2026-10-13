@@ -1,0 +1,121 @@
+{
+  "date_utc": "2026-09-28T02:08:55.308319+00:00",
+  "version": "1.0.0-rc1",
+  "files": {
+    "dist/client/VROSTBridgeClient": {
+      "bytes": 315976,
+      "sha256": "95b139f6d5d97d3c268231813cbec9304c085b966a8fce9fabaf9ab068fcc7b6"
+    },
+    "dist/client/VROSTBridgeLease": {
+      "bytes": 54136,
+      "sha256": "21c759b56606ad3b87ab2c08a5dcdf2dccbaa185d219c8d8e94f81a500fbaccf"
+    },
+    "dist/client/libvrostbridge_transport.so": {
+      "bytes": 15433384,
+      "sha256": "2f3c9fe56b1d86abb16f2532457e73d294bd042d1f9729cc78549f3396270dc5"
+    },
+    "dist/client/assets/convert.spv": {
+      "bytes": 3032,
+      "sha256": "20d34ae3b17cfd2653f1bbdca23be4a3baf3c8d4fa262b44a6b6409bfec130eb"
+    }
+  },
+  "checks": [
+    {
+      "command": [
+        "/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/VROSTBridgeClient",
+        "--help"
+      ],
+      "returncode": 0,
+      "output": "VROSTBridge 1.0.0-rc1 native Linux client\n--software-decode  Explicit CPU compatibility mode (not a performance path)\n--no-late-frame-catchup  Disable bounded late-frame selection for comparison\n"
+    },
+    {
+      "command": [
+        "readelf",
+        "-d",
+        "/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/VROSTBridgeClient"
+      ],
+      "returncode": 0,
+      "output": "\nDynamic section at offset 0x42608 contains 36 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libvulkan.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libvrostbridge_transport.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libavcodec.so.60]\n 0x0000000000000001 (NEEDED)             Shared library: [libavutil.so.58]\n 0x0000000000000001 (NEEDED)             Shared library: [libswscale.so.7]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN:$ORIGIN/lib]\n 0x000000000000000c (INIT)               0x7000\n 0x000000000000000d (FINI)               0x3a9b8\n 0x0000000000000019 (INIT_ARRAY)         0x42e50\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x42e58\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x3b0\n 0x0000000000000005 (STRTAB)             0x1cf8\n 0x0000000000000006 (SYMTAB)             0x468\n 0x000000000000000a (STRSZ)              7899 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000015 (DEBUG)              0x0\n 0x0000000000000003 (PLTGOT)             0x43888\n 0x0000000000000002 (PLTRELSZ)           5472 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x4bf0\n 0x0000000000000007 (RELA)               0x3ff0\n 0x0000000000000008 (RELASZ)             3072 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000000000001e (FLAGS)              BIND_NOW\n 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE\n 0x000000006ffffffe (VERNEED)            0x3de0\n 0x000000006fffffff (VERNEEDNUM)         7\n 0x000000006ffffff0 (VERSYM)             0x3bd4\n 0x000000006ffffff9 (RELACOUNT)          78\n 0x0000000000000000 (NULL)               0x0\n"
+    },
+    {
+      "command": [
+        "readelf",
+        "-d",
+        "/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/VROSTBridgeLease"
+      ],
+      "returncode": 0,
+      "output": "\nDynamic section at offset 0x9a68 contains 32 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libwayland-server.so.0]\n 0x0000000000000001 (NEEDED)             Shared library: [libdrm.so.2]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN/lib]\n 0x000000000000000c (INIT)               0x3000\n 0x000000000000000d (FINI)               0x752c\n 0x0000000000000019 (INIT_ARRAY)         0xa730\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0xa738\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x3b0\n 0x0000000000000005 (STRTAB)             0xe68\n 0x0000000000000006 (SYMTAB)             0x3e8\n 0x000000000000000a (STRSZ)              2965 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000015 (DEBUG)              0x0\n 0x0000000000000003 (PLTGOT)             0xaca8\n 0x0000000000000002 (PLTRELSZ)           2352 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x2410\n 0x0000000000000007 (RELA)               0x1c00\n 0x0000000000000008 (RELASZ)             2064 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000000000001e (FLAGS)              BIND_NOW\n 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE\n 0x000000006ffffffe (VERNEED)            0x1ae0\n 0x000000006fffffff (VERNEEDNUM)         3\n 0x000000006ffffff0 (VERSYM)             0x19fe\n 0x000000006ffffff9 (RELACOUNT)          75\n 0x0000000000000000 (NULL)               0x0\n"
+    },
+    {
+      "command": [
+        "ldd",
+        "/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/VROSTBridgeClient"
+      ],
+      "returncode": 0,
+      "output": "\tlinux-vdso.so.1 (0x00007fc424d56000)\n\tlibvulkan.so.1 => /lib/x86_64-linux-gnu/libvulkan.so.1 (0x00007fc424c82000)\n\tlibvrostbridge_transport.so => /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/libvrostbridge_transport.so (0x00007fc4241c4000)\n\tlibavcodec.so.60 => /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/lib/libavcodec.so.60 (0x00007fc423eac000)\n\tlibavutil.so.58 => /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/lib/libavutil.so.58 (0x00007fc422db6000)\n\tlibswscale.so.7 => /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/lib/libswscale.so.7 (0x00007fc422d3c000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007fc422abe000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007fc4229d5000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007fc4229a7000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007fc422795000)\n\tlibasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007fc42268b000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007fc424d58000)\n\tlibva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007fc422659000)\n\tlibva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007fc422654000)\n\tlibdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007fc42263d000)\n"
+    },
+    {
+      "command": [
+        "ldd",
+        "/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/VROSTBridgeLease"
+      ],
+      "returncode": 0,
+      "output": "\tlinux-vdso.so.1 (0x00007f59cc4b0000)\n\tlibwayland-server.so.0 => /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/dist/client/lib/libwayland-server.so.0 (0x00007f59cc486000)\n\tlibdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007f59cc466000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f59cc1e8000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f59cc1ba000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f59cbfa8000)\n\tlibffi.so.8 => /lib/x86_64-linux-gnu/libffi.so.8 (0x00007f59cbf9a000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f59cbeb1000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f59cc4b2000)\n"
+    }
+  ],
+  "ld_environment_override": false,
+  "hardware_execution": false,
+  "contract_tests": {
+    "passed": 11,
+    "failed": 0,
+    "evidence": "native-linux-contracts-1.0.0-rc1.txt",
+    "release_assertions_enabled": true
+  },
+  "source_sha256": {
+    "CMakeLists.txt": "958816ab6a26ec07bb4e38ab16b482c445eda47d66196f4b86bc561817982995",
+    "assets/actions.json": "f9754cc4965c3d103541e6d1b4d12cd5f04d1f03e96c8a34900c30c351816f16",
+    "assets/bindings_index.json": "bc3296c3e49d5060e4a910a56d50ece201c7783b1856070f123017a73a25c14b",
+    "client/common.hpp": "22f003e61f3f876b04abb4dd9062ceec2a1e2c9df7a0fd7f1567c3c2b9129d08",
+    "client/device/gaze.hpp": "54a4d0d5f8c496b80216876385803ab85c94a300c9109578622cfcabccc85250",
+    "client/device/haptic_scheduler.hpp": "08387c1deb3712cb5298a6bfcbdaa15b4be80b37aeb4b5290769ba7d9edaac64",
+    "client/device/headset_metadata.hpp": "a090ecc947cb51b297164087a8b857918c6520e651dbf90d915f51c3548e2662",
+    "client/device/input_protocol.hpp": "e3f92c07e47e8f8fab382d3ce5d8851854265f0beb4dce7315dea76d3e499784",
+    "client/device/openvr_device.cpp": "20d56620f9c674de0cc400d6f7b1b5bbe71f143b821028c8fabe80c9bfaf8d79",
+    "client/device/openvr_device.hpp": "a0e4a89b6f4dee242bee4d547aeae80f585ea91a3ff61405fa00396187170e68",
+    "client/device/runtime_events.hpp": "0e8682bba62febbe6dc097f6325ed6dcef13db6d6815e57aa35440736596d899",
+    "client/device/runtime_observation.hpp": "21c2d7769ae719f4a680aca47de6ef83a4a225f5750a1096a48cbca709321c88",
+    "client/device/runtime_readiness.hpp": "0c8b2b010725e713cf742c23d9155b97e2958766720c232d0e30bfbe4cd78ab0",
+    "client/device/skeletal.hpp": "45040de9357f9e19e52effcc737c62929ad39092c3537808fca0746d75161638",
+    "client/device/view_geometry.hpp": "2edfeaf11c4e25904e6da427ec2b3ad78e8f5b42f7f869aeb798c6cb2d6c02d4",
+    "client/gaze_probe.hpp": "e7803d0903f6de33bdf7cee441e22ae04ceaf23432c0a0f990695074cb422457",
+    "client/main.cpp": "3bf860893b5f7fb341c60bc8c36f4cf17d9dc9a71e732cb9a503c11bfbfd9ae2",
+    "client/platform/linux/convert.comp": "ae6e826ecc08626bff2bfd18673bb55f21a35a7534015850a1523d0bd68197c5",
+    "client/platform/linux/decoder.cpp": "9558125ff5aa1d3f4bf19db7ad99ba61cc44d117744ab20c5ca835a98c228b2f",
+    "client/platform/linux/lease.cpp": "2d8c5179daefdb56ef3882840f14a847e7c267f10ef2fb3b402bdb0d7dfb2d12",
+    "client/platform/linux/lease_protocol/drm-lease-v1-client.h": "d750c22e7ba6f8cfba6f1e8f3de54d7cc73c74fd5bdf31eeec248ebf6bebc8c9",
+    "client/platform/linux/lease_protocol/drm-lease-v1-protocol.c": "0f2d6149bc69d33db2589bf6ccf26b8a9aa73feb92da0fae2e2dc057e40be235",
+    "client/platform/linux/lease_protocol/drm-lease-v1-server.h": "042751d96936e2d4c7f25409235d70f155a3d16f91c05dfd5208f67ebfe7a1be",
+    "client/platform/linux/main.cpp": "81d29021afb139386b72fc675f5d43a2d680a39457ae01e91b5c574cf981ca98",
+    "client/platform/linux/runtime_settings.hpp": "9ab70ea0d5149835b42ec0109721b91529ea7e3b007f84d91eb8db748fc1fcb0",
+    "client/platform/linux/video.hpp": "245341ce03faa9c1b4efa0ba4683cfb260170d6a069b27f93c85f58633274ee1",
+    "client/platform/linux/vulkan.cpp": "99d5ca8c14fb8e41633a217ef87142e31eed18dc096dbaced9e3d4cb7ef87101",
+    "client/presentation_trace.hpp": "56da5f60341b2e425d200c2c4a361fc9e13ab8b55e1fae43755f32f9de417e5b",
+    "client/renderer.cpp": "33249dd308a5be9fb1ed7b300fc9dd5f247f4be0a51399b2a239a5c56333c237",
+    "client/renderer.hpp": "a8df97a5433ca1436e4f550148dd2db19f7215c005af70b009aac7154947bb5f",
+    "client/runtime.cpp": "c03ef37c0fb30a8d2cb6521312997aed16ee466a064185bf8a0fae75344a7bb1",
+    "client/runtime.hpp": "d4ad4b5dbea2dcac20f0dd86614061981d0e1f7135a7d9e6a661f79e70a851a8",
+    "client/transport/bridge.h": "bfa4d682d6bbbc0696e34a752d5320aa4c5033b312997132d5971718aa5e36cd",
+    "client/video_handshake.hpp": "07edb38d7a7ca96718f74c427746a858e2dddee56ab9fc911a68e9f873e187f4"
+  },
+  "transport_reuse_evidence": "native-transport-reuse-1.0.0-rc1.json",
+  "build": {
+    "type": "CMake Release",
+    "compiler": "GNU 13.3.0",
+    "transport_link": "Imported SHARED target with IMPORTED_NO_SONAME TRUE; portable DT_NEEDED verified",
+    "dependencies": "Existing extracted deps029 headers/Wayland/pkg-config/CMake, shipped minimal FFmpeg shared libraries; no OS modifications"
+  },
+  "limitations": [
+    "No physical SteamVR/headset, live GPU streaming or Bazzite hardware execution in this container.",
+    "These Linux checks do not validate Windows execution."
+  ]
+}

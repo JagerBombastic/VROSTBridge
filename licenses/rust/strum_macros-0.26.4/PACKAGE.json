@@ -1,0 +1,37 @@
+{
+  "crate": "strum_macros",
+  "version": "0.26.4",
+  "license": "MIT",
+  "repository": "https://github.com/Peternator7/strum",
+  "authors": [
+    "Peter Glotfelty <peter.glotfelty@microsoft.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "8bce3b45e49ecd1461f223b46de133d8f62cd39f745cfdaf81bee554b908bd42",
+      "bytes": 1072,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be",
+    "windows_client": "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
+  },
+  "source_url": "https://crates.io/crates/strum_macros/0.26.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7ab74c8cd97bc5d607c72ffdecd09f25f368acdf"
+    },
+    "path_in_vcs": "strum_macros"
+  }
+}

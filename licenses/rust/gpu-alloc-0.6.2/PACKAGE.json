@@ -1,0 +1,39 @@
+{
+  "crate": "gpu-alloc",
+  "version": "0.6.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/zakarumych/gpu-alloc",
+  "authors": [
+    "Zakarum <roman@barykin.me>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/COPYING"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/COPYING",
+      "sha256": "12121dfa588677007848ab922a45a1e3248868f6ff063598fceb3141d7897314",
+      "bytes": 347,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/zakarumych/gpu-alloc/61020bdcb4eb04fca6bbf748aeb9570e859236e0/COPYING",
+      "commit": "61020bdcb4eb04fca6bbf748aeb9570e859236e0"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "45cf04b2726f02df5508c6de726acdc90cdf97ac771a9a0ffd8ba10a6e696bf9",
+    "windows_client": "45cf04b2726f02df5508c6de726acdc90cdf97ac771a9a0ffd8ba10a6e696bf9"
+  },
+  "source_url": "https://crates.io/crates/gpu-alloc/0.6.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "61020bdcb4eb04fca6bbf748aeb9570e859236e0"
+    },
+    "path_in_vcs": "gpu-alloc"
+  }
+}

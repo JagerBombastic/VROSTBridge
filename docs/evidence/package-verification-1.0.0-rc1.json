@@ -1,0 +1,88 @@
+{
+  "version": "1.0.0-rc1",
+  "checks": {
+    "VROSTBridge-Host-Portable-1.0.0-rc1.zip": {
+      "sha256": "3ea5fc0b948da19d360af98e22d6db4d8d9a6d36b54792835768eddb33bce62d",
+      "bytes": 137244376,
+      "verified_files": 1606,
+      "crc": "pass"
+    },
+    "VROSTBridge-Bazzite-Installer-1.0.0-rc1.zip": {
+      "sha256": "eeaa96457250e9c4964211700aba70920252eb3cfaacc1b72586b0d9edaa76fa",
+      "bytes": 43141814,
+      "verified_files": 1605,
+      "crc": "pass"
+    },
+    "VROSTBridge Host.exe": {
+      "machine": "AMD64",
+      "subsystem": 2,
+      "imports": [
+        "KERNEL32.dll",
+        "USER32.dll",
+        "SHELL32.dll"
+      ],
+      "sha256": "3c8812cf1b1f67bcd8e27c107632bd85441d9365bb8a7068e18ea592ae318385"
+    },
+    "host/VROSTBridgeVRHelper.exe": {
+      "machine": "AMD64",
+      "subsystem": 3,
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll"
+      ],
+      "sha256": "e275397eed1be5c88f486c262756517a34ac53d783272617519b61692c9559a4"
+    },
+    "host/VROSTBridgeAudioProbe.exe": {
+      "machine": "AMD64",
+      "subsystem": 3,
+      "imports": [
+        "ole32.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll"
+      ],
+      "sha256": "0b531e82b0416ed480f969a0841a71c032210b8e56bff83dab951f0b44ba10fa"
+    },
+    "native_driver": {
+      "sha256": "20106292facc167075ebdadcf477ec8966fcd67ce602736b55bc29ddd269ae42",
+      "new_binary": true,
+      "machine": "AMD64",
+      "matched_dependency_exports": [
+        "avcodec-62.dll",
+        "avutil-60.dll",
+        "swscale-9.dll",
+        "openvr_api.dll"
+      ],
+      "source_patch_sha256": {
+        "0001-local-microphone-consent.patch": "9377a0d5658bfe67355496ad9fc65a492fc8b1a98a0b64eb8dd40e92ebb7ee7b",
+        "0002-transport-network-resilience.patch": "a4bcacb11156f597d4cb21a02ca464df8dacb46582816f64aae2bf611b0cb68b",
+        "0003-native-controller-fidelity.patch": "a7f44ad8ff13db4fecac6af1e1a45d58b8b89b136b1167ece7b14db6b616f3ef",
+        "0004-host-capture-amf.patch": "7ef93be05c90c8a7fcaf91f1d3cbdc79aa78592a334424cdf0ec84a2cec4034a",
+        "0005-native-protocol-and-build.patch": "6534962e2d7eb8ed5930601abbeeea8f165237ef67b793bad8e7b91b9559816d",
+        "0006-host-chaperone-idempotence.patch": "c71716c33433d2ca685f3f47f4bf8bf7562d3efabfe3c30b011f99223dc555b3"
+      },
+      "windows_execution": false
+    },
+    "VROSTBridge-Host-Setup-1.0.0-rc1.exe": {
+      "sha256": "6cfc0380248949052942c4425fbebe8e021a70878648fcf983cee42019f939b7",
+      "bytes": 134255750,
+      "nsis_crc": "0xed931919",
+      "verified_extracted_files": 1606
+    }
+  },
+  "limits": [
+    "Windows execution and physical VR not tested"
+  ]
+}

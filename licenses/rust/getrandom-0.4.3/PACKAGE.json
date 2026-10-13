@@ -1,0 +1,44 @@
+{
+  "crate": "getrandom",
+  "version": "0.4.3",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-random/getrandom",
+  "authors": [
+    "The Rand Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "aaff376532ea30a0cd5330b9502ad4a4c8bf769c539c87ffe78819d188a18ebf",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "523a42c25d245dde9c015f882cec7f4555aad883382a6cf19b4b7d9b2cd5419b",
+      "bytes": 1130,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099",
+    "windows_client": "300e883d756b2e4ec94e02791f39b04b522276138852cfc41d9fb7e904106099"
+  },
+  "source_url": "https://crates.io/crates/getrandom/0.4.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5e7cd5733536844a9856dc7259bd4696bbe5e3ae"
+    },
+    "path_in_vcs": ""
+  }
+}

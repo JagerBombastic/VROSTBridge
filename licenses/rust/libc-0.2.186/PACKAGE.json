@@ -1,0 +1,42 @@
+{
+  "crate": "libc",
+  "version": "0.2.186",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/libc",
+  "authors": [
+    "The Rust Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "123a331b5dbf04c30097fa43b8f858bc85df671fe776de498d01f3d6b7c1f69e",
+      "bytes": 1066,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "68ab91017fe16c622486840e4c83c9a37afeff978bd239b5293d61ece587de66"
+  },
+  "source_url": "https://crates.io/crates/libc/0.2.186",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "42620ffc4109dc32e02f1cae9e63a3f4311b4b71"
+    },
+    "path_in_vcs": ""
+  }
+}

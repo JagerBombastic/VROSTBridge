@@ -1,0 +1,37 @@
+{
+  "crate": "owned_ttf_parser",
+  "version": "0.25.1",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/alexheretic/owned-ttf-parser",
+  "authors": [
+    "Alex Butler <alexheretic@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "bytes": 10173,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "36820e9051aca1014ddc75770aab4d68bc1e9e632f0f5627c4086bc216fb583b",
+    "windows_client": "36820e9051aca1014ddc75770aab4d68bc1e9e632f0f5627c4086bc216fb583b"
+  },
+  "source_url": "https://crates.io/crates/owned_ttf_parser/0.25.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "3abee95150b4c32f16ffbaf1bb922a68b465d48b"
+    },
+    "path_in_vcs": ""
+  }
+}

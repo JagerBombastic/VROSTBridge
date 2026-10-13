@@ -1,0 +1,129 @@
+{
+  "version": "1.0.0-rc3",
+  "date": "2026-10-03",
+  "compatible_hosts": [
+    "1.0.0-rc1",
+    "1.0.0-rc2",
+    "1.0.0-rc3"
+  ],
+  "physical_validation": false,
+  "scope": [
+    "Patch 0007 host frame-timing lock (source; inactive until a driver build)",
+    "Parallel host/client startup from cached verified headset",
+    "Session quality line from host GraphStatistics window",
+    "Capability negotiation (quality-2, pipeline-1, vsync-lock-1)",
+    "H.264 CABAC, encoder priority option, 30 ms wired audio buffer",
+    "Read-only host SteamVR add-on detection",
+    "In-session decoder reconfiguration and stream dimension change",
+    "Start-up and reconnect timing log lines"
+  ],
+  "deferred": {
+    "10-bit HEVC": "requires a client transport rebuild (encoder_10_bits capability); now buildable, planned after timing-lock hardware testing",
+    "Windows DSCP": "non-domain PCs need HKLM registry change and reboot",
+    "host keep-warm": "changes Stop semantics; needs Windows lifecycle testing",
+    "intra-refresh": "needs per-GPU encoder testing"
+  },
+  "patch_0007": {
+    "applies_in_order_to": "f5023f8e78fa14ea57fb1038548d7820289a8524 after 0001-0006",
+    "module_tests": "9/9 pass (rustc 1.97.0 --test, std only): wrap, disabled/invalid samples, margin bounds, acquisition and bounded tracking, boundary straddle, scattered phase, closed loop over 9 phases x 3 drifts, free-running baseline comparison, high jitter",
+    "simulation_example": {
+      "free_running_wait_ms": [
+        3.68,
+        11.49
+      ],
+      "free_running_worst_glitches_20s": {
+        "repeats": 50,
+        "drops": 51
+      },
+      "locked_wait_ms": 3.7,
+      "locked_glitches": 0
+    },
+    "statistics_rs": "compiled against stubs copying pinned alvr_common/alvr_events/alvr_packets definitions; run applied corrected vsync",
+    "connection_rs": "serde_json Value API, not compiled (crates.io unreachable)",
+    "driver_built": false,
+    "patch_sha256": "9358bbff57fffd2cb6054e6f29258d9cc695dc962bcdb47fbc908c4441d627c6",
+    "revision": "VsyncLock::enabled() removed (dead code reported by the full build); behaviour unchanged"
+  },
+  "native_rebuilt_sha256": {
+    "VROSTBridgeClient": "bd9c6f94606918205490fe237028723181886c0bfafb613cd8d025284d7d189b",
+    "VROSTBridgeRuntimeProbe": "cae9b6d40dc1a61de43d2be1ba18129b0769603686e6f2cdb3914ae123591b72"
+  },
+  "native_symbol_ceiling": "GLIBC_2.38, GLIBCXX_3.4.32 (unchanged since RC1.3)",
+  "native_reused_sha256": {
+    "VROSTBridgeLease": "21c759b56606ad3b87ab2c08a5dcdf2dccbaa185d219c8d8e94f81a500fbaccf",
+    "libvrostbridge_transport.so": "2f3c9fe56b1d86abb16f2532457e73d294bd042d1f9729cc78549f3396270dc5",
+    "libopenvr_api.so": "cb68c5788b0ddab32c0402e58820956a489ef6cb99ecf2e1fa997533ead54475",
+    "assets/convert.spv": "20d34ae3b17cfd2653f1bbdca23be4a3baf3c8d4fa262b44a6b6409bfec130eb",
+    "lib/libavcodec.so.60": "5a3bd1641d776b07c880ca3b2d47b9dd5bbafa5d301d6a86488ca646e81a56d8",
+    "lib/libavutil.so.58": "9a3de19e0a04400e94fba75fbe511e09826c1c74441221ef8fb81bff0312f091",
+    "lib/libswscale.so.7": "5b2863736559e17d43a541272dc30113b459edaa1e6ca7f0845f0c965deb004f",
+    "lib/libSDL2-2.0.so.0": "2507acbbe40afe7d3e2e775dd8af00a1dba93579b9e837563032f3d751a9a45b",
+    "lib/libwayland-server.so.0": "d6cc42aff7539831152735f58958fd3d854c77881b053c771fbe7a819df5392f",
+    "tools/go-bsb-cams": "42288d4d851c1a1b0d1ae496e9823cf72bb3c7ed7d56eeb13f33038dea8702ce"
+  },
+  "source_sha256": {
+    "client/platform/linux/main.cpp": "05b6698f3e72408d385e4154bd55460b0f2ae2ba9f1d3634bfa65cf9943c57de",
+    "client/platform/linux/vulkan.cpp": "19efc29e0811be7aedb4f9a9cc08202d71425980cdefa4f1b6d74754e20b8a0a",
+    "client/platform/linux/video.hpp": "e1b8d3a9bb22f61f7c5fa31a655600d83479c1ac0ac92b0a12678f24373fc0b5",
+    "launcher/app.py": "3318422c380ad05856147ec81b0d9626d852a00506476c5a4c98ea2211c95f70",
+    "launcher/session_link.py": "4e27ec43e637b468ce999aadc003186e6031c35098175d19f86f25fbe41b1da3",
+    "launcher/desktop.html": "1c66f797e82c2ecaa8f8d4c36817ebfeed2f807ad11665c7f27702c36e4d5d16",
+    "host/pipeline_stats.py": "ea8613c32092a167cc125d0389ec5a5cefd74d0ac16e1c045aa83d02336bd2b5",
+    "host/addons.py": "5759d9703275829eae7a3a800862a123dbe49a6e881c536c341c4aefec4de6a5",
+    "host/events.py": "a587a21bffdbcfd848b91537dbe1ec562d1f86b688df409a16266c248954a012",
+    "host/profile.py": "5c89550b1f7bcb95f9e618e9d850e883f2e67c95eb600fe2ada40a81bf462dde",
+    "patches/0007-host-frame-timing-lock.patch": "8b6341cd5c3726c38e6f1fb82e71e5891b3b2dc74e7092d537ca8075887cdd5a",
+    "tests/test_rc3_updates.py": "c18afec54246bc647cb4c7efe2ac5c0c71071eeb7e14613199421affb8a15ff6"
+  },
+  "tests": {
+    "native": "9/9 ctest suites",
+    "python": "326 tests pass (full discover) including test_rc3_updates.py (19, incl. host repack with a rebuilt driver)",
+    "desktop_ui": "pass (encoder priority and timing lock in start body)",
+    "package": [
+      "frozen launcher self-test; 1611-file manifest verified; zip CRC verified",
+      "managed upgrade over simulated RC2 install retained codec/bitrate/late-frame/prediction settings and pairing; new defaults encoder=speed timing_lock=true",
+      "same-version repair",
+      "packaged companion reported 1.0.0-rc3, served new controls, quit cleanly"
+    ],
+    "host_payload": "companion-only repack over verified RC1 payload; host launcher, helpers and ALVR driver byte-identical; 76 companion Python files compile under Python 3.13; setup EXE not built (NSIS 3.09 distribution unavailable in workspace)"
+  },
+  "remaining_validation": [
+    "Physical RC3: quality line, startup timing, encoder priority, CABAC on Index",
+    "All RC2 physical checks",
+    "Physical timing-lock confirmation (VROST_VSYNC_LOCK, timing lock on, frames wait ~3-4 ms)",
+    "Windows install of the RC3 host setup EXE over RC1"
+  ],
+  "host_driver": {
+    "file": "dist/host/bin/win64/driver_alvr_server.dll",
+    "sha256": "9be32b2819d47d63d5817c5c93d4dff3527649ec8dfd38ffb9d458d9db20551d",
+    "bytes": 16829952,
+    "build_manifest_sha256": "b1b18fd95601a8994f3216cdeb39b3bdb2072ca70818a6f3c81d90c4996dfbea",
+    "command": "scripts/Build-Host-Cross.py --alvr <ALVR f5023f8e + 0001-0007> --sdk-root <xwin splat> --clang-cl/--llvm-lib/--lld-link <LLVM 19.1.1> --jobs 2",
+    "compiler": "Rust 1.97.1; Clang 19.1.1 MSVC ABI; LLVM lld 19.1.1; MSVC CRT 14.44; Windows SDK 10.0.26100; static CRT and oneVPL 2.15.0; GPL FFmpeg 8.1 ABI (BtbN n8.1.3 import libraries; ships the n8.1.2 DLLs); Linux-hosted cross-build (xwin 0.8.0); crates from static.crates.io verified against Cargo.lock",
+    "source_patch_sha256": {
+      "0001-local-microphone-consent.patch": "9377a0d5658bfe67355496ad9fc65a492fc8b1a98a0b64eb8dd40e92ebb7ee7b",
+      "0002-transport-network-resilience.patch": "a4bcacb11156f597d4cb21a02ca464df8dacb46582816f64aae2bf611b0cb68b",
+      "0003-native-controller-fidelity.patch": "a7f44ad8ff13db4fecac6af1e1a45d58b8b89b136b1167ece7b14db6b616f3ef",
+      "0004-host-capture-amf.patch": "7ef93be05c90c8a7fcaf91f1d3cbdc79aa78592a334424cdf0ec84a2cec4034a",
+      "0005-native-protocol-and-build.patch": "6534962e2d7eb8ed5930601abbeeea8f165237ef67b793bad8e7b91b9559816d",
+      "0006-host-chaperone-idempotence.patch": "c71716c33433d2ca685f3f47f4bf8bf7562d3efabfe3c30b011f99223dc555b3",
+      "0007-host-frame-timing-lock.patch": "9358bbff57fffd2cb6054e6f29258d9cc695dc962bcdb47fbc908c4441d627c6"
+    },
+    "inputs": {
+      "rust": "1.97.1 (8bab26f4f 2026-07-14), target x86_64-pc-windows-msvc",
+      "llvm": "19.1.1 release LLVM-19.1.1-Linux-X64.tar.xz (clang-cl, lld-link, llvm-lib, libclang for bindgen)",
+      "msvc_sdk": "xwin 0.8.0 splat: CRT 14.44.17.14, Windows SDK 10.0.26100 (Microsoft licence; build input only, not redistributed)",
+      "onevpl": "intel/libvpl v2.15.0 (c45b5d78), static vpl.lib, /MT, clang-cl",
+      "vulkan_headers": "KhronosGroup/Vulkan-Headers v1.4.338",
+      "ffmpeg_import_libraries": "BtbN ffmpeg-n8.1-latest-win64-gpl-shared-8.1.zip (n8.1.3-14-g330caae0c1-20261001), zip sha256 b0d998fe3f2be9d87684683d13b667a11dda41fc7db15e731819ebf378b5e678",
+      "crates": "784 crates.io packages from static.crates.io, each SHA-256 checked against Cargo.lock; settings-schema-rs git 676185f"
+    },
+    "verification": [
+      "exports identical to the RC1 driver (51 functions)",
+      "imported DLL and symbol set identical to the RC1 driver",
+      "all avcodec-62/avutil-60/swscale-9/openvr_api imports resolve against the shipped RC1 DLLs (FFmpeg n8.1.2-54-gc573a95381)",
+      "contains vrostbridge-native-1, 21.0.0-dev14, VROST_VSYNC_LOCK and vrostbridge-timing.json",
+      "RC1 driver for comparison: 20106292facc167075ebdadcf477ec8966fcd67ce602736b55bc29ddd269ae42"
+    ]
+  }
+}

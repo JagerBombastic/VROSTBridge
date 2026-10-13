@@ -1,0 +1,26 @@
+Native Linux client build 0.2.5
+Command: g++ -std=c++17 -O2 -Wall -Wextra -Wno-missing-field-initializers -pthread -I/workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5 -I/workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/third_party/openvr -I/workspace/scratch/647ea6e3ae16/build-tools/native-sysroot/usr/include -I/workspace/scratch/647ea6e3ae16/build-tools/native-sysroot/usr/include/x86_64-linux-gnu /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/client/platform/linux/main.cpp /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/client/platform/linux/vulkan.cpp /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/client/platform/linux/decoder.cpp /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/client/device/openvr_device.cpp -L/workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/dist/client/lib -L/workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/dist/client -lvrostbridge_transport -l:libavcodec.so.60 -l:libavutil.so.58 -l:libswscale.so.7 -l:libvulkan.so.1 -ldl '-Wl,-rpath,$ORIGIN:$ORIGIN/lib' -o /workspace/scratch/647ea6e3ae16/build-tools/native-build/VROSTBridgeClient
+Exit: 0
+
+Packaged binary SHA256: 50fa016943205746c2facfedc8c38f5e24d976ededcaf084a40e6287fcaae870
+Packaged --help exit: 0
+VROSTBridge 0.2.5 native Linux client
+--software-decode  Explicit CPU compatibility mode (not a performance path)
+Dynamic dependencies:
+	linux-vdso.so.1 (0x00007f99cf5d6000)
+	libvrostbridge_transport.so => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/dist/client/libvrostbridge_transport.so (0x00007f99ceaf2000)
+	libavcodec.so.60 => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/dist/client/lib/libavcodec.so.60 (0x00007f99ce7da000)
+	libavutil.so.58 => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/dist/client/lib/libavutil.so.58 (0x00007f99cd6e4000)
+	libswscale.so.7 => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/dist/client/lib/libswscale.so.7 (0x00007f99cd66c000)
+	libvulkan.so.1 => /lib/x86_64-linux-gnu/libvulkan.so.1 (0x00007f99cd5e3000)
+	libstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f99cd365000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f99cd27c000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f99cd24e000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f99cd03c000)
+	libasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007f99ccf32000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f99cf5d8000)
+	libva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007f99ccf00000)
+	libva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007f99ccefb000)
+	libdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007f99ccee4000)
+
+Physical Vulkan/SteamVR execution: not available in build environment.

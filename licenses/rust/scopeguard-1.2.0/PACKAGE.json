@@ -1,0 +1,46 @@
+{
+  "crate": "scopeguard",
+  "version": "1.2.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/bluss/scopeguard",
+  "authors": [
+    "bluss"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "fb77f0a9c53e473abe5103c8632ef9f0f2874d4fb3f17cb2d8c661aab9cee9d7",
+      "bytes": 1097,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49",
+    "linux_client": "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49",
+    "windows_client": "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+  },
+  "source_url": "https://crates.io/crates/scopeguard/1.2.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "bb988222848d39b0b9037b29da3a3a1eb05ebf4b"
+    },
+    "path_in_vcs": ""
+  }
+}

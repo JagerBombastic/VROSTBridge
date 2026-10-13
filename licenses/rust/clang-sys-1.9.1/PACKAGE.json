@@ -1,0 +1,35 @@
+{
+  "crate": "clang-sys",
+  "version": "1.9.1",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/KyleMayes/clang-sys",
+  "authors": [
+    "Kyle Mayes <kyle@mayeses.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "157a8ba7b480713b56f4c09fd13fc3e0a22a5dfab8097ba61cbc5feef950788a"
+  },
+  "source_url": "https://crates.io/crates/clang-sys/1.9.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "8844c21292e54818d200980cd90a5498e2a5a644"
+    },
+    "path_in_vcs": ""
+  }
+}

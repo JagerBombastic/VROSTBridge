@@ -1,0 +1,35 @@
+{
+  "crate": "neli",
+  "version": "0.7.4",
+  "license": "BSD-3-Clause",
+  "repository": "https://github.com/jbaublitz/neli",
+  "authors": [
+    "John Baublitz <john.m.baublitz@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "55db47296484645e5c3ff9965f79e4e1c521f4afc1e997590910e69a3dc41093",
+      "bytes": 1513,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "22f9786d56d972959e1408b6a93be6af13b9c1392036c5c1fafa08a1b0c6ee87"
+  },
+  "source_url": "https://crates.io/crates/neli/0.7.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "1f3498207671ccc80f391b56db0648cbd754b8a5"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "crate": "symphonia-format-riff",
+  "version": "0.5.5",
+  "license": "MPL-2.0",
+  "repository": "https://github.com/pdeljanov/Symphonia",
+  "authors": [
+    "Philip Deljanov <philip.deljanov@gmail.com>",
+    "dedobbin <dedobbindedobbin@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE",
+      "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+      "bytes": 16725,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+      "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "c2d7c3df0e7d94efb68401d81906eae73c02b40d5ec1a141962c592d0f11a96f",
+    "linux_client": "c2d7c3df0e7d94efb68401d81906eae73c02b40d5ec1a141962c592d0f11a96f",
+    "windows_client": "c2d7c3df0e7d94efb68401d81906eae73c02b40d5ec1a141962c592d0f11a96f"
+  },
+  "source_url": "https://crates.io/crates/symphonia-format-riff/0.5.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "6d533f26150953a882a6a111ebd13f0abf7129d5"
+    },
+    "path_in_vcs": "symphonia-format-riff"
+  }
+}

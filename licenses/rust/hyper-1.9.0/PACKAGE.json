@@ -1,0 +1,35 @@
+{
+  "crate": "hyper",
+  "version": "1.9.0",
+  "license": "MIT",
+  "repository": "https://github.com/hyperium/hyper",
+  "authors": [
+    "Sean McArthur <sean@seanmonstar.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "2d01890414494742ba4a509fcec8efa40f6d8be22cbd72be7cff08d6fda4ec89",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6299f016b246a94207e63da54dbe807655bf9e00044f73ded42c3ac5305fbcca"
+  },
+  "source_url": "https://crates.io/crates/hyper/1.9.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "0d6c7d5469baa09e2fb127ee3758a79b3271a4f0"
+    },
+    "path_in_vcs": ""
+  }
+}

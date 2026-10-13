@@ -1,0 +1,42 @@
+{
+  "crate": "windows-core",
+  "version": "0.62.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/microsoft/windows-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "windows_client"
+  ],
+  "notice_files": [
+    "license-apache-2.0",
+    "license-mit"
+  ],
+  "notice_details": [
+    {
+      "file": "license-apache-2.0",
+      "sha256": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+      "bytes": 11351,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "license-mit",
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+      "bytes": 1141,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "b8e83a14d34d0623b51dce9581199302a221863196a1dde71a7663a4c2be9deb",
+    "windows_client": "b8e83a14d34d0623b51dce9581199302a221863196a1dde71a7663a4c2be9deb"
+  },
+  "source_url": "https://crates.io/crates/windows-core/0.62.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "32c3144490c016fe496a0aed769bce60987a2e9d"
+    },
+    "path_in_vcs": "crates/libs/core"
+  }
+}

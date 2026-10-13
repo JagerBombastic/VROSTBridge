@@ -1,0 +1,69 @@
+{
+  "version": "1.0.0-rc1",
+  "verified_utc": "2026-09-28T02:01:57.574850+00:00",
+  "report_findings": {
+    "right_optical_tracking_reset_local": "2026-09-28 02:44:01.954",
+    "right_optical_bootstrap_local": "2026-09-28 02:44:20.267",
+    "right_reset_to_bootstrap_seconds": 18.313,
+    "left_optical_tracking_reset_local": "2026-09-28 02:43:40.977",
+    "left_optical_bootstrap_local": "2026-09-28 02:43:43.093",
+    "haptic_overflow_observed": true,
+    "binding_invalid_modes_observed": [
+      "grip value inside force_sensor",
+      "trackpad force inside trackpad"
+    ],
+    "end_snapshot_both_connected": true,
+    "end_snapshot_both_actions_active": 16,
+    "end_snapshot_both_action_errors": 0
+  },
+  "fixes": [
+    "Accept registered activated host input writes independently of pose validity",
+    "Keep connected physical controller actions while optical tracking is invalid",
+    "Send full state on recovery, role change, focus transition, and every250ms",
+    "Retain disconnect/focus/error neutral releases",
+    "Bound and mix each hands haptics envelope with nonoverlapping8ms slices, expiry and counters",
+    "Bind capacitive grip as trigger/pull and pad force as force_sensor/force"
+  ],
+  "checks": [
+    {
+      "command": [
+        "audit036/input_tests"
+      ],
+      "exit_code": 0,
+      "output": "Controller profile, optical-loss recovery, action release, resync and haptic contracts passed\n"
+    },
+    {
+      "command": [
+        "audit036/native_hand_host_tests"
+      ],
+      "exit_code": 0,
+      "output": "Native host exact scalar, expiry, activated-component and optical-loss input tests passed\n"
+    },
+    {
+      "command": [
+        "python3",
+        "work036/VROSTBridge-1.0.0-rc1/tests/check_assets.py"
+      ],
+      "exit_code": 0,
+      "output": "Validated 40 actions and 38 binding outputs; both system buttons mapped\n"
+    },
+    {
+      "command": [
+        "g++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Wno-missing-field-initializers",
+        "-fsyntax-only",
+        "-I",
+        "work036/VROSTBridge-1.0.0-rc1",
+        "-I",
+        "work036/VROSTBridge-1.0.0-rc1/third_party/openvr",
+        "work036/VROSTBridge-1.0.0-rc1/client/device/openvr_device.cpp"
+      ],
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "hardware_validated": false
+}

@@ -1,0 +1,44 @@
+{
+  "crate": "anyhow",
+  "version": "1.0.104",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/dtolnay/anyhow",
+  "authors": [
+    "David Tolnay <dtolnay@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470",
+    "windows_client": "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
+  },
+  "source_url": "https://crates.io/crates/anyhow/1.0.104",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "1dbe1862aae650423e3361fbd20b7d17c5109cc3"
+    },
+    "path_in_vcs": ""
+  }
+}

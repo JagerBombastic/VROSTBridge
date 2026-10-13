@@ -1,0 +1,60 @@
+{
+  "crate": "miniz_oxide",
+  "version": "0.8.9",
+  "license": "MIT OR Zlib OR Apache-2.0",
+  "repository": "https://github.com/Frommi/miniz_oxide/tree/master/miniz_oxide",
+  "authors": [
+    "Frommi <daniil.liferenko@gmail.com>",
+    "oyvindln <oyvindln@users.noreply.github.com>",
+    "Rich Geldreich richgel99@gmail.com"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE",
+    "LICENSE-APACHE.md",
+    "LICENSE-MIT.md",
+    "LICENSE-ZLIB.md"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "4108245a1f2df9d4e94df8abed5b4ba0759bb2f9b40a6b939f1be141077ae50b",
+      "bytes": 1213,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE.md",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "bytes": 10174,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT.md",
+      "sha256": "799e9ca9d179295ef372f25d3769cdda7d25bb2668add6a6a1e22d1e4c678b8d",
+      "bytes": 1212,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-ZLIB.md",
+      "sha256": "0a54e647fe54104658b5e563c04c6f9edf251710e47bce692e0bd990a4ddaa39",
+      "bytes": 984,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316",
+    "linux_client": "1fa76a2c86f704bdb222d66965fb3d63269ce38518b83cb0575fca855ebb6316"
+  },
+  "source_url": "https://crates.io/crates/miniz_oxide/0.8.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "44e43c7786e379b2b1a7fde4aa0e63be719e583d"
+    },
+    "path_in_vcs": "miniz_oxide"
+  }
+}

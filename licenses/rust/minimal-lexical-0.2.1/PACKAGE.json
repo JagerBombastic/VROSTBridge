@@ -1,0 +1,50 @@
+{
+  "crate": "minimal-lexical",
+  "version": "0.2.1",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/Alexhuszagh/minimal-lexical",
+  "authors": [
+    "Alex Huszagh <ahuszagh@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "LICENSE.md"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "8173d5c29b4f956d532781d2b86e4e30f83e6b7878dce18c919451d6ba707c90",
+      "bytes": 10850,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE.md",
+      "sha256": "dbe1fff0fb1314b6af94f161511406275cf01c5a32441fbf24528a57a051d599",
+      "bytes": 2003,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a",
+    "linux_client": "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
+  },
+  "source_url": "https://crates.io/crates/minimal-lexical/0.2.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "e997c46656ebe83e696b866bd954da1fa3f64eef"
+    }
+  }
+}

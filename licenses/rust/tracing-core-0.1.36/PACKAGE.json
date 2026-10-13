@@ -1,0 +1,42 @@
+{
+  "crate": "tracing-core",
+  "version": "0.1.36",
+  "license": "MIT",
+  "repository": "https://github.com/tokio-rs/tracing",
+  "authors": [
+    "Tokio Contributors <team@tokio.rs>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE",
+    "src/spin/LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "898b1ae9821e98daf8964c8d6c7f61641f5f5aa78ad500020771c0939ee0dea1",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "src/spin/LICENSE",
+      "sha256": "58545fed1565e42d687aecec6897d35c6d37ccb71479a137c0deb2203e125c79",
+      "bytes": 1085,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "db97caf9d906fbde555dd62fa95ddba9eecfd14cb388e4f491a66d74cd5fb79a"
+  },
+  "source_url": "https://crates.io/crates/tracing-core/0.1.36",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "10a9e838a35e6ded79d66af246be2ee05417136d"
+    },
+    "path_in_vcs": "tracing-core"
+  }
+}

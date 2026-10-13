@@ -1,0 +1,245 @@
+{
+  "controller_type": "knuckles",
+  "name": "VROSTBridge Index controls",
+  "description": "Index controller passthrough for both hands. System buttons open the host dashboard while VROSTBridge enables SteamVR system-button input.",
+  "bindings": {
+    "/actions/test": {
+      "poses": [
+        {
+          "path": "/user/hand/left/pose/raw",
+          "output": "/actions/test/in/left_pose"
+        },
+        {
+          "path": "/user/hand/right/pose/raw",
+          "output": "/actions/test/in/right_pose"
+        }
+      ],
+      "haptics": [
+        {
+          "path": "/user/hand/left/output/haptic",
+          "output": "/actions/test/out/left_haptic"
+        },
+        {
+          "path": "/user/hand/right/output/haptic",
+          "output": "/actions/test/out/right_haptic"
+        }
+      ],
+      "skeleton": [
+        {
+          "path": "/user/hand/left/input/skeleton/left",
+          "output": "/actions/test/in/left_skeleton"
+        },
+        {
+          "path": "/user/hand/right/input/skeleton/right",
+          "output": "/actions/test/in/right_skeleton"
+        }
+      ],
+      "sources": [
+        {
+          "path": "/user/hand/left/input/trigger",
+          "mode": "trigger",
+          "inputs": {
+            "pull": {
+              "output": "/actions/test/in/left_trigger"
+            },
+            "touch": {
+              "output": "/actions/test/in/left_trigger_touch"
+            },
+            "click": {
+              "output": "/actions/test/in/left_trigger_click"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/grip",
+          "mode": "force_sensor",
+          "inputs": {
+            "force": {
+              "output": "/actions/test/in/left_grip"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/thumbstick",
+          "mode": "joystick",
+          "inputs": {
+            "position": {
+              "output": "/actions/test/in/left_stick"
+            },
+            "click": {
+              "output": "/actions/test/in/left_stick_click"
+            },
+            "touch": {
+              "output": "/actions/test/in/left_stick_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/trackpad",
+          "mode": "trackpad",
+          "inputs": {
+            "position": {
+              "output": "/actions/test/in/left_pad"
+            },
+            "touch": {
+              "output": "/actions/test/in/left_pad_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/a",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/test/in/left_a"
+            },
+            "touch": {
+              "output": "/actions/test/in/left_a_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/b",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/test/in/left_b"
+            },
+            "touch": {
+              "output": "/actions/test/in/left_b_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/trigger",
+          "mode": "trigger",
+          "inputs": {
+            "pull": {
+              "output": "/actions/test/in/right_trigger"
+            },
+            "touch": {
+              "output": "/actions/test/in/right_trigger_touch"
+            },
+            "click": {
+              "output": "/actions/test/in/right_trigger_click"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/grip",
+          "mode": "force_sensor",
+          "inputs": {
+            "force": {
+              "output": "/actions/test/in/right_grip"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/thumbstick",
+          "mode": "joystick",
+          "inputs": {
+            "position": {
+              "output": "/actions/test/in/right_stick"
+            },
+            "click": {
+              "output": "/actions/test/in/right_stick_click"
+            },
+            "touch": {
+              "output": "/actions/test/in/right_stick_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/trackpad",
+          "mode": "trackpad",
+          "inputs": {
+            "position": {
+              "output": "/actions/test/in/right_pad"
+            },
+            "touch": {
+              "output": "/actions/test/in/right_pad_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/a",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/test/in/right_a"
+            },
+            "touch": {
+              "output": "/actions/test/in/right_a_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/b",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/test/in/right_b"
+            },
+            "touch": {
+              "output": "/actions/test/in/right_b_touch"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/system",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/test/in/left_remote_menu"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/system",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/test/in/right_remote_menu"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/grip",
+          "mode": "trigger",
+          "inputs": {
+            "pull": {
+              "output": "/actions/test/in/left_grip_value"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/trackpad",
+          "mode": "force_sensor",
+          "inputs": {
+            "force": {
+              "output": "/actions/test/in/left_pad_force"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/grip",
+          "mode": "trigger",
+          "inputs": {
+            "pull": {
+              "output": "/actions/test/in/right_grip_value"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/trackpad",
+          "mode": "force_sensor",
+          "inputs": {
+            "force": {
+              "output": "/actions/test/in/right_pad_force"
+            }
+          }
+        }
+      ]
+    }
+  }
+}

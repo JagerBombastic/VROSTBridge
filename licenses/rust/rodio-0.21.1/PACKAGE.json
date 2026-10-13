@@ -1,0 +1,44 @@
+{
+  "crate": "rodio",
+  "version": "0.21.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustAudio/rodio",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "8413e02ab732827f3398a5790cbe99ca74f82d2c0f4cdf87312c99cb8acb48a5",
+      "bytes": 11311,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e40ecf59e742e03336be6a3d53755e789fd05a059fa22dfa0ed624722319e183",
+    "linux_client": "e40ecf59e742e03336be6a3d53755e789fd05a059fa22dfa0ed624722319e183",
+    "windows_client": "e40ecf59e742e03336be6a3d53755e789fd05a059fa22dfa0ed624722319e183"
+  },
+  "source_url": "https://crates.io/crates/rodio/0.21.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7f10fcc57c9f1a7bbefb0c371a73d1224f8b5855"
+    },
+    "path_in_vcs": ""
+  }
+}

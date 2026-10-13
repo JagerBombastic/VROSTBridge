@@ -1,0 +1,4 @@
+Final Bazzite installer ZIP: CRC and 579 payload SHA-256 hashes passed.
+Archive payload manifest equals the final installer smoke-tested manifest.
+Native client: 50fa016943205746c2facfedc8c38f5e24d976ededcaf084a40e6287fcaae870
+No physical headset test is implied.

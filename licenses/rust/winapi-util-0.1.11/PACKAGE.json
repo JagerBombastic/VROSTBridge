@@ -1,0 +1,42 @@
+{
+  "crate": "winapi-util",
+  "version": "0.1.11",
+  "license": "Unlicense OR MIT",
+  "repository": "https://github.com/BurntSushi/winapi-util",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "bytes": 126,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "cb3c929a05e6cbc9de9ab06a4c57eeb60ca8c724bef6c138c87d3a577e27aa14",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_client": "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
+  },
+  "source_url": "https://crates.io/crates/winapi-util/0.1.11",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "803874c57dc1f10ecd42f7c86d9de72f53818432"
+    },
+    "path_in_vcs": ""
+  }
+}

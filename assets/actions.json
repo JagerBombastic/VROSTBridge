@@ -1,0 +1,226 @@
+{
+  "action_sets": [
+    {
+      "name": "/actions/test",
+      "usage": "single"
+    }
+  ],
+  "actions": [
+    {
+      "name": "/actions/test/in/left_pose",
+      "type": "pose",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/out/left_haptic",
+      "type": "vibration",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_skeleton",
+      "type": "skeleton",
+      "requirement": "optional",
+      "skeleton": "/skeleton/hand/left"
+    },
+    {
+      "name": "/actions/test/in/left_trigger",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_trigger_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_trigger_click",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_grip",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_grip_value",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_grip_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_stick",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_stick_click",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_stick_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_pad",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_pad_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_pad_force",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_remote_menu",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_a",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_a_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_b",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/left_b_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_pose",
+      "type": "pose",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/out/right_haptic",
+      "type": "vibration",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_skeleton",
+      "type": "skeleton",
+      "requirement": "optional",
+      "skeleton": "/skeleton/hand/right"
+    },
+    {
+      "name": "/actions/test/in/right_trigger",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_trigger_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_trigger_click",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_grip",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_grip_value",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_grip_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_stick",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_stick_click",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_stick_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_pad",
+      "type": "vector2",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_pad_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_pad_force",
+      "type": "vector1",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_remote_menu",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_a",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_a_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_b",
+      "type": "boolean",
+      "requirement": "optional"
+    },
+    {
+      "name": "/actions/test/in/right_b_touch",
+      "type": "boolean",
+      "requirement": "optional"
+    }
+  ],
+  "default_bindings": [
+    {
+      "controller_type": "knuckles",
+      "binding_url": "bindings_index.json"
+    }
+  ],
+  "localization": [
+    {
+      "language_tag": "en_US",
+      "/actions/test": "VROSTBridge controller passthrough",
+      "/actions/test/in/left_remote_menu": "Host dashboard (left system button)",
+      "/actions/test/in/right_remote_menu": "Host dashboard (right system button)"
+    }
+  ]
+}

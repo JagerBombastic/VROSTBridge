@@ -1,0 +1,38 @@
+{
+  "crate": "codespan-reporting",
+  "version": "0.12.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/brendanzab/codespan",
+  "authors": [
+    "Brendan Zabarauskas <bjzaba@yahoo.com.au>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "fe6d2e5af09e8c8ad56c969f2157a3d4238cebc7c55f0a517728c38f7b200f81",
+    "windows_client": "fe6d2e5af09e8c8ad56c969f2157a3d4238cebc7c55f0a517728c38f7b200f81"
+  },
+  "source_url": "https://crates.io/crates/codespan-reporting/0.12.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "3d3a03a8fcc30cc10b783b16c62029d5c232059b",
+      "dirty": true
+    },
+    "path_in_vcs": "codespan-reporting"
+  }
+}

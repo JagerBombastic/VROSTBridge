@@ -1,0 +1,45 @@
+{
+  "crate": "memchr",
+  "version": "2.8.3",
+  "license": "Unlicense OR MIT",
+  "repository": "https://github.com/BurntSushi/memchr",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>",
+    "bluss"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "bytes": 126,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98",
+    "windows_client": "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
+  },
+  "source_url": "https://crates.io/crates/memchr/2.8.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5fdb40c054e1fff359a2f7bdf7f87a13b34b465d"
+    },
+    "path_in_vcs": ""
+  }
+}

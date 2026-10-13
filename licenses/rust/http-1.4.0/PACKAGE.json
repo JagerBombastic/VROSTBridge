@@ -1,0 +1,44 @@
+{
+  "crate": "http",
+  "version": "1.4.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/hyperium/http",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>",
+    "Carl Lerche <me@carllerche.com>",
+    "Sean McArthur <sean@seanmonstar.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "8bb1b50b0e5c9399ae33bd35fab2769010fa6c14e8860c729a52295d84896b7a",
+      "bytes": 10835,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "dc91f8200e4b2a1f9261035d4c18c33c246911a6c0f7b543d75347e61b249cff",
+      "bytes": 1059,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e3ba2a386d7f85a81f119ad7498ebe444d2e22c2af0b86b069416ace48b3311a"
+  },
+  "source_url": "https://crates.io/crates/http/1.4.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b9625d83b524f7a8306883484f29a746eefc1bab"
+    },
+    "path_in_vcs": ""
+  }
+}

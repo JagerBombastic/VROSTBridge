@@ -1,0 +1,42 @@
+{
+  "crate": "base64",
+  "version": "0.22.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/marshallpierce/rust-base64",
+  "authors": [
+    "Marshall Pierce <marshall@mpierce.org>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0dd882e53de11566d50f8e8e2d5a651bcf3fabee4987d70f306233cf39094ba7",
+      "bytes": 1076,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+  },
+  "source_url": "https://crates.io/crates/base64/0.22.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "e14400697453bcc85997119b874bc03d9601d0af"
+    },
+    "path_in_vcs": ""
+  }
+}

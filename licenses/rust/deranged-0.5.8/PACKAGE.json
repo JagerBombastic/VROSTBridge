@@ -1,0 +1,42 @@
+{
+  "crate": "deranged",
+  "version": "0.5.8",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/jhpratt/deranged",
+  "authors": [
+    "Jacob Pratt <jacob@jhpratt.dev>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-Apache",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-Apache",
+      "sha256": "edd65bdd88957a205c47d53fa499eed8865a70320f0f03f6391668cb304ea376",
+      "bytes": 11349,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "231c837c45eb53f108fb48929e488965bc4fcc14e9ea21d35f50e6b99d98685b",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "7cd812cc2bc1d69d4764bd80df88b4317eaef9e773c75226407d9bc0876b211c"
+  },
+  "source_url": "https://crates.io/crates/deranged/0.5.8",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7d0c671e8c806b96d582af197df3c620e09cb33b"
+    },
+    "path_in_vcs": "deranged"
+  }
+}

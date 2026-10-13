@@ -1,0 +1,48 @@
+{
+  "crate": "naga",
+  "version": "25.0.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/gfx-rs/wgpu/tree/trunk/naga",
+  "authors": [
+    "gfx-rs developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE.APACHE",
+    "upstream/LICENSE.MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE.APACHE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "bytes": 10173,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/gfx-rs/wgpu/060a779fc5f56560215ea84bda70278cbbd31e72/LICENSE.APACHE",
+      "commit": "060a779fc5f56560215ea84bda70278cbbd31e72"
+    },
+    {
+      "file": "upstream/LICENSE.MIT",
+      "sha256": "c7fea58d1cfe49634cd92e54fc10a9d871f4b275321a4cd8c09e449122caaeb4",
+      "bytes": 1078,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/gfx-rs/wgpu/060a779fc5f56560215ea84bda70278cbbd31e72/LICENSE.MIT",
+      "commit": "060a779fc5f56560215ea84bda70278cbbd31e72"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "2b977c445f26e49757f9aca3631c3b8b836942cb278d69a92e7b80d3b24da632",
+    "windows_client": "2b977c445f26e49757f9aca3631c3b8b836942cb278d69a92e7b80d3b24da632"
+  },
+  "source_url": "https://crates.io/crates/naga/25.0.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "060a779fc5f56560215ea84bda70278cbbd31e72"
+    },
+    "path_in_vcs": "naga"
+  }
+}

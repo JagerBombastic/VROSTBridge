@@ -1,0 +1,38 @@
+{
+  "crate": "zip",
+  "version": "8.5.1",
+  "license": "MIT",
+  "repository": "https://github.com/zip-rs/zip2",
+  "authors": [
+    "Mathijs van de Nes <git@mathijs.vd-nes.nl>",
+    "Marli Frost <marli@frost.red>",
+    "Ryan Levick <ryan.levick@gmail.com>",
+    "Chris Hennick <hennickc@amazon.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "58545fed1565e42d687aecec6897d35c6d37ccb71479a137c0deb2203e125c79",
+      "bytes": 1085,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "dcab981e19633ebcf0b001ddd37dd802996098bc1864f90b7c5d970ce76c1d59"
+  },
+  "source_url": "https://crates.io/crates/zip/8.5.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5c0a0a252da8b784a19b26b8e52e0523f71f73c3"
+    },
+    "path_in_vcs": ""
+  }
+}

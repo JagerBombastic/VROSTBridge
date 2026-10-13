@@ -1,0 +1,5 @@
+   Compiling alvr_sockets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/upstream/ALVR/alvr/sockets)
+   Compiling alvr_audio v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/upstream/ALVR/alvr/audio)
+   Compiling alvr_client_core v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/upstream/ALVR/alvr/client_core)
+   Compiling vrostbridge_transport v0.2.0 (/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/client/transport)
+    Finished `release` profile [optimized] target(s) in 4.53s

@@ -1,0 +1,518 @@
+diff --git a/alvr/server_core/src/connection.rs b/alvr/server_core/src/connection.rs
+index a6e57988..6884f445 100644
+--- a/alvr/server_core/src/connection.rs
++++ b/alvr/server_core/src/connection.rs
+@@ -931,6 +931,7 @@ fn connection_pipeline(
+     // VROSTBridge: pacing, intra-refresh and gaze foveation options (vrostbridge-stream.json).
+     let vrost_session_file = crate::FILESYSTEM_LAYOUT.get().map(|layout| layout.session());
+     crate::vrostbridge_stream::load_and_apply(vrost_session_file.as_deref(), VIDEO);
++    crate::vrostbridge_gaze::clear();
+     *ctx.statistics_manager.write() = Some(statistics);
+     *ctx.bitrate_manager.lock() =
+         BitrateManager::new(initial_settings.video.bitrate.history_size, fps);
+diff --git a/alvr/server_core/src/vrostbridge_gaze.rs b/alvr/server_core/src/vrostbridge_gaze.rs
+new file mode 100644
+index 00000000..5b84fce3
+--- /dev/null
++++ b/alvr/server_core/src/vrostbridge_gaze.rs
+@@ -0,0 +1,44 @@
++//! VROSTBridge: latest combined eye-gaze direction received from the client.
++//!
++//! The client sends the calibrated combined gaze (a head-relative orientation, the
++//! `eyes_combined` face-tracking field) with each tracking packet when an eye tracker
++//! is active. Face-tracking sinks only forward it when a sink is configured; gaze-
++//! driven foveated encoding needs the latest value regardless, so it is kept here
++//! with the time it arrived.
++
++use alvr_common::{glam::Quat, parking_lot::Mutex};
++use std::time::Instant;
++
++#[derive(Clone, Copy, Debug)]
++pub struct GazeSample {
++    pub received: Instant,
++    pub orientation: Quat,
++}
++
++static LATEST: Mutex<Option<GazeSample>> = Mutex::new(None);
++
++pub fn report(orientation: Quat) {
++    report_at(orientation, Instant::now());
++}
++
++pub fn report_at(orientation: Quat, received: Instant) {
++    if !orientation.is_finite() {
++        return;
++    }
++    let length = orientation.length();
++    if !(0.5..=1.5).contains(&length) {
++        return;
++    }
++    *LATEST.lock() = Some(GazeSample {
++        received,
++        orientation: orientation.normalize(),
++    });
++}
++
++pub fn latest() -> Option<GazeSample> {
++    *LATEST.lock()
++}
++
++pub fn clear() {
++    *LATEST.lock() = None;
++}
+diff --git a/alvr/server_core/src/lib.rs b/alvr/server_core/src/lib.rs
+index 96162309..dfa77673 100644
+--- a/alvr/server_core/src/lib.rs
++++ b/alvr/server_core/src/lib.rs
+@@ -4,6 +4,7 @@ mod connection;
+ mod hand_gestures;
+ mod vrostbridge_vsync;
+ pub mod vrostbridge_stream;
++pub mod vrostbridge_gaze;
+ mod haptics;
+ mod input_mapping;
+ mod logging_backend;
+diff --git a/alvr/server_core/src/tracking/mod.rs b/alvr/server_core/src/tracking/mod.rs
+index f3aa084c..ac9de452 100644
+--- a/alvr/server_core/src/tracking/mod.rs
++++ b/alvr/server_core/src/tracking/mod.rs
+@@ -388,6 +388,11 @@ pub fn tracking_loop(
+                 tracking_manager_lock.report_hand_skeleton(HandType::Right, timestamp, skeleton);
+             }
+ 
++            // VROSTBridge: keep the latest gaze for gaze-driven foveated encoding.
++            if let Some(gaze) = tracking.face.eyes_combined {
++                crate::vrostbridge_gaze::report(gaze);
++            }
++
+             if let Some(sink) = &mut face_tracking_sink {
+                 sink.send_tracking(&tracking.face);
+             }
+diff --git a/alvr/server_openvr/cpp/alvr_server/bindings.h b/alvr/server_openvr/cpp/alvr_server/bindings.h
+index 4ea3293f..0acf210e 100644
+--- a/alvr/server_openvr/cpp/alvr_server/bindings.h
++++ b/alvr/server_openvr/cpp/alvr_server/bindings.h
+@@ -219,6 +219,15 @@ extern "C" unsigned long long PathStringToHash(const char* path);
+ extern "C" void ReportPresent(unsigned long long timestamp_ns, unsigned long long offset_ns);
+ extern "C" void ReportComposed(unsigned long long timestamp_ns, unsigned long long offset_ns);
+ extern "C" FfiDynamicEncoderParams GetDynamicEncoderParams();
++// VROSTBridge: gaze-driven foveation centres (patch 0010). `shifts` is left X/Y, right X/Y:
++// negotiated centres in, centres to use out. Returns false when the session keeps fixed centres.
++extern "C" bool VROSTBridgeFoveationShifts(
++    unsigned int eyeWidth,
++    unsigned int eyeHeight,
++    const float* centerSize,
++    const float* edgeRatio,
++    float* shifts
++);
+ extern "C" void ReportEncoderFoveationCenters(
+     unsigned long long targetTimestampNs, float leftX, float leftY, float rightX, float rightY
+ );
+diff --git a/alvr/server_openvr/cpp/platform/win32/FFR.cpp b/alvr/server_openvr/cpp/platform/win32/FFR.cpp
+index 9b0931d7..a3b3dbcb 100644
+--- a/alvr/server_openvr/cpp/platform/win32/FFR.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/FFR.cpp
+@@ -101,6 +101,22 @@ void FFR::Initialize(ID3D11Texture2D* compositionTexture) {
+ 
+ void FFR::Render(uint64_t targetTimestampNs) {
+     auto fovVars = CalculateFoveationVars();
++    // VROSTBridge (patch 0010): move the full-resolution region to the user's gaze when the
++    // session enables it. The centres used here are the ones published to the client below.
++    float shifts[4] = { fovVars.centerShiftLeftX,
++                        fovVars.centerShiftLeftY,
++                        fovVars.centerShiftRightX,
++                        fovVars.centerShiftRightY };
++    const float centerSize[2] = { fovVars.centerSizeX, fovVars.centerSizeY };
++    const float edgeRatio[2] = { fovVars.edgeRatioX, fovVars.edgeRatioY };
++    if (VROSTBridgeFoveationShifts(
++            fovVars.targetEyeWidth, fovVars.targetEyeHeight, centerSize, edgeRatio, shifts
++        )) {
++        fovVars.centerShiftLeftX = shifts[0];
++        fovVars.centerShiftLeftY = shifts[1];
++        fovVars.centerShiftRightX = shifts[2];
++        fovVars.centerShiftRightY = shifts[3];
++    }
+     UpdateBuffer(mImmediateContext.Get(), mFoveatedRenderingBuffer.Get(), &fovVars);
+ 
+     // Publish the same centers that were uploaded for this frame, without re-aligning them.
+diff --git a/alvr/server_openvr/src/vrostbridge_foveation.rs b/alvr/server_openvr/src/vrostbridge_foveation.rs
+new file mode 100644
+index 00000000..26f48a92
+--- /dev/null
++++ b/alvr/server_openvr/src/vrostbridge_foveation.rs
+@@ -0,0 +1,277 @@
++//! VROSTBridge: gaze-driven foveated encoding centres.
++//!
++//! The pinned host already compresses the periphery of each eye before encoding and
++//! sends the centre positions with every frame, so the client can undo it exactly.
++//! Upstream keeps those centres fixed. With an eye tracker (for example a Bigscreen
++//! Beyond 2e) the full-resolution region can instead follow the user's gaze, which
++//! allows a smaller sharp region and much stronger compression without visible loss.
++//!
++//! For each frame the encoder asks for the centre shifts. This module converts the
++//! latest head-relative gaze direction into each eye's image coordinates using that
++//! eye's pose and field of view, then into ALVR's centre-shift units:
++//! - the right eye uses horizontally mirrored coordinates, like the compression shader;
++//! - shifts are snapped to the same pixel grid the negotiation uses, so region borders
++//!   stay on whole compressed pixels and the client's inverse stays well conditioned;
++//! - small gaze movements inside a dead band keep the previous centre (no shimmer);
++//! - stale or missing gaze returns to the negotiated fixed centre.
++
++use alvr_common::{
++    ViewParams,
++    glam::{Quat, Vec3},
++};
++use std::time::{Duration, Instant};
++
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub struct FoveationGeometry {
++    /// Transcoded eye resolution in pixels (before compression).
++    pub eye_resolution: [f32; 2],
++    /// Negotiated, already aligned centre size per axis.
++    pub center_size: [f32; 2],
++    pub edge_ratio: [f32; 2],
++}
++
++/// Normalised image position (u right, v down, both 0..1) of a head-relative gaze
++/// orientation in one eye's view. None if the gaze points outside the view frustum.
++pub fn eye_image_position(gaze: Quat, view: &ViewParams) -> Option<[f32; 2]> {
++    let direction = gaze * Vec3::NEG_Z;
++    let local = view.pose.orientation.inverse() * direction;
++    if !local.is_finite() || local.z > -1e-3 {
++        return None;
++    }
++    let tx = local.x / -local.z;
++    let ty = local.y / -local.z;
++    let (left, right) = (view.fov.left.tan(), view.fov.right.tan());
++    let (up, down) = (view.fov.up.tan(), view.fov.down.tan());
++    if !(right > left && up > down) {
++        return None;
++    }
++    let u = (tx - left) / (right - left);
++    let v = (up - ty) / (up - down);
++    (u.is_finite() && v.is_finite()).then(|| [u.clamp(0.0, 1.0), v.clamp(0.0, 1.0)])
++}
++
++/// Alignment step of the centre shift on one axis (see the negotiation in server_core).
++pub fn shift_step(resolution: f32, center_size: f32, edge_ratio: f32) -> Option<f32> {
++    let edge_size = resolution - center_size * resolution;
++    let step = edge_ratio * 2.0 / edge_size;
++    (edge_size > 0.0 && edge_ratio > 0.0 && step.is_finite() && step > 0.0 && step < 1.0)
++        .then_some(step)
++}
++
++/// Centre shift that puts the middle of the full-resolution region at `position`
++/// (0..1, already mirrored for the right eye), snapped and clamped like the negotiation.
++pub fn aligned_shift(position: f32, resolution: f32, center_size: f32, edge_ratio: f32) -> f32 {
++    let Some(step) = shift_step(resolution, center_size, edge_ratio) else {
++        return 0.0;
++    };
++    let c0 = (1.0 - center_size) / 2.0;
++    if c0 <= 0.0 {
++        return 0.0;
++    }
++    let shift = (position - 0.5) / c0;
++    let snapped = (shift / step).round() * step;
++    snapped.clamp(-1.0 + step, 1.0 - step)
++}
++
++/// Middle of the full-resolution region for a shift, in the shift's own (mirrored) coordinates.
++pub fn region_middle(shift: f32, center_size: f32) -> f32 {
++    0.5 + (1.0 - center_size) / 2.0 * shift
++}
++
++/// Shifts for both eyes from a gaze direction, or None if it is outside either view.
++pub fn gaze_shifts(
++    gaze: Quat,
++    views: &[ViewParams; 2],
++    geometry: &FoveationGeometry,
++) -> Option<[[f32; 2]; 2]> {
++    let mut shifts = [[0.0; 2]; 2];
++    for (eye, view) in views.iter().enumerate() {
++        let [u, v] = eye_image_position(gaze, view)?;
++        // The compression shader mirrors the right eye horizontally.
++        let x = if eye == 1 { 1.0 - u } else { u };
++        for (axis, position) in [x, v].into_iter().enumerate() {
++            shifts[eye][axis] = aligned_shift(
++                position,
++                geometry.eye_resolution[axis],
++                geometry.center_size[axis],
++                geometry.edge_ratio[axis],
++            );
++        }
++    }
++    Some(shifts)
++}
++
++#[derive(Default)]
++pub struct DynamicFoveation {
++    current: Option<[[f32; 2]; 2]>,
++    pub gaze_frames: u64,
++    pub fallback_frames: u64,
++    pub moves: u64,
++    last_log: Option<Instant>,
++}
++
++pub struct FrameInput<'a> {
++    pub gaze: Option<(Quat, Instant)>,
++    pub views: &'a [ViewParams; 2],
++    pub geometry: FoveationGeometry,
++    pub defaults: [[f32; 2]; 2],
++    pub deadband: f32,
++    pub stale: Duration,
++    pub now: Instant,
++}
++
++impl DynamicFoveation {
++    /// Centre shifts for this frame.
++    pub fn update(&mut self, input: &FrameInput) -> [[f32; 2]; 2] {
++        let fresh_gaze = input
++            .gaze
++            .filter(|(_, received)| input.now.saturating_duration_since(*received) <= input.stale);
++        let target = fresh_gaze.and_then(|(gaze, _)| gaze_shifts(gaze, input.views, &input.geometry));
++        let Some(target) = target else {
++            self.fallback_frames += 1;
++            self.current = None;
++            return input.defaults;
++        };
++        self.gaze_frames += 1;
++        let moved = match self.current {
++            None => true,
++            Some(current) => (0..2).any(|eye| {
++                (0..2).any(|axis| {
++                    let size = input.geometry.center_size[axis];
++                    (region_middle(target[eye][axis], size) - region_middle(current[eye][axis], size))
++                        .abs()
++                        > input.deadband
++                })
++            }),
++        };
++        if moved {
++            self.moves += 1;
++            self.current = Some(target);
++        }
++        self.current.unwrap_or(target)
++    }
++
++    /// True at most every five seconds, for a periodic diagnostic line.
++    pub fn should_log(&mut self, now: Instant) -> bool {
++        let due = self
++            .last_log
++            .is_none_or(|last| now.saturating_duration_since(last) >= Duration::from_secs(5));
++        if due {
++            self.last_log = Some(now);
++        }
++        due
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use alvr_common::{Fov, Pose};
++
++    fn view(yaw_deg: f32) -> ViewParams {
++        ViewParams {
++            pose: Pose {
++                orientation: Quat::from_rotation_y(yaw_deg.to_radians()),
++                position: Vec3::ZERO,
++            },
++            fov: Fov {
++                left: (-50f32).to_radians(),
++                right: 45f32.to_radians(),
++                up: 48f32.to_radians(),
++                down: (-52f32).to_radians(),
++            },
++        }
++    }
++
++    fn geometry() -> FoveationGeometry {
++        FoveationGeometry {
++            eye_resolution: [2560.0, 2560.0],
++            center_size: [0.4, 0.4],
++            edge_ratio: [4.0, 4.0],
++        }
++    }
++
++    #[test]
++    fn straight_ahead_maps_to_the_projection_centre() {
++        let [u, v] = eye_image_position(Quat::IDENTITY, &view(0.0)).unwrap();
++        let left = (-50f32).to_radians().tan();
++        let right = 45f32.to_radians().tan();
++        assert!((u - (0.0 - left) / (right - left)).abs() < 1e-5);
++        let up = 48f32.to_radians().tan();
++        let down = (-52f32).to_radians().tan();
++        assert!((v - up / (up - down)).abs() < 1e-5);
++    }
++
++    #[test]
++    fn looking_right_moves_right_and_up_moves_up() {
++        let base = eye_image_position(Quat::IDENTITY, &view(0.0)).unwrap();
++        let right = eye_image_position(Quat::from_rotation_y((-20f32).to_radians()), &view(0.0)).unwrap();
++        let up = eye_image_position(Quat::from_rotation_x(15f32.to_radians()), &view(0.0)).unwrap();
++        assert!(right[0] > base[0] + 0.1);
++        assert!(up[1] < base[1] - 0.1);
++        // Looking backwards is outside the frustum.
++        assert!(eye_image_position(Quat::from_rotation_y(std::f32::consts::PI), &view(0.0)).is_none());
++    }
++
++    #[test]
++    fn eye_rotation_is_respected() {
++        // A display canted 10 degrees outward sees a straight-ahead gaze 10 degrees inward.
++        let canted = eye_image_position(Quat::IDENTITY, &view(10.0)).unwrap();
++        let flat = eye_image_position(Quat::IDENTITY, &view(0.0)).unwrap();
++        assert!(canted[0] > flat[0]);
++    }
++
++    #[test]
++    fn shifts_are_aligned_clamped_and_centred() {
++        let g = geometry();
++        let step = shift_step(2560.0, 0.4, 4.0).unwrap();
++        assert!((step - 8.0 / 1536.0).abs() < 1e-7);
++        assert_eq!(aligned_shift(0.5, 2560.0, 0.4, 4.0), 0.0);
++        let shift = aligned_shift(0.63, 2560.0, 0.4, 4.0);
++        assert!(((shift / step) - (shift / step).round()).abs() < 1e-3, "on the grid");
++        assert!((region_middle(shift, 0.4) - 0.63).abs() <= step * 0.3 / 2.0 + 1e-4);
++        assert!((aligned_shift(1.0, 2560.0, 0.4, 4.0) - (1.0 - step)).abs() < 1e-6);
++        assert!((aligned_shift(0.0, 2560.0, 0.4, 4.0) + (1.0 - step)).abs() < 1e-6);
++        // Degenerate geometry keeps the centre.
++        assert_eq!(aligned_shift(0.9, 2560.0, 1.0, 4.0), 0.0);
++        let shifts = gaze_shifts(Quat::from_rotation_y((-15f32).to_radians()), &[view(0.0), view(0.0)], &g).unwrap();
++        // Looking right: the left eye's region moves right (positive), the right eye's
++        // mirrored coordinate moves the other way (negative).
++        assert!(shifts[0][0] > 0.0);
++        assert!(shifts[1][0] < shifts[0][0]);
++    }
++
++    #[test]
++    fn dead_band_stale_gaze_and_fallback() {
++        let views = [view(0.0), view(0.0)];
++        let defaults = [[0.1, 0.05], [0.1, 0.05]];
++        let now = Instant::now();
++        let mut state = DynamicFoveation::default();
++        let mut input = FrameInput {
++            gaze: Some((Quat::from_rotation_y((-10f32).to_radians()), now)),
++            views: &views,
++            geometry: geometry(),
++            defaults,
++            deadband: 0.03,
++            stale: Duration::from_millis(150),
++            now,
++        };
++        let first = state.update(&input);
++        assert_ne!(first, defaults);
++        // A tiny movement stays put.
++        input.gaze = Some((Quat::from_rotation_y((-10.5f32).to_radians()), now));
++        assert_eq!(state.update(&input), first);
++        // A big movement moves.
++        input.gaze = Some((Quat::from_rotation_y((-25f32).to_radians()), now));
++        let moved = state.update(&input);
++        assert_ne!(moved, first);
++        // Stale gaze returns to the fixed centre.
++        input.now = now + Duration::from_millis(200);
++        assert_eq!(state.update(&input), defaults);
++        // No gaze at all also uses the fixed centre.
++        input.gaze = None;
++        assert_eq!(state.update(&input), defaults);
++        assert_eq!(state.fallback_frames, 2);
++        assert_eq!(state.moves, 2);
++    }
++}
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index 2e605a3b..4384ff14 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -1,4 +1,5 @@
+ mod graphics;
++mod vrostbridge_foveation;
+ mod props;
+ mod tracking;
+ 
+@@ -46,6 +47,8 @@ static HEAD_POSE_QUEUE: Mutex<VecDeque<(Duration, Pose)>> = Mutex::new(VecDeque:
+ static FOVEATION_CENTER_QUEUE: Mutex<VecDeque<(Duration, [[f32; 2]; 2])>> =
+     Mutex::new(VecDeque::new());
+ static EVENT_LOOP_HANDLE: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
++// VROSTBridge: gaze-driven foveation state (patch 0010).
++static VROST_FOVEATION: Mutex<Option<vrostbridge_foveation::DynamicFoveation>> = Mutex::new(None);
+ static IDLE_INIT_HANDLE: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
+ static FACTORY_INIT_DATA: Mutex<Option<FactoryInitData>> = Mutex::new(None);
+ 
+@@ -259,6 +262,7 @@ fn spawn_event_loop(events_receiver: mpsc::Receiver<ServerCoreEvent>) {
+                 ServerCoreEvent::ClientDisconnected => unsafe {
+                     DeinitializeStreaming();
+                     FOVEATION_CENTER_QUEUE.lock().clear();
++                    *VROST_FOVEATION.lock() = None;
+                 },
+                 ServerCoreEvent::Battery(info) => unsafe {
+                     SetBattery(info.device_id, info.gauge_value, info.is_plugged)
+@@ -591,6 +595,70 @@ extern "C" fn report_encoder_foveation_centers(
+     }
+ }
+ 
++/// VROSTBridge: per-frame foveation centres. `shifts` holds the negotiated left/right X/Y
++/// centres on input and receives the centres to use. Returns false (nothing changed) when
++/// gaze-driven foveation is off for this session.
++#[unsafe(export_name = "VROSTBridgeFoveationShifts")]
++extern "C" fn vrostbridge_foveation_shifts(
++    eye_width: u32,
++    eye_height: u32,
++    center_size: *const f32,
++    edge_ratio: *const f32,
++    shifts: *mut f32,
++) -> bool {
++    use vrostbridge_foveation::{FoveationGeometry, FrameInput};
++
++    let config = alvr_server_core::vrostbridge_stream::current();
++    if !config.gaze_foveation || center_size.is_null() || edge_ratio.is_null() || shifts.is_null() {
++        return false;
++    }
++    // SAFETY: the C++ caller passes two-element size/ratio arrays and a four-element shift array.
++    let (center_size, edge_ratio, io) = unsafe {
++        (
++            std::slice::from_raw_parts(center_size, 2),
++            std::slice::from_raw_parts(edge_ratio, 2),
++            std::slice::from_raw_parts_mut(shifts, 4),
++        )
++    };
++    let defaults = [[io[0], io[1]], [io[2], io[3]]];
++    let views = *LOCAL_VIEW_PARAMS.read();
++    let now = Instant::now();
++    let input = FrameInput {
++        gaze: alvr_server_core::vrostbridge_gaze::latest()
++            .map(|sample| (sample.orientation, sample.received)),
++        views: &views,
++        geometry: FoveationGeometry {
++            eye_resolution: [eye_width as f32, eye_height as f32],
++            center_size: [center_size[0], center_size[1]],
++            edge_ratio: [edge_ratio[0], edge_ratio[1]],
++        },
++        defaults,
++        deadband: config.gaze_deadband,
++        stale: Duration::from_millis(u64::from(config.gaze_stale_ms)),
++        now,
++    };
++    let mut guard = VROST_FOVEATION.lock();
++    let state = guard.get_or_insert_with(Default::default);
++    let result = state.update(&input);
++    if result.iter().flatten().any(|value| !value.is_finite()) {
++        return false;
++    }
++    io.copy_from_slice(&[result[0][0], result[0][1], result[1][0], result[1][1]]);
++    if state.should_log(now) {
++        alvr_common::info!(
++            "VROST_GAZE_FOVEATION gaze_frames={} fallback_frames={} moves={} left={:.3},{:.3} right={:.3},{:.3}",
++            state.gaze_frames,
++            state.fallback_frames,
++            state.moves,
++            io[0],
++            io[1],
++            io[2],
++            io[3]
++        );
++    }
++    true
++}
++
+ #[unsafe(export_name = "VideoSend")]
+ extern "C" fn send_video(timestamp_ns: u64, buffer_ptr: *mut u8, len: i32, is_idr: bool) {
+     if let Some(context) = &*SERVER_CORE_CONTEXT.read() {

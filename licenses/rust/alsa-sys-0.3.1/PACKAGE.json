@@ -1,0 +1,35 @@
+{
+  "crate": "alsa-sys",
+  "version": "0.3.1",
+  "license": "MIT",
+  "repository": "https://github.com/diwic/alsa-sys",
+  "authors": [
+    "Pierre Krieger <pierre.krieger1708@gmail.com>",
+    "David Henningsson <coding@diwic.se>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "219766b3420f49f6204143c5f3ef750888fb6de29ce5f63e909f146e90b375a2",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "db8fee663d06c4e303404ef5f40488a53e062f89ba8bfed81f42325aafad1527"
+  },
+  "source_url": "https://crates.io/crates/alsa-sys/0.3.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f0fadd70b94fdc7482bbe383d4ac72025d54efda"
+    }
+  }
+}

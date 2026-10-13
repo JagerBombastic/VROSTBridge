@@ -1,0 +1,40 @@
+{
+  "crate": "addr2line",
+  "version": "0.25.1",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/gimli-rs/addr2line",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "e99d88d232bf57d70f0fb87f6b496d44b6653f99f8a63d250a54c61ea4bcde40",
+      "bytes": 1069,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "1b5d307320b3181d6d7954e663bd7c774a838b8220fe0593c86d9fb09f498b4b"
+  },
+  "source_url": "https://crates.io/crates/addr2line/0.25.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f02db009deb9b441818afa49cb1b17453c1e4243"
+    },
+    "path_in_vcs": ""
+  }
+}

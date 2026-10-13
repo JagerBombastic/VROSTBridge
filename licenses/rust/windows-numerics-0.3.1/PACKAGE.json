@@ -1,0 +1,42 @@
+{
+  "crate": "windows-numerics",
+  "version": "0.3.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/microsoft/windows-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "windows_client"
+  ],
+  "notice_files": [
+    "license-apache-2.0",
+    "license-mit"
+  ],
+  "notice_details": [
+    {
+      "file": "license-apache-2.0",
+      "sha256": "c16f8dcf1a368b83be78d826ea23de4079fe1b4469a0ab9ee20563f37ff3d44b",
+      "bytes": 11351,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "license-mit",
+      "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383",
+      "bytes": 1141,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6e2e40844ac143cdb44aead537bbf727de9b044e107a0f1220392177d15b0f26",
+    "windows_client": "6e2e40844ac143cdb44aead537bbf727de9b044e107a0f1220392177d15b0f26"
+  },
+  "source_url": "https://crates.io/crates/windows-numerics/0.3.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "32c3144490c016fe496a0aed769bce60987a2e9d"
+    },
+    "path_in_vcs": "crates/libs/numerics"
+  }
+}

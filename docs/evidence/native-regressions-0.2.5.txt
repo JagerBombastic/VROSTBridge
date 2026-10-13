@@ -1,0 +1,9 @@
+g++ -std=c++17 -O2 -Wall -Wextra -pthread -I. tests/stream_tests.cpp -o /tmp/vrostbridge-stream-tests-025
+
+Stream ABI, rotations, pose provenance, geometry mismatch, queue ownership, bounds, epoch, newest-ready selection and timing tests passed
+Exit: 0
+
+g++ -std=c++17 -O2 -Wall -Wextra -I. -Ithird_party/openvr tests/runtime_settings_tests.cpp -ldl -o /tmp/vrostbridge-runtime-tests-025
+
+Runtime preference migration, readback and restoration tests passed
+Exit: 0

@@ -1,0 +1,43 @@
+{
+  "crate": "system-deps",
+  "version": "7.0.8",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/gdesmott/system-deps",
+  "authors": [
+    "Guillaume Desmottes <guillaume.desmottes@collabora.com>",
+    "Josh Triplett <josh@joshtriplett.org>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "396a35feb67335377e0251fcbc1092fc85c484bd4e3a7a54319399da127796e7"
+  },
+  "source_url": "https://crates.io/crates/system-deps/7.0.8",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "24eca98701145690ca68e61081137ac8810f17cd"
+    },
+    "path_in_vcs": ""
+  }
+}

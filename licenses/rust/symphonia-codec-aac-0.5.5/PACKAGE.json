@@ -1,0 +1,42 @@
+{
+  "crate": "symphonia-codec-aac",
+  "version": "0.5.5",
+  "license": "MPL-2.0",
+  "repository": "https://github.com/pdeljanov/Symphonia",
+  "authors": [
+    "Philip Deljanov <philip.deljanov@gmail.com>",
+    "Kostya Shishkov <kostya.shiskov@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE",
+      "sha256": "c76f740d1521b9bed9ca7a04ad526c310493c62621b1341d623b431736533b30",
+      "bytes": 16725,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/pdeljanov/Symphonia/6d533f26150953a882a6a111ebd13f0abf7129d5/LICENSE",
+      "commit": "6d533f26150953a882a6a111ebd13f0abf7129d5"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "4c263845aa86881416849c1729a54c7f55164f8b96111dba59de46849e73a790",
+    "linux_client": "4c263845aa86881416849c1729a54c7f55164f8b96111dba59de46849e73a790",
+    "windows_client": "4c263845aa86881416849c1729a54c7f55164f8b96111dba59de46849e73a790"
+  },
+  "source_url": "https://crates.io/crates/symphonia-codec-aac/0.5.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "6d533f26150953a882a6a111ebd13f0abf7129d5"
+    },
+    "path_in_vcs": "symphonia-codec-aac"
+  }
+}

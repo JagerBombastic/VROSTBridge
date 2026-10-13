@@ -1,0 +1,759 @@
+diff --git a/alvr/audio/Cargo.toml b/alvr/audio/Cargo.toml
+index f34cb8e9..a5d3b035 100644
+--- a/alvr/audio/Cargo.toml
++++ b/alvr/audio/Cargo.toml
+@@ -21,6 +21,7 @@ windows = { version = "0.62", features = [
+     "Win32_Devices_FunctionDiscovery",
+     "Win32_Foundation",
+     "Win32_Media_Audio_Endpoints",
++    "Win32_Security",
+     "Win32_System_Com_StructuredStorage",
+     "Win32_System_Variant",
+     "Win32_UI_Shell_PropertiesSystem",
+diff --git a/alvr/audio/src/lib.rs b/alvr/audio/src/lib.rs
+index cb4cb112..bd13f956 100644
+--- a/alvr/audio/src/lib.rs
++++ b/alvr/audio/src/lib.rs
+@@ -7,6 +7,11 @@ pub mod linux;
+ #[cfg(windows)]
+ pub use crate::windows::*;
+ 
++// VROSTBridge (patch 0023): game-audio capture on the Windows host (WASAPI loopback).
++pub mod vrostbridge_loopback;
++#[cfg(windows)]
++pub use vrostbridge_loopback::LoopbackCapture;
++
+ // VROSTBridge (patch 0022): game-audio playback for the desktop clients.
+ mod vrostbridge_playback;
+ #[cfg(not(target_os = "android"))]
+@@ -224,7 +229,10 @@ fn downmix_audio(data: Vec<u8>, in_channels: u16, out_channels: u16) -> Vec<u8>
+                 AudioChannel::BackLeft,
+                 AudioChannel::BackRight,
+             ],
++            // VROSTBridge (patch 0023): front left was missing, which moved every channel of a
++            // 5.1 mix one place (front left played right, the centre was dropped as bass).
+             6 => vec![
++                AudioChannel::FrontLeft,
+                 AudioChannel::FrontRight,
+                 AudioChannel::Center,
+                 AudioChannel::LowFrequency,
+diff --git a/alvr/audio/src/vrostbridge_loopback.rs b/alvr/audio/src/vrostbridge_loopback.rs
+new file mode 100644
+index 00000000..f2b6cfb9
+--- /dev/null
++++ b/alvr/audio/src/vrostbridge_loopback.rs
+@@ -0,0 +1,651 @@
++//! VROSTBridge: game-audio capture on the Windows host (WASAPI loopback).
++//!
++//! The pinned capture went through cpal, which hides the flags Windows attaches to each captured
++//! packet. A packet flagged AUDCLNT_BUFFERFLAGS_SILENT is to be treated as silence whatever its
++//! buffer holds; passing those bytes on can send stale sound or noise to the headset. A packet
++//! flagged AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY means sound was lost because the capture fell
++//! behind, which nothing recorded. The capture thread ran at normal priority, so a game loading
++//! every core could hold it back. When nothing played, Windows sent nothing at all, so every sound
++//! after a quiet moment started with the client refilling its buffer. And a 5.1 mix was folded
++//! to stereo one channel off (front left went right, the centre went to the low-frequency slot).
++//!
++//! This capture reads the loopback stream itself: silent packets become zeros, discontinuities
++//! are counted, the thread runs in Windows' "Pro Audio" scheduling class, and a silent render
++//! stream on the same device keeps the audio engine running, so silence is sent as silence (the
++//! client's buffer stays filled and its timing steady). Surround mixes are folded to stereo by the
++//! speaker positions Windows reports, with a soft limit instead of hard clipping. When the device
++//! cannot be opened this way, the server falls back to the cpal capture.
++
++/// Speaker bits of WAVEFORMATEXTENSIBLE::dwChannelMask, in the order channels appear.
++pub const SPEAKER_FRONT_LEFT: u32 = 0x1;
++pub const SPEAKER_FRONT_RIGHT: u32 = 0x2;
++pub const SPEAKER_FRONT_CENTER: u32 = 0x4;
++pub const SPEAKER_LOW_FREQUENCY: u32 = 0x8;
++pub const SPEAKER_BACK_LEFT: u32 = 0x10;
++pub const SPEAKER_BACK_RIGHT: u32 = 0x20;
++pub const SPEAKER_FRONT_LEFT_OF_CENTER: u32 = 0x40;
++pub const SPEAKER_FRONT_RIGHT_OF_CENTER: u32 = 0x80;
++pub const SPEAKER_BACK_CENTER: u32 = 0x100;
++pub const SPEAKER_SIDE_LEFT: u32 = 0x200;
++pub const SPEAKER_SIDE_RIGHT: u32 = 0x400;
++
++const MINUS_3_DB: f32 = std::f32::consts::FRAC_1_SQRT_2;
++
++/// Windows' default speaker layout for a channel count without a mask (ksmedia.h KSAUDIO_SPEAKER_*).
++pub fn default_mask(channels: usize) -> u32 {
++    match channels {
++        1 => SPEAKER_FRONT_CENTER,
++        2 => SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT,
++        3 => SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER,
++        4 => SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
++        5 => {
++            SPEAKER_FRONT_LEFT
++                | SPEAKER_FRONT_RIGHT
++                | SPEAKER_FRONT_CENTER
++                | SPEAKER_BACK_LEFT
++                | SPEAKER_BACK_RIGHT
++        }
++        6 => {
++            SPEAKER_FRONT_LEFT
++                | SPEAKER_FRONT_RIGHT
++                | SPEAKER_FRONT_CENTER
++                | SPEAKER_LOW_FREQUENCY
++                | SPEAKER_BACK_LEFT
++                | SPEAKER_BACK_RIGHT
++        }
++        7 => {
++            SPEAKER_FRONT_LEFT
++                | SPEAKER_FRONT_RIGHT
++                | SPEAKER_FRONT_CENTER
++                | SPEAKER_LOW_FREQUENCY
++                | SPEAKER_BACK_CENTER
++                | SPEAKER_SIDE_LEFT
++                | SPEAKER_SIDE_RIGHT
++        }
++        8 => {
++            SPEAKER_FRONT_LEFT
++                | SPEAKER_FRONT_RIGHT
++                | SPEAKER_FRONT_CENTER
++                | SPEAKER_LOW_FREQUENCY
++                | SPEAKER_BACK_LEFT
++                | SPEAKER_BACK_RIGHT
++                | SPEAKER_SIDE_LEFT
++                | SPEAKER_SIDE_RIGHT
++        }
++        _ => 0,
++    }
++}
++
++/// Left and right weights for every channel of a layout. Front left and right pass unchanged,
++/// centre and surround channels at -3 dB, the low-frequency channel is left out (as in ITU-R
++/// BS.775's stereo downmix). Channels beyond the mask's bits are left out too.
++pub fn downmix_weights(channels: usize, mask: u32) -> Vec<[f32; 2]> {
++    let mut weights = vec![[0.0f32, 0.0]; channels];
++    if channels == 1 {
++        weights[0] = [MINUS_3_DB, MINUS_3_DB];
++        return weights;
++    }
++    let mask = if mask == 0 || (mask.count_ones() as usize) < channels.min(2) {
++        default_mask(channels)
++    } else {
++        mask
++    };
++    let mut channel = 0;
++    for bit in 0..32 {
++        let speaker = 1u32 << bit;
++        if mask & speaker == 0 {
++            continue;
++        }
++        if channel >= channels {
++            break;
++        }
++        weights[channel] = match speaker {
++            SPEAKER_FRONT_LEFT => [1.0, 0.0],
++            SPEAKER_FRONT_RIGHT => [0.0, 1.0],
++            SPEAKER_FRONT_CENTER | SPEAKER_BACK_CENTER => [MINUS_3_DB, MINUS_3_DB],
++            SPEAKER_LOW_FREQUENCY => [0.0, 0.0],
++            SPEAKER_BACK_LEFT | SPEAKER_SIDE_LEFT | SPEAKER_FRONT_LEFT_OF_CENTER => [MINUS_3_DB, 0.0],
++            SPEAKER_BACK_RIGHT | SPEAKER_SIDE_RIGHT | SPEAKER_FRONT_RIGHT_OF_CENTER => {
++                [0.0, MINUS_3_DB]
++            }
++            // Height and other speakers: half to each side.
++            _ => [0.5, 0.5],
++        };
++        channel += 1;
++    }
++    weights
++}
++
++/// Soft limit: unchanged up to ±0.9, then a smooth curve that never passes ±1. Windows' float
++/// mix can go above full scale, and a surround fold adds channels together.
++pub fn soft_limit(x: f32) -> f32 {
++    const KNEE: f32 = 0.9;
++    let magnitude = x.abs();
++    if magnitude <= KNEE {
++        x
++    } else {
++        x.signum() * (KNEE + (1.0 - KNEE) * ((magnitude - KNEE) / (1.0 - KNEE)).tanh())
++    }
++}
++
++/// Sample formats a shared-mode mix can have.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum MixFormat {
++    F32,
++    I16,
++    I24,
++    I32,
++}
++
++impl MixFormat {
++    pub fn bytes(self) -> usize {
++        match self {
++            MixFormat::I16 => 2,
++            MixFormat::I24 => 3,
++            MixFormat::F32 | MixFormat::I32 => 4,
++        }
++    }
++
++    fn sample(self, bytes: &[u8]) -> f32 {
++        match self {
++            MixFormat::F32 => f32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]),
++            MixFormat::I16 => f32::from(i16::from_le_bytes([bytes[0], bytes[1]])) / 32_768.0,
++            MixFormat::I24 => {
++                (i32::from_le_bytes([0, bytes[0], bytes[1], bytes[2]]) >> 8) as f32 / 8_388_608.0
++            }
++            MixFormat::I32 => {
++                i32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as f32 / 2_147_483_648.0
++            }
++        }
++    }
++}
++
++/// Converts `frames` captured frames (`stride` bytes each, `channels` samples of `format`) to the
++/// stereo 16-bit samples the client plays, appended to `out`. A silent packet becomes zeros.
++#[allow(clippy::too_many_arguments)]
++pub fn convert_to_stereo_i16(
++    data: &[u8],
++    frames: usize,
++    stride: usize,
++    channels: usize,
++    format: MixFormat,
++    weights: &[[f32; 2]],
++    silent: bool,
++    out: &mut Vec<u8>,
++) {
++    if silent || data.len() < frames * stride {
++        out.resize(out.len() + frames * 4, 0);
++        return;
++    }
++    out.reserve(frames * 4);
++    let size = format.bytes();
++    let stereo = channels == 2 && weights.len() == 2 && weights[0] == [1.0, 0.0] && weights[1] == [0.0, 1.0];
++    for frame in 0..frames {
++        let base = frame * stride;
++        let (left, right) = if stereo {
++            (format.sample(&data[base..]), format.sample(&data[base + size..]))
++        } else {
++            let (mut left, mut right) = (0.0f32, 0.0f32);
++            for (channel, weight) in weights.iter().enumerate().take(channels) {
++                if weight[0] == 0.0 && weight[1] == 0.0 {
++                    continue;
++                }
++                let value = format.sample(&data[base + channel * size..]);
++                left += value * weight[0];
++                right += value * weight[1];
++            }
++            (left, right)
++        };
++        for value in [left, right] {
++            let value = if value.is_finite() { soft_limit(value) } else { 0.0 };
++            let sample = (value * 32_767.0).round().clamp(-32_768.0, 32_767.0) as i16;
++            out.extend_from_slice(&sample.to_ne_bytes());
++        }
++    }
++}
++
++#[cfg(windows)]
++pub use capture::LoopbackCapture;
++
++#[cfg(windows)]
++mod capture {
++    use super::*;
++    use alvr_common::{
++        anyhow::{Context, Result, bail},
++        info,
++    };
++    use alvr_sockets::StreamSender;
++    use cpal::{Device, traits::DeviceTrait};
++    use std::{
++        sync::Arc,
++        time::{Duration, Instant},
++    };
++    use windows::{
++        Win32::{
++            Foundation::{CloseHandle, HANDLE},
++            Media::Audio::{
++                AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY, AUDCLNT_BUFFERFLAGS_SILENT,
++                AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
++                AUDCLNT_STREAMFLAGS_LOOPBACK, IAudioCaptureClient, IAudioClient, IAudioRenderClient,
++                IMMDevice, WAVEFORMATEX, WAVEFORMATEXTENSIBLE,
++            },
++            System::{
++                Com::{self, CLSCTX_ALL, COINIT_MULTITHREADED},
++                Threading::{
++                    AvRevertMmThreadCharacteristics, AvSetMmThreadCharacteristicsW, CreateEventW,
++                    WaitForSingleObject,
++                },
++            },
++        },
++        core::{GUID, w},
++    };
++
++    const WAVE_FORMAT_PCM: u16 = 1;
++    const WAVE_FORMAT_IEEE_FLOAT: u16 = 3;
++    const WAVE_FORMAT_EXTENSIBLE: u16 = 0xFFFE;
++    const SUBTYPE_PCM: GUID = GUID::from_u128(0x00000001_0000_0010_8000_00aa00389b71);
++    const SUBTYPE_IEEE_FLOAT: GUID = GUID::from_u128(0x00000003_0000_0010_8000_00aa00389b71);
++    /// 100 ms shared buffers (in 100 ns units); the capture reads at least every 10 ms.
++    const BUFFER_DURATION: i64 = 1_000_000;
++    const WAIT_MS: u32 = 10;
++    const REPORT_EVERY: Duration = Duration::from_secs(10);
++
++    struct Event(HANDLE);
++    impl Drop for Event {
++        fn drop(&mut self) {
++            unsafe { CloseHandle(self.0).ok() };
++        }
++    }
++
++    struct Layout {
++        format: MixFormat,
++        channels: usize,
++        rate: u32,
++        stride: usize,
++        mask: u32,
++    }
++
++    unsafe fn describe(mix: *const WAVEFORMATEX) -> Result<Layout> {
++        let header = unsafe { std::ptr::read_unaligned(mix) };
++        let tag = header.wFormatTag;
++        let bits = header.wBitsPerSample;
++        let (format, mask) = if tag == WAVE_FORMAT_EXTENSIBLE && header.cbSize >= 22 {
++            let extensible = unsafe { std::ptr::read_unaligned(mix as *const WAVEFORMATEXTENSIBLE) };
++            let sub = extensible.SubFormat;
++            let format = if sub == SUBTYPE_IEEE_FLOAT && bits == 32 {
++                MixFormat::F32
++            } else if sub == SUBTYPE_PCM {
++                match bits {
++                    16 => MixFormat::I16,
++                    24 => MixFormat::I24,
++                    32 => MixFormat::I32,
++                    _ => bail!("Unsupported PCM mix format: {bits} bits"),
++                }
++            } else {
++                bail!("Unsupported mix format subtype {sub:?}");
++            };
++            (format, extensible.dwChannelMask)
++        } else if tag == WAVE_FORMAT_IEEE_FLOAT && bits == 32 {
++            (MixFormat::F32, 0)
++        } else if tag == WAVE_FORMAT_PCM {
++            match bits {
++                16 => (MixFormat::I16, 0),
++                24 => (MixFormat::I24, 0),
++                32 => (MixFormat::I32, 0),
++                _ => bail!("Unsupported PCM mix format: {bits} bits"),
++            }
++        } else {
++            bail!("Unsupported mix format tag {tag}");
++        };
++        let channels = usize::from(header.nChannels);
++        let stride = usize::from(header.nBlockAlign);
++        if channels == 0 || channels > 32 || stride < channels * format.bytes() {
++            bail!("Unsupported mix layout: {channels} channels, {stride} bytes per frame");
++        }
++        Ok(Layout { format, channels, rate: header.nSamplesPerSec, stride, mask })
++    }
++
++    #[derive(Default)]
++    struct Stats {
++        packets: u64,
++        silent: u64,
++        discontinuities: u64,
++        frames: u64,
++        max_gap: Duration,
++    }
++
++    /// A loopback capture of one playback device, opened but not started.
++    pub struct LoopbackCapture {
++        device: Device,
++        client: IAudioClient,
++        capture: IAudioCaptureClient,
++        event: Option<Event>,
++        keep_alive: Option<(IAudioClient, IAudioRenderClient, u32)>,
++        layout: Layout,
++    }
++
++    impl LoopbackCapture {
++        /// Opens `device`'s mix for loopback capture. `expected_rate` is the rate the client was
++        /// told; a mix at another rate is refused (the caller then uses the cpal capture).
++        pub fn open(device: &Device, expected_rate: u32) -> Result<Self> {
++            unsafe {
++                // Fails harmlessly when this thread already joined the apartment.
++                Com::CoInitializeEx(None, COINIT_MULTITHREADED).ok().ok();
++                let imm_device: IMMDevice = crate::windows::get_windows_device(device)?;
++                let mix = {
++                    let client: IAudioClient = imm_device.Activate(CLSCTX_ALL, None)?;
++                    client.GetMixFormat()?
++                };
++                let result = Self::open_with(device, &imm_device, mix, expected_rate);
++                Com::CoTaskMemFree(Some(mix as _));
++                result
++            }
++        }
++
++        unsafe fn open_with(
++            device: &Device,
++            imm_device: &IMMDevice,
++            mix: *mut WAVEFORMATEX,
++            expected_rate: u32,
++        ) -> Result<Self> {
++            unsafe {
++                let layout = describe(mix)?;
++                if expected_rate != 0 && layout.rate != expected_rate {
++                    bail!("The mix runs at {} Hz, not the negotiated {expected_rate} Hz", layout.rate);
++                }
++                // Event-driven loopback needs Windows 10 1703 or later; older ones refuse the flag,
++                // and the capture then polls every WAIT_MS instead.
++                let mut event = None;
++                let mut client: IAudioClient = imm_device.Activate(CLSCTX_ALL, None)?;
++                let evented = client.Initialize(
++                    AUDCLNT_SHAREMODE_SHARED,
++                    AUDCLNT_STREAMFLAGS_LOOPBACK | AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
++                    BUFFER_DURATION,
++                    0,
++                    mix,
++                    None,
++                );
++                if evented.is_ok() {
++                    let handle = Event(CreateEventW(None, false, false, None)?);
++                    client.SetEventHandle(handle.0)?;
++                    event = Some(handle);
++                } else {
++                    client = imm_device.Activate(CLSCTX_ALL, None)?;
++                    client
++                        .Initialize(AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_LOOPBACK, BUFFER_DURATION, 0, mix, None)
++                        .context("Loopback capture could not be opened")?;
++                }
++                let capture: IAudioCaptureClient = client.GetService()?;
++
++                // A silent render stream on the same device keeps the engine (and so the loopback)
++                // running while nothing else plays. Optional: without it, silence is not sent.
++                let keep_alive = (|| -> Result<(IAudioClient, IAudioRenderClient, u32)> {
++                    let render: IAudioClient = imm_device.Activate(CLSCTX_ALL, None)?;
++                    render.Initialize(AUDCLNT_SHAREMODE_SHARED, 0, BUFFER_DURATION, 0, mix, None)?;
++                    let frames = render.GetBufferSize()?;
++                    let service: IAudioRenderClient = render.GetService()?;
++                    Ok((render, service, frames))
++                })();
++                let keep_alive = match keep_alive {
++                    Ok(value) => Some(value),
++                    Err(e) => {
++                        info!("VROST_AUDIO_CAPTURE keep_alive=0 reason=\"{e}\"");
++                        None
++                    }
++                };
++                Ok(Self { device: device.clone(), client, capture, event, keep_alive, layout })
++            }
++        }
++
++        /// Captures and sends stereo 16-bit packets until `is_running` turns false or the device
++        /// goes away (an error: the caller opens the device again).
++        pub fn run(
++            self,
++            is_running: Arc<dyn Fn() -> bool + Send + Sync>,
++            mut sender: StreamSender<()>,
++            mute: bool,
++        ) -> Result<()> {
++            let layout = &self.layout;
++            let weights = downmix_weights(layout.channels, layout.mask);
++            unsafe {
++                if let Some((render, service, frames)) = &self.keep_alive {
++                    if service.GetBuffer(*frames).is_ok() {
++                        service.ReleaseBuffer(*frames, AUDCLNT_BUFFERFLAGS_SILENT.0 as u32).ok();
++                    }
++                    render.Start().ok();
++                }
++                let mut task = 0u32;
++                let mmcss = AvSetMmThreadCharacteristicsW(w!("Pro Audio"), &mut task).ok();
++                if mute && self.device.supports_output() {
++                    crate::windows::set_mute_windows_device(&self.device, true).ok();
++                }
++                let started = self.client.Start();
++                info!(
++                    "VROST_AUDIO_CAPTURE device=\"{}\" rate={} channels={} format={:?} mask=0x{:x} event={} keep_alive={} mmcss={}",
++                    self.device.name().unwrap_or_default(),
++                    layout.rate,
++                    layout.channels,
++                    layout.format,
++                    layout.mask,
++                    u8::from(self.event.is_some()),
++                    u8::from(self.keep_alive.is_some()),
++                    u8::from(mmcss.is_some()),
++                );
++
++                let mut stats = Stats::default();
++                let mut packet = Vec::<u8>::new();
++                let mut last_packet = Instant::now();
++                let mut last_report = Instant::now();
++                let result = match started {
++                    Err(e) => Err(e.into()),
++                    Ok(()) => loop {
++                        if !is_running() {
++                            break Ok(());
++                        }
++                        match &self.event {
++                            Some(event) => {
++                                WaitForSingleObject(event.0, WAIT_MS);
++                            }
++                            None => std::thread::sleep(Duration::from_millis(u64::from(WAIT_MS))),
++                        }
++
++                        if let Some((render, service, frames)) = &self.keep_alive {
++                            // Top the silent stream up so it never runs dry.
++                            if let Ok(padding) = render.GetCurrentPadding() {
++                                let free = frames.saturating_sub(padding);
++                                if free > 0 && service.GetBuffer(free).is_ok() {
++                                    service.ReleaseBuffer(free, AUDCLNT_BUFFERFLAGS_SILENT.0 as u32).ok();
++                                }
++                            }
++                        }
++
++                        let drained = (|| -> Result<()> {
++                            loop {
++                                if self.capture.GetNextPacketSize()? == 0 {
++                                    return Ok(());
++                                }
++                                let mut data: *mut u8 = std::ptr::null_mut();
++                                let mut frames = 0u32;
++                                let mut flags = 0u32;
++                                self.capture.GetBuffer(&mut data, &mut frames, &mut flags, None, None)?;
++                                let silent = flags & (AUDCLNT_BUFFERFLAGS_SILENT.0 as u32) != 0 || data.is_null();
++                                if flags & (AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY.0 as u32) != 0 {
++                                    stats.discontinuities += 1;
++                                }
++                                packet.clear();
++                                let bytes = if silent {
++                                    &[][..]
++                                } else {
++                                    std::slice::from_raw_parts(data, frames as usize * layout.stride)
++                                };
++                                convert_to_stereo_i16(
++                                    bytes,
++                                    frames as usize,
++                                    layout.stride,
++                                    layout.channels,
++                                    layout.format,
++                                    &weights,
++                                    silent,
++                                    &mut packet,
++                                );
++                                self.capture.ReleaseBuffer(frames)?;
++                                if frames == 0 {
++                                    continue;
++                                }
++                                let now = Instant::now();
++                                stats.max_gap = stats.max_gap.max(now.saturating_duration_since(last_packet));
++                                last_packet = now;
++                                stats.packets += 1;
++                                stats.frames += u64::from(frames);
++                                stats.silent += u64::from(silent);
++                                sender.send_header_with_payload(&(), &packet).ok();
++                            }
++                        })();
++                        if let Err(e) = drained {
++                            break Err(e);
++                        }
++
++                        if last_report.elapsed() >= REPORT_EVERY {
++                            info!(
++                                "VROST_AUDIO_CAPTURE packets={} silent={} discontinuities={} frames={} max_gap_ms={:.1}",
++                                stats.packets,
++                                stats.silent,
++                                stats.discontinuities,
++                                stats.frames,
++                                stats.max_gap.as_secs_f64() * 1000.0
++                            );
++                            stats.max_gap = Duration::ZERO;
++                            last_report = Instant::now();
++                        }
++                    },
++                };
++
++                self.client.Stop().ok();
++                if let Some((render, _, _)) = &self.keep_alive {
++                    render.Stop().ok();
++                }
++                if mute && self.device.supports_output() {
++                    crate::windows::set_mute_windows_device(&self.device, false).ok();
++                }
++                if let Some(handle) = mmcss {
++                    AvRevertMmThreadCharacteristics(handle).ok();
++                }
++                result
++            }
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    fn frames_f32(frames: &[&[f32]]) -> (Vec<u8>, usize) {
++        let channels = frames[0].len();
++        let data = frames.iter().flat_map(|f| f.iter().flat_map(|v| v.to_le_bytes())).collect();
++        (data, channels)
++    }
++
++    fn decode(out: &[u8]) -> Vec<[f32; 2]> {
++        out.chunks_exact(4)
++            .map(|c| {
++                [
++                    f32::from(i16::from_ne_bytes([c[0], c[1]])) / 32_767.0,
++                    f32::from(i16::from_ne_bytes([c[2], c[3]])) / 32_767.0,
++                ]
++            })
++            .collect()
++    }
++
++    #[test]
++    fn stereo_passes_through_and_silence_is_zero() {
++        let (data, channels) = frames_f32(&[&[0.25, -0.5], &[0.0, 0.75]]);
++        let weights = downmix_weights(channels, SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT);
++        let mut out = vec![];
++        convert_to_stereo_i16(&data, 2, 8, channels, MixFormat::F32, &weights, false, &mut out);
++        let got = decode(&out);
++        assert!((got[0][0] - 0.25).abs() < 1e-3 && (got[0][1] + 0.5).abs() < 1e-3);
++        assert!((got[1][1] - 0.75).abs() < 1e-3);
++        // A packet flagged silent is zeros whatever its buffer held.
++        let mut silent = vec![];
++        convert_to_stereo_i16(&[0xAB; 16], 2, 8, channels, MixFormat::F32, &weights, true, &mut silent);
++        assert_eq!(silent, vec![0; 8]);
++        // So is a buffer shorter than it claims (never read past it).
++        let mut short = vec![];
++        convert_to_stereo_i16(&[0xAB; 4], 2, 8, channels, MixFormat::F32, &weights, false, &mut short);
++        assert_eq!(short, vec![0; 8]);
++    }
++
++    #[test]
++    fn five_point_one_folds_by_speaker_position() {
++        // FL FR FC LFE BL BR: every channel lands where it belongs.
++        let weights = downmix_weights(6, 0);
++        assert_eq!(weights.len(), 6);
++        let one = |index: usize| {
++            let mut frame = [0.0f32; 6];
++            frame[index] = 0.5;
++            let (data, _) = frames_f32(&[&frame]);
++            let mut out = vec![];
++            convert_to_stereo_i16(&data, 1, 24, 6, MixFormat::F32, &weights, false, &mut out);
++            decode(&out)[0]
++        };
++        assert!((one(0)[0] - 0.5).abs() < 1e-3 && one(0)[1].abs() < 1e-3); // front left
++        assert!((one(1)[1] - 0.5).abs() < 1e-3 && one(1)[0].abs() < 1e-3); // front right
++        assert!((one(2)[0] - 0.354).abs() < 2e-3 && (one(2)[1] - 0.354).abs() < 2e-3); // centre
++        assert!(one(3)[0].abs() < 1e-3 && one(3)[1].abs() < 1e-3); // low frequency
++        assert!((one(4)[0] - 0.354).abs() < 2e-3 && one(4)[1].abs() < 1e-3); // back left
++        assert!((one(5)[1] - 0.354).abs() < 2e-3 && one(5)[0].abs() < 1e-3); // back right
++        // The 7.1 mask of a real device (FL FR FC LFE BL BR SL SR).
++        let weights = downmix_weights(8, default_mask(8));
++        assert_eq!(weights[6], [MINUS_3_DB, 0.0]);
++        assert_eq!(weights[7], [0.0, MINUS_3_DB]);
++    }
++
++    #[test]
++    fn loud_surround_is_limited_softly_and_integer_formats_convert() {
++        let weights = downmix_weights(8, 0);
++        let frame = [0.9f32; 8];
++        let (data, _) = frames_f32(&[&frame]);
++        let mut out = vec![];
++        convert_to_stereo_i16(&data, 1, 32, 8, MixFormat::F32, &weights, false, &mut out);
++        let got = decode(&out)[0];
++        // Every channel near full scale sums far past it; the limit holds it at full scale.
++        assert!(got[0] <= 1.0 && got[0] > 0.95 && got[1] <= 1.0 && got[1] > 0.95, "{got:?}");
++        assert!(soft_limit(0.5) == 0.5 && soft_limit(-0.95) > -1.0 && soft_limit(5.0) <= 1.0);
++        // A float mix above full scale is limited, not wrapped or clipped hard.
++        let (data, _) = frames_f32(&[&[1.5, -3.0]]);
++        let mut out = vec![];
++        convert_to_stereo_i16(&data, 1, 8, 2, MixFormat::F32, &downmix_weights(2, 0), false, &mut out);
++        let got = decode(&out)[0];
++        assert!(got[0] > 0.98 && got[0] <= 1.0 && got[1] < -0.98 && got[1] >= -1.0, "{got:?}");
++
++        let pcm16: Vec<u8> = [16384i16, -16384].iter().flat_map(|v| v.to_le_bytes()).collect();
++        let mut out = vec![];
++        convert_to_stereo_i16(&pcm16, 1, 4, 2, MixFormat::I16, &downmix_weights(2, 0), false, &mut out);
++        let got = decode(&out)[0];
++        assert!((got[0] - 0.5).abs() < 1e-3 && (got[1] + 0.5).abs() < 1e-3);
++
++        let pcm24 = [0x00, 0x00, 0x40, 0x00, 0x00, 0xC0]; // +0.5, -0.5
++        let mut out = vec![];
++        convert_to_stereo_i16(&pcm24, 1, 6, 2, MixFormat::I24, &downmix_weights(2, 0), false, &mut out);
++        let got = decode(&out)[0];
++        assert!((got[0] - 0.5).abs() < 1e-3 && (got[1] + 0.5).abs() < 1e-3, "{got:?}");
++
++        let pcm32: Vec<u8> = [i32::MAX / 2, i32::MIN / 2].iter().flat_map(|v| v.to_le_bytes()).collect();
++        let mut out = vec![];
++        convert_to_stereo_i16(&pcm32, 1, 8, 2, MixFormat::I32, &downmix_weights(2, 0), false, &mut out);
++        let got = decode(&out)[0];
++        assert!((got[0] - 0.5).abs() < 1e-3 && (got[1] + 0.5).abs() < 1e-3, "{got:?}");
++    }
++
++    #[test]
++    fn mono_and_unknown_layouts() {
++        assert_eq!(downmix_weights(1, 0), vec![[MINUS_3_DB, MINUS_3_DB]]);
++        // A 2-channel mix with an empty mask is plain stereo.
++        assert_eq!(downmix_weights(2, 0), vec![[1.0, 0.0], [0.0, 1.0]]);
++        // More channels than the mask names: the extra ones are left out.
++        let weights = downmix_weights(4, SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT);
++        assert_eq!(weights[2], [0.0, 0.0]);
++        assert_eq!(weights[3], [0.0, 0.0]);
++    }
++}
+diff --git a/alvr/audio/src/windows.rs b/alvr/audio/src/windows.rs
+index 82fd4fb6..6dee4ac7 100644
+--- a/alvr/audio/src/windows.rs
++++ b/alvr/audio/src/windows.rs
+@@ -13,7 +13,7 @@ use windows::{
+     core::GUID,
+ };
+ 
+-fn get_windows_device(device: &Device) -> Result<IMMDevice> {
++pub(crate) fn get_windows_device(device: &Device) -> Result<IMMDevice> {
+     let device_name = device.name()?;
+ 
+     unsafe {
+diff --git a/alvr/server_core/src/connection.rs b/alvr/server_core/src/connection.rs
+index f444dbcd..bc05389f 100644
+--- a/alvr/server_core/src/connection.rs
++++ b/alvr/server_core/src/connection.rs
+@@ -1025,16 +1025,39 @@ fn connection_pipeline(
+                         continue;
+                     };
+ 
+-                    if let Err(e) = alvr_audio::record_audio_blocking(
+-                        Arc::new({
+-                            let client_hostname = client_hostname.clone();
+-                            move || is_streaming(&client_hostname)
+-                        }),
++                    let is_running: Arc<dyn Fn() -> bool + Send + Sync> = Arc::new({
++                        let client_hostname = client_hostname.clone();
++                        move || is_streaming(&client_hostname)
++                    });
++                    // VROSTBridge (patch 0023): WASAPI loopback read directly (silent packets as
++                    // silence, surround folded by speaker position); cpal when it cannot open.
++                    #[cfg(windows)]
++                    let recorded = match alvr_audio::LoopbackCapture::open(&device, game_audio_sample_rate) {
++                        Ok(capture) => capture.run(
++                            Arc::clone(&is_running),
++                            game_audio_sender.clone(),
++                            config.mute_when_streaming,
++                        ),
++                        Err(e) => {
++                            warn!("VROST_AUDIO_CAPTURE fallback=cpal reason=\"{e:#}\"");
++                            alvr_audio::record_audio_blocking(
++                                is_running,
++                                game_audio_sender.clone(),
++                                &device,
++                                2,
++                                config.mute_when_streaming,
++                            )
++                        }
++                    };
++                    #[cfg(not(windows))]
++                    let recorded = alvr_audio::record_audio_blocking(
++                        is_running,
+                         game_audio_sender.clone(),
+                         &device,
+                         2,
+                         config.mute_when_streaming,
+-                    ) {
++                    );
++                    if let Err(e) = recorded {
+                         error!("Audio record error: {e:?}");
+                     }
+ 

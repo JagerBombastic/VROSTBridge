@@ -1,0 +1,43 @@
+{
+  "crate": "rustc-hash",
+  "version": "1.1.0",
+  "license": "Apache-2.0/MIT",
+  "repository": "https://github.com/rust-lang-nursery/rustc-hash",
+  "authors": [
+    "The Rust Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2",
+    "windows_client": "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
+  },
+  "source_url": "https://crates.io/crates/rustc-hash/1.1.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "6fc9a706a9312ee801c7e77ca06c0782fa9eadef"
+    }
+  }
+}

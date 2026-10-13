@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Build VROSTBridge Client
+Comment=Build the native Linux client using the configured development environment
+Exec=bash -c 'cd "$(dirname "$1")" && ./Build-Client-Linux.sh; read -p "Press Enter to close"' bash %k
+Terminal=true
+Categories=Game;

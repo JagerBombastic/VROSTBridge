@@ -1,0 +1,39 @@
+{
+  "crate": "extended",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": "https://github.com/depp/extended-rs",
+  "authors": [
+    "Dietrich Epp <depp@zdome.net>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.txt",
+      "sha256": "25a0874d15e7c834a47c3adc80901edb2219759254992023ef1010c3065413d5",
+      "bytes": 1052,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "af9673d8203fcb076b19dfd17e38b3d4ae9f44959416ea532ce72415a6020365",
+    "linux_client": "af9673d8203fcb076b19dfd17e38b3d4ae9f44959416ea532ce72415a6020365",
+    "windows_client": "af9673d8203fcb076b19dfd17e38b3d4ae9f44959416ea532ce72415a6020365"
+  },
+  "source_url": "https://crates.io/crates/extended/0.1.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "dc18803769dd6702c9cf91b033f91e200c98a684"
+    },
+    "path_in_vcs": ""
+  }
+}

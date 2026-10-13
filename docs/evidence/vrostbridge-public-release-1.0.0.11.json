@@ -1,0 +1,168 @@
+{
+  "product": "VROSTBridge",
+  "version": "1.0.0.11",
+  "date": "2026-10-12",
+  "scope": "The first public release of 1.0.0.11. No program changed: the repository was made ready to share, the source split by part for the release page, and the five packages rebuilt from this source, so that they carry its documentation and notices. The first build of 1.0.0.11 is recorded in vrostbridge-build-1.0.0.11.json.",
+  "changes": [
+    "README.md as the front page: what it is, how it works, what works today (honestly), what you need, the specs, getting started, optional extras, questions people ask, security and privacy, building, thanks, licence; a screenshot of the headset PC's page made from demo values with documentation addresses (docs/images/client-page.png).",
+    "docs/README.md, the documentation's home; docs/TROUBLESHOOTING.md, each message and button in the page's own words with the reasoning behind each fix; docs/LICENSING.md, the licences in plain words (MIT, what the packages carry from others and what that asks, what is not included on purpose, sharing and forking, the name and logo).",
+    "The project's earlier records (55 documents: release notes up to 1.0.0.10, release reviews, test reports and research notes) moved to docs/history/, with every link to them rewritten.",
+    "scripts/package_component_sources.py: the source split by part (the rendering PC, the Windows headset PC, the Bazzite headset PC), each archive holding what its part is built from and a SOURCE.md; every file of the whole source belongs to a part or is named as whole-source only.",
+    "A test that checked the source for a private address prefix named that prefix itself (in two parts, which the scans could not see); it now takes its patterns from VROSTBRIDGE_PRIVATE_PATTERNS, as the archive script does.",
+    "The checks workflow uses the Node 24 versions of its actions (actions/checkout@v5, actions/setup-python@v6, actions/setup-node@v5): GitHub's runners dropped Node 20 on 23 September 2026.",
+    "The logo, icons and other artwork licensed CC BY-ND 4.0 (brand/LICENSE.md), as the maintainer chose; NOTICE, THIRD_PARTY.md, the README, docs/LICENSING.md, brand/README.md, the credits and the specification name it, and the tools that make the artwork stay MIT.",
+    "docs/PUBLISHING.md (readiness, the files to attach), docs/GITHUB_RELEASE_1.0.0.11.md (the first public release's page), CHANGELOG.md, BUILDING.md, the specification (section 14), the overview and the packaging guide.",
+    "tests/test_public_release.py: every relative link and heading link in the documentation resolves, the documentation home lists every current document, the front page links the guides and names no real address, the licence page, the troubleshooting page's words are the page's own, and the source split (patterns, every file placed, each part's notices and code, SOURCE.md and its links, an archive's contents)."
+  ],
+  "packages_sha256_before_this_record": {
+    "VROSTBridge-Bazzite-Installer-1.0.0.11.zip": "ccc2ed4becbba8e40866e50ecf23f9d8b7cb718ac0299b4a12f7b9e92478c1a4",
+    "VROSTBridge-Host-Setup-1.0.0.11.exe": "7a914413484b44ff501d25f015d213008f5365750a806bf019aafdbae7f6accf",
+    "VROSTBridge-Host-Portable-1.0.0.11.zip": "d7b0e1caca4f66d3a6476e04120412152a7ced48e60608b3c7ad9b6bbfb64fbc",
+    "VROSTBridge-Client-Setup-1.0.0.11.exe": "eb4f45941cbd544cab692b2ee96c3aa23fbb11efaa4f4d0df56ead0c9386d7a2",
+    "VROSTBridge-Client-Portable-1.0.0.11.zip": "29fe1d27d7744f33522f98c077390f54066b87952b08b38af69df4c65121807f"
+  },
+  "packages_against_the_first_1_0_0_11_build": {
+    "result": "Only files under docs/, NOTICE and THIRD_PARTY.md and the manifests that list them differ; every other file is byte-identical. Each payload's SHA256SUMS verifies, and its docs/, licenses/, LICENSE, NOTICE and THIRD_PARTY.md are the repository's, file for file. Each Windows setup and its portable ZIP hold the same files.",
+    "per_package": {
+      "VROSTBridge-Bazzite-Installer-1.0.0.11.zip": {
+        "files": 1815,
+        "identical_to_first_build": 1736,
+        "added": 60,
+        "removed": 55,
+        "changed": 19,
+        "changed_outside_docs": [
+          "NOTICE",
+          "SHA256SUMS",
+          "THIRD_PARTY.md"
+        ]
+      },
+      "VROSTBridge-Host-Portable-1.0.0.11.zip": {
+        "files": 1806,
+        "identical_to_first_build": 1727,
+        "added": 60,
+        "removed": 55,
+        "changed": 19,
+        "changed_outside_docs": [
+          "NOTICE",
+          "SHA256SUMS",
+          "THIRD_PARTY.md"
+        ]
+      },
+      "VROSTBridge-Client-Portable-1.0.0.11.zip": {
+        "files": 1811,
+        "identical_to_first_build": 1731,
+        "added": 60,
+        "removed": 55,
+        "changed": 20,
+        "changed_outside_docs": [
+          "CLIENT_PROVENANCE.txt",
+          "NOTICE",
+          "SHA256SUMS",
+          "THIRD_PARTY.md"
+        ]
+      },
+      "VROSTBridge-Host-Setup-1.0.0.11.exe": {
+        "files": 1811,
+        "identical_to_first_build": 1732,
+        "added": 60,
+        "removed": 55,
+        "changed": 19,
+        "changed_outside_docs": [
+          "NOTICE",
+          "SHA256SUMS",
+          "THIRD_PARTY.md"
+        ]
+      },
+      "VROSTBridge-Client-Setup-1.0.0.11.exe": {
+        "files": 1816,
+        "identical_to_first_build": 1736,
+        "added": 60,
+        "removed": 55,
+        "changed": 20,
+        "changed_outside_docs": [
+          "CLIENT_PROVENANCE.txt",
+          "NOTICE",
+          "SHA256SUMS",
+          "THIRD_PARTY.md"
+        ]
+      }
+    }
+  },
+  "source_split": {
+    "archives": {
+      "VROSTBridge-1.0.0.11-host-source.zip": "the rendering PC: the companion, the driver's build from ALVR and patches/, the helpers, the launcher and the installer",
+      "VROSTBridge-1.0.0.11-windows-client-source.zip": "the Windows headset PC: the native client and its tests, the companion, FFmpeg's source and the cross-build scripts, the launcher and the installer",
+      "VROSTBridge-1.0.0.11-bazzite-client-source.zip": "the Bazzite headset PC: the native client and its tests, the lease helper and the Vulkan layer, the companion, FFmpeg's and go-bsb-cams' source, the build scripts and the installer"
+    },
+    "whole_source_only": "the Python tests, the page test, the workflow, the release scripts and two earlier tests",
+    "hashes": "in the release's SHA256SUMS.txt (the archives carry this record, so it cannot carry their hashes)",
+    "built_from_their_own_extraction": {
+      "bazzite_client": {
+        "native": "configured, built and tested from the extracted archive with the pinned ALVR checkout beside it (as Build-Client-Linux.sh fetches it): CTest 100% tests passed, 0 tests failed out of 28; installed with cmake --install",
+        "byte_identical_to_the_release": [
+          "VROSTBridgeClient",
+          "VROSTBridgeLease",
+          "VROSTBridgeRuntimeProbe",
+          "libvrosttext.so",
+          "assets/fused.spv",
+          "vulkan/libVkLayer_vrostbridge_openvr.so"
+        ],
+        "eye_camera_helper": "Build-Eye-Camera-Linux.sh built go-bsb-cams from the vendored source; its Go tests passed",
+        "companion": "launcher.app, host.control and host.events import from the extracted folder"
+      },
+      "windows_client": {
+        "native": "scripts/Build-Client-Windows.py cross-built it from the extracted archive with the same inputs as the release (SDK, LLVM, FFmpeg DLLs, transport DLL) and ran its tests under Wine: 100% tests passed, 0 tests failed out of 27",
+        "byte_identical_to_the_release": [
+          "VROSTBridgeClient.exe",
+          "VROSTBridgeRuntimeProbe.exe",
+          "assets/fused.spv",
+          "assets/reaim.spv",
+          "assets/convert.spv"
+        ]
+      },
+      "host": {
+        "launcher": "packaging/build_windows_launcher.py rebuilt VROSTBridge Host.exe byte for byte",
+        "patches": "the 23 patches are exactly those the shipped driver's build manifest lists (SHA-256 each)",
+        "driver_tests": "tests/host_color_tests.cpp, built against VROSTBridgeColor.h taken from the archive's patch 0018: 46 checks passed",
+        "payload": "packaging/repack_host_payload.py from the archive, over the same inputs as the release, made a payload identical to the release's apart from the documents and notices",
+        "not_rebuilt": "the driver itself: its sources are 1.0.0.9's, unchanged, and its build is recorded with 1.0.0.9"
+      },
+      "note": "The archives built were made before the last documentation edits; between them and the final ones only documentation and notices differ (CHANGELOG.md, NOTICE, README.md, SOURCE.md, THIRD_PARTY.md, packaging/README.md, docs/, brand/README.md, brand/LICENSE.md and the licensing line of brand/brand.json)."
+    }
+  },
+  "checks_from_a_clean_copy": {
+    "how": "The public source archive extracted into an empty folder and committed to a new git repository, as docs/PUBLISHING.md describes, then the workflow's three steps run there (Python 3.13 here; the workflow uses 3.12, whose Pillow could not be installed offline).",
+    "python": "Ran 1456 tests in 242.197s, OK (skipped=4)",
+    "python_skipped": [
+      "test_rc43 GameModeScreenTests.test_pages_render: needs SDL2 and the built libvrosttext.so",
+      "test_vrostbridge_1002: the end-to-end layer test and test_the_built_layer need the built client",
+      "test_windows_packaging LauncherSourceTests.test_both_roles_build: needs an xwin SDK and LLVM"
+    ],
+    "page": "node tests/test_desktop_ui.js: passed",
+    "native": "cmake -DVROST_BUILD_LINUX_CLIENT=OFF, CTest: 100% tests passed, 0 tests failed out of 19",
+    "tree_after": "git status clean: the checks wrote only into ignored folders"
+  },
+  "tests_in_the_working_tree": "Ran 1456 tests in 271.007s, OK (skipped=1)",
+  "scans": {
+    "what": "The five rebuilt packages, the public source archive and the three source archives (inside ZIP members, tar archives, the PyInstaller archive, zlib streams and PDF text, also as UTF-16): no other bridge name, none of the maintainer's personal details, none of the model names of the maintainer's hardware.",
+    "hits": {
+      "packages": 0,
+      "personal": 0,
+      "hardware": 0
+    },
+    "scanned": {
+      "files": 19255,
+      "zip_members": 15619,
+      "streams": 1412,
+      "pdf_pages": 1017,
+      "tar_members": 49140,
+      "pyinstaller_entries": 10
+    },
+    "private_patterns": "Both source scripts ran with the maintainer's private patterns set (VROSTBRIDGE_PRIVATE_PATTERNS); nothing matched."
+  },
+  "not_run": [
+    "The workflow on GitHub's own runners, and the new major versions of its actions.",
+    "Everything on hardware, as for the first build of 1.0.0.11 (see its record)."
+  ],
+  "publishing": "Nothing had been pushed or released when this record was written; see docs/PUBLISHING.md."
+}

@@ -1,0 +1,50 @@
+{
+  "crate": "unicode-segmentation",
+  "version": "1.13.3",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/unicode-rs/unicode-segmentation",
+  "authors": [
+    "kwantam <kwantam@gmail.com>",
+    "Manish Goregaokar <manishsmail@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "COPYRIGHT",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYRIGHT",
+      "sha256": "23860c2a7b5d96b21569afedf033469bab9fe14a1b24a35068b8641c578ce24d",
+      "bytes": 321,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
+  },
+  "source_url": "https://crates.io/crates/unicode-segmentation/1.13.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "66a032fd8d667bc47ac5b640b151dff3f5356d07"
+    },
+    "path_in_vcs": ""
+  }
+}

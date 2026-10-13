@@ -1,0 +1,72 @@
+{
+  "brand": "VROSTBridge",
+  "display_name": "VROSTBridge",
+  "proposed_slug_for_new_items": "vrostbridge",
+  "host_label": "VROSTBridge Host",
+  "client_label": "VROSTBridge Client",
+  "meaning": "VR Rendering OutSide The Box – Bridge",
+  "descriptor": "An open-source remote PCVR bridge.",
+  "strapline": "VR outside the box.",
+  "tagline": "Think outside the box. Render there too.",
+  "symbol": "An isometric cube in front of a dome: the dome cut flat at its base and cut back around the cube, the cube's three faces separated by gaps. Cyan to blue on the left, purple to magenta on the right.",
+  "wordmark": "VROST in a wide, bold geometric face (white on dark), BRIDGE spaced out beneath it (light grey-blue).",
+  "wordmark_inline": "1.0.0.3, the pages' and Game Mode's headers: VROST as in the logo, then Bridge with a capital B and lower-case ridge (Montserrat 400 as outlines, 0.1 em extra spacing, the logo's light grey-blue), its capitals as tall as VROST's on the same baseline; the line under it unchanged.",
+  "source_artwork": [
+    "source/vrostbridge-icon.png",
+    "source/vrostbridge-logo.png"
+  ],
+  "vector_masters": {
+    "symbol": "assets/svg/vrostbridge-mark.svg",
+    "symbol_white": "assets/svg/vrostbridge-mark-white.svg",
+    "symbol_black": "assets/svg/vrostbridge-mark-black.svg",
+    "app_icon": "assets/svg/vrostbridge-app.svg",
+    "logo_dark_background": "assets/svg/vrostbridge-logo.svg",
+    "logo_light_background": "assets/svg/vrostbridge-logo-light.svg",
+    "wordmark_one_line_dark_background": "assets/svg/vrostbridge-wordmark-inline.svg",
+    "wordmark_one_line_light_background": "assets/svg/vrostbridge-wordmark-inline-light.svg",
+    "bridge_outlines": "assets/svg/vrostbridge-bridge.svg"
+  },
+  "icon_sizes": [
+    16,
+    20,
+    22,
+    24,
+    32,
+    40,
+    48,
+    64,
+    96,
+    128,
+    192,
+    256,
+    512
+  ],
+  "pixel_fitted_sizes": [
+    16,
+    20,
+    22,
+    24,
+    32
+  ],
+  "ico_sizes": [
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64,
+    96,
+    128,
+    256
+  ],
+  "palette": {
+    "cyan": "#00E5FF",
+    "blue": "#0085FF",
+    "purple": "#A855FF",
+    "magenta": "#FF2DCB",
+    "background": "#080B12"
+  },
+  "legal_status": "Brand choice only. No trademark registration or legal clearance is claimed.",
+  "licensing": "The code is MIT (LICENSE). The artwork is CC BY-ND 4.0 (brand/LICENSE.md): shared unchanged with credit; forks use their own name and logo."
+}

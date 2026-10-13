@@ -1,0 +1,87 @@
+[  6%] Building CXX object CMakeFiles/VROSTBridgeLease.dir/client/platform/linux/lease.cpp.o
+[  6%] Building CXX object CMakeFiles/core_tests.dir/tests/core_tests.cpp.o
+[  9%] Building CXX object CMakeFiles/VROSTBridgeClient.dir/client/platform/linux/main.cpp.o
+[ 12%] Building CXX object CMakeFiles/lease_protocol_tests.dir/tests/lease_protocol_tests.cpp.o
+[ 15%] Linking CXX executable core_tests
+[ 15%] Built target core_tests
+[ 18%] Generating convert.spv
+/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/client/platform/linux/convert.comp
+[ 18%] Built target conversion_shader
+[ 21%] Building C object CMakeFiles/lease_protocol_tests.dir/client/platform/linux/lease_protocol/drm-lease-v1-protocol.c.o
+[ 25%] Building CXX object CMakeFiles/stream_tests.dir/tests/stream_tests.cpp.o
+[ 28%] Linking CXX executable lease_protocol_tests
+[ 28%] Built target lease_protocol_tests
+[ 31%] Building CXX object CMakeFiles/video_handshake_tests.dir/tests/video_handshake_tests.cpp.o
+[ 34%] Building C object CMakeFiles/VROSTBridgeLease.dir/client/platform/linux/lease_protocol/drm-lease-v1-protocol.c.o
+[ 37%] Linking CXX executable VROSTBridgeLease
+[ 37%] Built target VROSTBridgeLease
+[ 40%] Building CXX object CMakeFiles/presentation_tests.dir/tests/presentation_tests.cpp.o
+[ 43%] Linking CXX executable video_handshake_tests
+[ 43%] Built target video_handshake_tests
+[ 46%] Building CXX object CMakeFiles/geometry_tests.dir/tests/geometry_tests.cpp.o
+[ 50%] Linking CXX executable stream_tests
+[ 50%] Built target stream_tests
+[ 53%] Building CXX object CMakeFiles/input_tests.dir/tests/input_tests.cpp.o
+[ 56%] Linking CXX executable geometry_tests
+[ 56%] Built target geometry_tests
+[ 59%] Building CXX object CMakeFiles/skeletal_tests.dir/tests/skeletal_tests.cpp.o
+[ 62%] Linking CXX executable presentation_tests
+[ 62%] Built target presentation_tests
+[ 65%] Building CXX object CMakeFiles/runtime_settings_tests.dir/tests/runtime_settings_tests.cpp.o
+[ 68%] Linking CXX executable input_tests
+[ 68%] Built target input_tests
+[ 71%] Building CXX object CMakeFiles/native_hand_host_tests.dir/tests/native_hand_host_tests.cpp.o
+[ 75%] Linking CXX executable skeletal_tests
+[ 75%] Built target skeletal_tests
+[ 78%] Building CXX object CMakeFiles/VROSTBridgeClient.dir/client/platform/linux/vulkan.cpp.o
+[ 81%] Building CXX object CMakeFiles/chaperone_geometry_tests.dir/tests/chaperone_geometry_tests.cpp.o
+[ 84%] Linking CXX executable chaperone_geometry_tests
+[ 84%] Built target chaperone_geometry_tests
+[ 87%] Building CXX object CMakeFiles/VROSTBridgeClient.dir/client/platform/linux/decoder.cpp.o
+[ 90%] Linking CXX executable native_hand_host_tests
+[ 90%] Built target native_hand_host_tests
+[ 93%] Building CXX object CMakeFiles/VROSTBridgeClient.dir/client/device/openvr_device.cpp.o
+[ 96%] Linking CXX executable runtime_settings_tests
+[ 96%] Built target runtime_settings_tests
+[100%] Linking CXX executable VROSTBridgeClient
+[100%] Built target VROSTBridgeClient
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/build-linux
+[  9%] Built target VROSTBridgeLease
+[ 12%] Building CXX object CMakeFiles/lease_protocol_tests.dir/tests/lease_protocol_tests.cpp.o
+[ 15%] Building CXX object CMakeFiles/core_tests.dir/tests/core_tests.cpp.o
+[ 31%] Built target VROSTBridgeClient
+[ 34%] Built target conversion_shader
+[ 37%] Building CXX object CMakeFiles/stream_tests.dir/tests/stream_tests.cpp.o
+[ 40%] Building CXX object CMakeFiles/video_handshake_tests.dir/tests/video_handshake_tests.cpp.o
+[ 43%] Linking CXX executable video_handshake_tests
+[ 46%] Linking CXX executable core_tests
+[ 46%] Built target video_handshake_tests
+[ 50%] Building CXX object CMakeFiles/presentation_tests.dir/tests/presentation_tests.cpp.o
+[ 50%] Built target core_tests
+[ 53%] Building CXX object CMakeFiles/geometry_tests.dir/tests/geometry_tests.cpp.o
+[ 56%] Building C object CMakeFiles/lease_protocol_tests.dir/client/platform/linux/lease_protocol/drm-lease-v1-protocol.c.o
+[ 59%] Linking CXX executable lease_protocol_tests
+[ 59%] Built target lease_protocol_tests
+[ 62%] Building CXX object CMakeFiles/input_tests.dir/tests/input_tests.cpp.o
+[ 65%] Linking CXX executable stream_tests
+[ 68%] Linking CXX executable geometry_tests
+[ 68%] Built target stream_tests
+[ 71%] Building CXX object CMakeFiles/skeletal_tests.dir/tests/skeletal_tests.cpp.o
+[ 71%] Built target geometry_tests
+[ 75%] Building CXX object CMakeFiles/runtime_settings_tests.dir/tests/runtime_settings_tests.cpp.o
+[ 78%] Linking CXX executable input_tests
+[ 78%] Built target input_tests
+[ 81%] Building CXX object CMakeFiles/native_hand_host_tests.dir/tests/native_hand_host_tests.cpp.o
+[ 84%] Linking CXX executable presentation_tests
+[ 84%] Built target presentation_tests
+[ 87%] Building CXX object CMakeFiles/chaperone_geometry_tests.dir/tests/chaperone_geometry_tests.cpp.o
+[ 90%] Linking CXX executable skeletal_tests
+[ 93%] Linking CXX executable chaperone_geometry_tests
+[ 93%] Built target chaperone_geometry_tests
+[ 93%] Built target skeletal_tests
+[ 96%] Linking CXX executable native_hand_host_tests
+[ 96%] Built target native_hand_host_tests
+[100%] Linking CXX executable runtime_settings_tests
+[100%] Built target runtime_settings_tests

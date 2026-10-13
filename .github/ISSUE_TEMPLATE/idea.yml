@@ -1,0 +1,14 @@
+name: Idea or request
+description: Suggest an improvement or a new feature
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like VROSTBridge to do?
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it help you?

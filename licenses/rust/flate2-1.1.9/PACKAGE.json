@@ -1,0 +1,43 @@
+{
+  "crate": "flate2",
+  "version": "1.1.9",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/flate2-rs",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>",
+    "Josh Triplett <josh@joshtriplett.org>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "025436edff4cfcdde17a5811fdea78892d8482efd1abdec5a17872d07a4f2112",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "843fba2746e448b37e26a819579957415c8cef339bf08564fe8b7ddbd959573c"
+  },
+  "source_url": "https://crates.io/crates/flate2/1.1.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "19ddb18bf11199858fbc6504d079448fafd1606e"
+    },
+    "path_in_vcs": ""
+  }
+}

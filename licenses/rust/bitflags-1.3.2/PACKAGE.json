@@ -1,0 +1,45 @@
+{
+  "crate": "bitflags",
+  "version": "1.3.2",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/bitflags/bitflags",
+  "authors": [
+    "The Rust Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a",
+    "linux_client": "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a",
+    "windows_client": "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+  },
+  "source_url": "https://crates.io/crates/bitflags/1.3.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ed185cfb1c447c1b4bd6ac021c9ec3bb02c9e2f2"
+    }
+  }
+}

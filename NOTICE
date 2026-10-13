@@ -1,0 +1,36 @@
+VROSTBridge
+Copyright (c) 2026 JagerBombastic
+Licensed under the MIT License; see LICENSE.
+
+The VROSTBridge logo, icons and other artwork are Copyright (c) 2026 JagerBombastic, licensed under
+Creative Commons Attribution-NoDerivatives 4.0 (https://creativecommons.org/licenses/by-nd/4.0/);
+see THIRD_PARTY.md, and brand/LICENSE.md in the source.
+
+VROSTBridge includes and builds on software by others, each under its own licence. The list,
+and where each notice is, is in THIRD_PARTY.md; the licence texts are in the licenses/ folder.
+In particular:
+
+- ALVR, https://github.com/alvr-org/ALVR, MIT License.
+  Copyright (c) 2018-2019 polygraphene
+  Copyright (c) 2020-2024 alvr-org
+  The Windows host driver is ALVR's, built with VROSTBridge's patches (patches/).
+
+- The Windows host driver contains source code provided by NVIDIA Corporation
+  (NVIDIA Video Codec SDK samples, under NVIDIA's licence; licenses/NVIDIA-Video-Codec-SDK-samples.txt).
+
+- OpenVR, Copyright (c) 2015, Valve Corporation, BSD 3-Clause License (third_party/openvr/LICENSE).
+
+- The Bazzite client package includes FFmpeg (LGPL 2.1 or later) and go-bsb-cams (GPL version 2,
+  modified by VROSTBridge), each with its complete corresponding source in third_party/.
+
+- The Windows client package includes FFmpeg (LGPL 2.1 or later), with its complete corresponding
+  source in third_party/ffmpeg/.
+
+Baballonia (Project Babble) and VB-CABLE (VB-Audio Software) are not included: VROSTBridge
+downloads them from their authors only when you ask it to, under their own licences.
+
+VROSTBridge is an independent open-source project. It is not affiliated with, sponsored by, or
+endorsed by Valve Corporation, Bigscreen, or any other headset, tracking-system or platform
+manufacturer, nor by the ALVR project, Project Babble, VB-Audio or Universal Blue (Bazzite).
+Third-party product names and trademarks belong to their respective owners; references to them
+identify compatibility or dependencies and do not imply endorsement or certification.

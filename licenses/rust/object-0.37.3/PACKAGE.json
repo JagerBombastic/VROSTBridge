@@ -1,0 +1,40 @@
+{
+  "crate": "object",
+  "version": "0.37.3",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/gimli-rs/object",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0b74dfa0bcee5c420c6b7f67b4b2658f9ab8388c97b8e733975f2cecbdd668a6",
+      "bytes": 1064,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "ff76201f031d8863c38aa7f905eca4f53abbfa15f609db4277d44cd8938f33fe"
+  },
+  "source_url": "https://crates.io/crates/object/0.37.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "916c47b90e5c0bea139ca4bdfc53811f7d2c3383"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,20 @@
+[package]
+name = "vrostbridge_transport"
+version = "0.2.0"
+edition = "2024"
+license = "MIT"
+publish = false
+[lib]
+crate-type = ["cdylib"]
+path = "lib.rs"
+[dependencies]
+alvr_client_core = { path = "../../upstream/ALVR/alvr/client_core" }
+alvr_common = { path = "../../upstream/ALVR/alvr/common" }
+alvr_packets = { path = "../../upstream/ALVR/alvr/packets" }
+alvr_session = { path = "../../upstream/ALVR/alvr/session" }
+alvr_system_info = { path = "../../upstream/ALVR/alvr/system_info" }
+serde_json = "1"
+
+[[bin]]
+name = "vrostbridge-defaults"
+path = "defaults.rs"

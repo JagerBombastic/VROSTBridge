@@ -1,0 +1,165 @@
+#version 450
+// RC4.3 fused frame pass: the decoded Y'CbCr planes (NV12 or P010, at the encoded and
+// possibly foveated size) -> the RGBA8 stereo image SteamVR shows, in one pass per
+// displayed frame. It replaces convert.comp + reaim.comp, which wrote and read back a
+// full-resolution RGBA image per frame and resampled the picture twice. Per output pixel:
+//  1. re-aim: the view direction at the displayed head pose -> the same direction in the
+//     image the host rendered (core/reaim.hpp; the identity when not re-aiming); outside
+//     the rendered view the picture fades to black over two pixels;
+//  2. foveation inverse: full-resolution view position -> position in the encoded eye
+//     (ALVR's stream.wgsl, as in convert.comp), with its slope: how many encoded texels one
+//     output pixel spans (1 in the full-resolution centre, down to 1/(2 x edge ratio - 1) at
+//     the outer edge of a reduced region);
+//  3. luma by Catmull-Rom from five bilinear taps where the picture was sent at full resolution,
+//     so the single resampling stays sharp at any sub-pixel offset; where the reduced edges are
+//     enlarged (two or more output pixels per texel), a cubic B-spline from four bilinear taps,
+//     blended between the two in the band from one to two (1.0.0.3): Catmull-Rom's overshoot
+//     there drew a bright and a dark fringe beside each edge, two to five output pixels wide,
+//     that moved with the head and the gaze and made the periphery sparkle; the B-spline has
+//     none and smooths the enlarged texels. Then optional contrast-adaptive sharpening of luma
+//     (four more taps; the amount rule of AMD FidelityFX CAS), faded out where one output pixel
+//     spans less than an encoded texel (the reduced edges);
+//  4. chroma bilinear at its signalled siting, Y'CbCr -> R'G'B', dither to 8 bits.
+// RC4.4: the slope comes from the foveation formula itself instead of two more inverse
+// evaluations per pixel, and Catmull-Rom uses five taps instead of nine. Taps never cross into
+// the other eye.
+// 1.0.0.11: the same picture for less work per pixel, so a full-resolution stream fits lighter
+// GPUs. Arithmetic, not texture reads, bounded the pass (the driver's own compiler statistics):
+//  - the foveation inverse comes as per-frame constants for each eye and axis, computed once on
+//    the processor (client/device/conversion.hpp fusedFrameConstants): per pixel and axis one
+//    square root and one reciprocal remain of the ten divisions, the square root and the
+//    reciprocal before; texel sizes, the mirrored right eye and its offsets are folded in too;
+//  - one workgroup layer per eye (z): everything that depends on the eye is uniform there;
+//  - pixels the headset's lenses never show are skipped (binding 4: each eye's visible span per
+//    output row, client/device/visible_area.hpp); the output image is black there from the start.
+// All constants come in a uniform buffer per output image (binding 3, std140: the struct
+// FusedFrame in client/device/conversion.hpp), so one shader serves every GPU (1.0.0.7 needed a
+// second one for GPUs with 128 bytes of push constants). The CPU model in
+// tests/fused_shader_tests.cpp checks this file.
+layout(local_size_x=16,local_size_y=16) in;
+layout(binding=0) uniform sampler2D luma;
+layout(binding=1) uniform sampler2D chroma;
+layout(binding=2,rgba8) writeonly uniform image2D outputImage;
+// One axis of one eye: view position (0..1) -> luma texel position (absolute, both eyes side by
+// side) and the luma texels one output pixel spans.
+struct Axis {
+ vec4 bounds; // x, y: where the reduced low and high edges start; z, w: m = u * z + w (the right eye's x is mirrored)
+ vec4 low;    // reduced low edge: r = sqrt(max(x * m + y, 0)); texel = z * r + w
+ vec4 high;   // reduced high edge, the same form
+ vec4 centre; // texel = x * m + y; z: texels per pixel there; w: in the edges, texels per pixel = w / r
+};
+struct Eye {
+ vec4 rows[3];    // re-aim homography rows (output view position -> rendered view position)
+ Axis axis[2];
+ vec4 lumaBounds; // xy: first, zw: last luma texel centre of this eye
+ vec4 chromaLow;  // xy: first chroma texel centre of this eye; zw: chroma position = luma position / 2 + zw
+ vec4 chromaHigh; // xy: last chroma texel centre of this eye
+};
+layout(binding=3,std140) uniform Frame {
+ vec4 row0;       // matrix row 0; w: chroma centre
+ vec4 row1;       // matrix row 1; w: dither amplitude (8-bit steps)
+ vec4 row2;       // matrix row 2
+ vec4 adjustment; // x: luma offset, y: luma scale, z: chroma scale, w: sharpening amount (0 = off)
+ vec4 sizes;      // xy: 1 / luma size, zw: 1 / chroma size (texels)
+ vec4 outputEye;  // xy: output size of one eye (pixels), zw: its reciprocal
+ Eye eye[2];
+} f;
+// Per eye and output row: the first visible pixel | the end << 16 (the whole row when no lens data).
+layout(binding=4,std430) readonly buffer Visible { uint spans[]; } visible;
+
+vec2 axisTexel(float u,Axis a){
+ float m=u*a.bounds.z+a.bounds.w;
+ if(m<a.bounds.x){float r=sqrt(max(a.low.x*m+a.low.y,0.));return vec2(a.low.z*r+a.low.w,a.centre.w/max(r,1e-6));}
+ if(m>a.bounds.y){float r=sqrt(max(a.high.x*m+a.high.y,0.));return vec2(a.high.z*r+a.high.w,a.centre.w/max(r,1e-6));}
+ return vec2(a.centre.x*m+a.centre.y,a.centre.z);
+}
+
+float lumaTap(vec2 at,vec2 lo,vec2 hi){return texture(luma,clamp(at,lo,hi)*f.sizes.xy).r;}
+
+// Catmull-Rom from five bilinear taps (the four corner taps of the nine-tap form carry under
+// 2 % of the weight; the rest is renormalised). pixel: texels, centres at .5; lo/hi: this
+// eye's texel centres.
+float lumaCatmullRom(vec2 pixel,vec2 lo,vec2 hi){
+ vec2 p1=floor(pixel-.5)+.5;
+ vec2 t=pixel-p1;
+ vec2 w0=t*(-.5+t*(1.-.5*t));
+ vec2 w1=1.+t*t*(-2.5+1.5*t);
+ vec2 w2=t*(.5+t*(2.-1.5*t));
+ vec2 w3=t*t*(-.5+.5*t);
+ vec2 w12=w1+w2;
+ vec2 p0=clamp(p1-1.,lo,hi)*f.sizes.xy;
+ vec2 p3=clamp(p1+2.,lo,hi)*f.sizes.xy;
+ vec2 p12=clamp(p1+w2/w12,lo,hi)*f.sizes.xy;
+ float centre=w12.x*w12.y,up=w12.x*w0.y,left=w0.x*w12.y,right=w3.x*w12.y,down=w12.x*w3.y;
+ float sum=texture(luma,p12).r*centre
+          +texture(luma,vec2(p12.x,p0.y)).r*up
+          +texture(luma,vec2(p0.x,p12.y)).r*left
+          +texture(luma,vec2(p3.x,p12.y)).r*right
+          +texture(luma,vec2(p12.x,p3.y)).r*down;
+ return sum/(centre+up+left+right+down);
+}
+
+// 1.0.0.3: a cubic B-spline from four bilinear taps, exactly (its weights are all positive, so
+// each pair of texels is one bilinear tap): smooth, without Catmull-Rom's overshoot.
+float lumaBSpline(vec2 pixel,vec2 lo,vec2 hi){
+ vec2 p1=floor(pixel-.5)+.5;
+ vec2 t=pixel-p1;
+ vec2 g=1.-t;
+ vec2 w0=g*g*g/6.;
+ vec2 w1=(4.+t*t*(-6.+3.*t))/6.;
+ vec2 w3=t*t*t/6.;
+ vec2 s0=w0+w1,s1=1.-s0; // w2+w3
+ vec2 t0=clamp(p1-1.+w1/s0,lo,hi)*f.sizes.xy;
+ vec2 t1=clamp(p1+1.+w3/max(s1,vec2(1e-6)),lo,hi)*f.sizes.xy;
+ return (texture(luma,t0).r*s0.x+texture(luma,vec2(t1.x,t0.y)).r*s1.x)*s0.y
+       +(texture(luma,vec2(t0.x,t1.y)).r*s0.x+texture(luma,t1).r*s1.x)*s1.y;
+}
+
+void main(){
+ int eye=int(gl_WorkGroupID.z);
+ ivec2 p=ivec2(gl_GlobalInvocationID.xy); // within this eye
+ ivec2 eyeSize=ivec2(f.outputEye.xy);
+ if(p.x>=eyeSize.x||p.y>=eyeSize.y)return;
+ uint span=visible.spans[eye*eyeSize.y+p.y];
+ if(uint(p.x)<(span&0xffffu)||uint(p.x)>=(span>>16))return; // the lenses never show it: stays black
+ ivec2 o=ivec2(p.x+eye*eyeSize.x,p.y);  // in the stereo output image
+ vec2 uv=(vec2(p)+.5)*f.outputEye.zw;
+ vec3 h=vec3(dot(f.eye[eye].rows[0].xyz,vec3(uv,1.)),dot(f.eye[eye].rows[1].xyz,vec3(uv,1.)),dot(f.eye[eye].rows[2].xyz,vec3(uv,1.)));
+ if(h.z<=1e-6){imageStore(outputImage,o,vec4(0.,0.,0.,1.));return;}
+ vec2 s=h.xy/h.z;
+ vec2 outside=max(max(-s,s-1.),0.)*f.outputEye.xy;
+ float fade=clamp(1.-max(outside.x,outside.y)*.5,0.,1.);
+ if(fade<=0.){imageStore(outputImage,o,vec4(0.,0.,0.,1.));return;}
+ s=clamp(s,0.,1.);
+ vec2 ax=axisTexel(s.x,f.eye[eye].axis[0]);
+ vec2 ay=axisTexel(s.y,f.eye[eye].axis[1]);
+ vec2 pixel=vec2(ax.x,ay.x); // luma texels, both eyes side by side
+ vec2 lo=f.eye[eye].lumaBounds.xy,hi=f.eye[eye].lumaBounds.zw;
+ // Encoded texels one output pixel spans: 1 where the picture was sent at full resolution,
+ // down to 1/(2 x edge ratio - 1) in the reduced edges, where sharpening would only enlarge
+ // the coarse texels. detail: 1 from one texel per pixel, 0 from two output pixels per texel.
+ float detail=clamp(2.*min(ax.y,ay.y)-1.,0.,1.);
+ // Catmull-Rom from one texel per pixel, the B-spline from two output pixels per texel, blended between.
+ float y=detail>=1.?lumaCatmullRom(pixel,lo,hi):detail<=0.?lumaBSpline(pixel,lo,hi):
+         mix(lumaBSpline(pixel,lo,hi),lumaCatmullRom(pixel,lo,hi),detail);
+ y=(y-f.adjustment.x)*f.adjustment.y;
+ if(f.adjustment.w>0.&&detail>0.){
+  float n=(lumaTap(pixel+vec2(0.,-1.),lo,hi)-f.adjustment.x)*f.adjustment.y;
+  float so=(lumaTap(pixel+vec2(0.,1.),lo,hi)-f.adjustment.x)*f.adjustment.y;
+  float w=(lumaTap(pixel+vec2(-1.,0.),lo,hi)-f.adjustment.x)*f.adjustment.y;
+  float ea=(lumaTap(pixel+vec2(1.,0.),lo,hi)-f.adjustment.x)*f.adjustment.y;
+  float mn=clamp(min(y,min(min(n,so),min(w,ea))),0.,1.);
+  float mx=clamp(max(y,max(max(n,so),max(w,ea))),0.,1.);
+  // CAS: most where the local signal is far from black and white, least across strong edges.
+  float amp=sqrt(clamp(min(mn,1.-mx)/max(mx,1./1024.),0.,1.));
+  y+=f.adjustment.w*amp*detail*(y-.25*(n+so+w+ea));
+ }
+ // Chroma at its siting: half the luma position plus this eye's offset, kept inside this eye.
+ vec2 chromaAt=clamp(pixel*.5+f.eye[eye].chromaLow.zw,f.eye[eye].chromaLow.xy,f.eye[eye].chromaHigh.xy);
+ vec2 c=texture(chroma,chromaAt*f.sizes.zw).rg;
+ vec3 v=vec3(y,(c-vec2(f.row0.w))*f.adjustment.z);
+ vec3 rgb=vec3(dot(v,f.row0.xyz),dot(v,f.row1.xyz),dot(v,f.row2.xyz));
+ float noise=fract(52.9829189*fract(.06711056*float(o.x)+.00583715*float(o.y)))-.5;
+ rgb+=noise*f.row1.w/255.;
+ imageStore(outputImage,o,vec4(clamp(rgb,0.,1.)*fade,1.));
+}

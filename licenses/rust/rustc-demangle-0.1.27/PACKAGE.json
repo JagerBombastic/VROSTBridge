@@ -1,0 +1,42 @@
+{
+  "crate": "rustc-demangle",
+  "version": "0.1.27",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/rust-lang/rustc-demangle",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "b50b8869d9fc858ce7266cce0194bd74df58b9d0e3f6df3a9fc8eb470d95c09d"
+  },
+  "source_url": "https://crates.io/crates/rustc-demangle/0.1.27",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f65a6d8f63a7656c71649d92ff3cb000951c11a6"
+    },
+    "path_in_vcs": ""
+  }
+}

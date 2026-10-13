@@ -1,0 +1,42 @@
+{
+  "crate": "glob",
+  "version": "0.3.4",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/glob",
+  "authors": [
+    "The Rust Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
+  },
+  "source_url": "https://crates.io/crates/glob/0.3.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "cfa2a58f2e44373573f657ec25b3621e44714dee"
+    },
+    "path_in_vcs": ""
+  }
+}

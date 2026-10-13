@@ -1,0 +1,40 @@
+{
+  "crate": "bincode_derive",
+  "version": "2.0.1",
+  "license": "MIT",
+  "repository": "https://github.com/bincode-org/bincode",
+  "authors": [
+    "Zoey Riordan <zoey@dos.cafe>",
+    "Victor Koenders <bincode@trangar.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE.md"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.md",
+      "sha256": "90d7e062634054e6866d3c81e6a2b3058a840e6af733e98e80bdfe1a7dec6912",
+      "bytes": 1076,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09",
+    "linux_client": "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09",
+    "windows_client": "bf95709a440f45e986983918d0e8a1f30a9b1df04918fc828670606804ac3c09"
+  },
+  "source_url": "https://crates.io/crates/bincode_derive/2.0.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4673360aa638b2b907dff24538de54f258d157da"
+    },
+    "path_in_vcs": "derive"
+  }
+}

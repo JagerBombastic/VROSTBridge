@@ -1,0 +1,46 @@
+{
+  "crate": "autocfg",
+  "version": "1.5.1",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/cuviper/autocfg",
+  "authors": [
+    "Josh Stone <cuviper@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "27995d58ad5c1145c1a8cd86244ce844886958a35eb2b78c6b772748669999ac",
+      "bytes": 1054,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53",
+    "linux_client": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53",
+    "windows_client": "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
+  },
+  "source_url": "https://crates.io/crates/autocfg/1.5.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "2799b09c24e6632f8e653c5cd8fc303e85a906ba"
+    },
+    "path_in_vcs": ""
+  }
+}

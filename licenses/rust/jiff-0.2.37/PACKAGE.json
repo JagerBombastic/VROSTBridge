@@ -1,0 +1,44 @@
+{
+  "crate": "jiff",
+  "version": "0.2.37",
+  "license": "Unlicense OR MIT",
+  "repository": "https://github.com/BurntSushi/jiff",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "bytes": 126,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "0ab1baf72f08796de0260609515130699b890ac25f30e610ad894bc5856cafdb",
+    "windows_client": "0ab1baf72f08796de0260609515130699b890ac25f30e610ad894bc5856cafdb"
+  },
+  "source_url": "https://crates.io/crates/jiff/0.2.37",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4100a7c71125b9523029566d1d18f8b227ecd18c"
+    },
+    "path_in_vcs": "crates/jiff"
+  }
+}

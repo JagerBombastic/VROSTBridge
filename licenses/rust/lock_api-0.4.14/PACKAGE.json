@@ -1,0 +1,46 @@
+{
+  "crate": "lock_api",
+  "version": "0.4.14",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/Amanieu/parking_lot",
+  "authors": [
+    "Amanieu d'Antras <amanieu@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "c9a75f18b9ab2927829a208fc6aa2cf4e63b8420887ba29cdb265d6619ae82d5",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965",
+    "linux_client": "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965",
+    "windows_client": "224399e74b87b5f3557511d98dff8b14089b3dadafcab6bb93eab67d3aace965"
+  },
+  "source_url": "https://crates.io/crates/lock_api/0.4.14",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d7828fff7b5d6327ae608e82db45f888b344449a"
+    },
+    "path_in_vcs": "lock_api"
+  }
+}

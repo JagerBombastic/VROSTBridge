@@ -1,0 +1,44 @@
+{
+  "crate": "itertools",
+  "version": "0.13.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-itertools/itertools",
+  "authors": [
+    "bluss"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7576269ea71f767b99297934c0b2367532690f8c4badc695edf8e04ab6a1e545",
+      "bytes": 1043,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186",
+    "linux_client": "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+  },
+  "source_url": "https://crates.io/crates/itertools/0.13.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d5084d15e959b85d89a49e5cd33ad6267bc541a3"
+    },
+    "path_in_vcs": ""
+  }
+}

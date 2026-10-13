@@ -1,0 +1,49 @@
+{
+  "crate": "bytemuck",
+  "version": "1.25.0",
+  "license": "Zlib OR Apache-2.0 OR MIT",
+  "repository": "https://github.com/Lokathor/bytemuck",
+  "authors": [
+    "Lokathor <zefria@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "LICENSE-ZLIB"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "e3ba223bb1423f0aad8c3dfce0fe3148db48926d41e6fbc3afbbf5ff9e1c89cb",
+      "bytes": 10398,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "9df9ba60a11af705f2e451b53762686e615d86f76b169cf075c3237730dbd7e2",
+      "bytes": 1110,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-ZLIB",
+      "sha256": "84b34dd7608f7fb9b17bd588a6bf392bf7de504e2716f024a77d89f1b145a151",
+      "bytes": 851,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "c8efb64bd706a16a1bdde310ae86b351e4d21550d98d056f22f8a7f7a2183fec"
+  },
+  "source_url": "https://crates.io/crates/bytemuck/1.25.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "164cedda0eae131bc6cb67902599f4ec253642ca"
+    },
+    "path_in_vcs": ""
+  }
+}

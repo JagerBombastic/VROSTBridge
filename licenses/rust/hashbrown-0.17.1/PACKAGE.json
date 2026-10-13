@@ -1,0 +1,44 @@
+{
+  "crate": "hashbrown",
+  "version": "0.17.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/hashbrown",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "ff8f68cb076caf8cefe7a6430d4ac086ce6af2ca8ce2c4e5a2004d4552ef52a2",
+      "bytes": 1060,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a",
+    "linux_client": "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a",
+    "windows_client": "ed5909b6e89a2db4456e54cd5f673791d7eca6732202bbf2a9cc504fe2f9b84a"
+  },
+  "source_url": "https://crates.io/crates/hashbrown/0.17.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c62a63a61b7caf2de8f9ecb7b06a66b0ab6bdf3d"
+    },
+    "path_in_vcs": ""
+  }
+}

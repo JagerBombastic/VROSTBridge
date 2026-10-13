@@ -1,0 +1,46 @@
+{
+  "crate": "glam",
+  "version": "0.32.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/bitshifter/glam-rs",
+  "authors": [
+    "Cameron Hart <cameron.hart@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "be33ddb87a30fd321ab100e2d922cba512e50ec7a63d8e62e5bfc0798dd4b585",
+      "bytes": 10834,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "f70749695b063ecbf6b62949ccccde2e733ec3ecbbd71d467dca4e5c6c97cca0",
+    "linux_client": "f70749695b063ecbf6b62949ccccde2e733ec3ecbbd71d467dca4e5c6c97cca0",
+    "windows_client": "f70749695b063ecbf6b62949ccccde2e733ec3ecbbd71d467dca4e5c6c97cca0"
+  },
+  "source_url": "https://crates.io/crates/glam/0.32.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "e8ed32dcd0232b8078b2be91d6fd8f3b99c28842"
+    },
+    "path_in_vcs": ""
+  }
+}

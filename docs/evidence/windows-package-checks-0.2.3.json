@@ -1,0 +1,12 @@
+{
+  "release": "0.2.3",
+  "nsis_archive_integrity": "pass",
+  "changed_installer_payload_matches_verified_portable_payload": "pass",
+  "native_launcher_imports": [
+    "KERNEL32.dll",
+    "USER32.dll",
+    "SHELL32.dll"
+  ],
+  "windows_execution": "not available",
+  "physical_streaming": "not tested"
+}

@@ -1,0 +1,29 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Found Vulkan: /usr/lib/x86_64-linux-gnu/libvulkan.so.1 (found version "1.3.275") found components: glslangValidator missing components: glslc
+-- Found PkgConfig: /workspace/scratch/647ea6e3ae16/deps029/root/usr/bin/pkg-config (found version "1.8.1") 
+-- Checking for modules 'wayland-server;libdrm'
+--   Found wayland-server, version 1.22.0
+--   Found libdrm, version 2.4.125
+-- Checking for module 'wayland-client'
+--   Found wayland-client, version 1.22.0
+-- Checking for modules 'libavcodec;libavutil;libswscale'
+--   Found libavcodec, version 60.31.102
+--   Found libavutil, version 58.29.100
+--   Found libswscale, version 7.5.100
+-- Configuring done (0.5s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/build-linux

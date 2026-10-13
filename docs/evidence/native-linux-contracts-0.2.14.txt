@@ -1,0 +1,75 @@
+$ /workspace/scratch/647ea6e3ae16/deps029/root/usr/bin/cmake -S /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14 -B /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-contracts034 -DVROST_BUILD_LINUX_CLIENT=OFF
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-contracts034
+
+$ /workspace/scratch/647ea6e3ae16/deps029/root/usr/bin/cmake --build /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-contracts034 -j 4
+[  5%] Building CXX object CMakeFiles/core_tests.dir/tests/core_tests.cpp.o
+[ 11%] Building CXX object CMakeFiles/stream_tests.dir/tests/stream_tests.cpp.o
+[ 16%] Building CXX object CMakeFiles/presentation_tests.dir/tests/presentation_tests.cpp.o
+[ 22%] Building CXX object CMakeFiles/video_handshake_tests.dir/tests/video_handshake_tests.cpp.o
+[ 27%] Linking CXX executable video_handshake_tests
+[ 27%] Built target video_handshake_tests
+[ 33%] Linking CXX executable core_tests
+[ 38%] Building CXX object CMakeFiles/geometry_tests.dir/tests/geometry_tests.cpp.o
+[ 38%] Built target core_tests
+[ 44%] Building CXX object CMakeFiles/input_tests.dir/tests/input_tests.cpp.o
+[ 50%] Linking CXX executable stream_tests
+[ 50%] Built target stream_tests
+[ 55%] Building CXX object CMakeFiles/skeletal_tests.dir/tests/skeletal_tests.cpp.o
+[ 61%] Linking CXX executable input_tests
+[ 66%] Linking CXX executable geometry_tests
+[ 66%] Built target input_tests
+[ 72%] Building CXX object CMakeFiles/runtime_settings_tests.dir/tests/runtime_settings_tests.cpp.o
+[ 72%] Built target geometry_tests
+[ 77%] Building CXX object CMakeFiles/native_hand_host_tests.dir/tests/native_hand_host_tests.cpp.o
+[ 83%] Linking CXX executable skeletal_tests
+[ 83%] Built target skeletal_tests
+[ 88%] Linking CXX executable presentation_tests
+[ 94%] Linking CXX executable native_hand_host_tests
+[ 94%] Built target presentation_tests
+[ 94%] Built target native_hand_host_tests
+[100%] Linking CXX executable runtime_settings_tests
+[100%] Built target runtime_settings_tests
+
+$ /workspace/scratch/647ea6e3ae16/deps029/root/usr/bin/ctest --test-dir /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-contracts034 --output-on-failure
+Internal ctest changing into directory: /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-contracts034
+Test project /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-contracts034
+    Start 1: core_contracts
+1/9 Test #1: core_contracts ...................   Passed    0.00 sec
+    Start 2: stream_contracts
+2/9 Test #2: stream_contracts .................   Passed    0.00 sec
+    Start 3: video_handshake_contracts
+3/9 Test #3: video_handshake_contracts ........   Passed    0.00 sec
+    Start 4: presentation_contracts
+4/9 Test #4: presentation_contracts ...........   Passed    0.01 sec
+    Start 5: live_geometry_contracts
+5/9 Test #5: live_geometry_contracts ..........   Passed    0.01 sec
+    Start 6: input_contracts
+6/9 Test #6: input_contracts ..................   Passed    0.00 sec
+    Start 7: skeletal_contracts
+7/9 Test #7: skeletal_contracts ...............   Passed    0.00 sec
+    Start 8: runtime_settings_contracts
+8/9 Test #8: runtime_settings_contracts .......   Passed    0.00 sec
+    Start 9: native_host_hand_contracts
+9/9 Test #9: native_host_hand_contracts .......   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 9
+
+Total Test time (real) =   0.04 sec
+

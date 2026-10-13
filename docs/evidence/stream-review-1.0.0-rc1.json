@@ -1,0 +1,84 @@
+{
+  "report": "VROSTBridge-session-report (5)(1).json",
+  "host_version": "0.2.14.1",
+  "client_version": "0.2.14",
+  "time_basis": "UTC; SteamVR text timestamps are in local time, one hour ahead.",
+  "observed_profile": {
+    "display_hz": 120.019,
+    "codec": "H264",
+    "stream_per_eye": [
+      2016,
+      2240
+    ],
+    "bitrate_bps": 80000000
+  },
+  "first_run": {
+    "started_utc": "2026-09-28T01:39:11Z",
+    "stop_requested_utc": "2026-09-28T01:41:34Z",
+    "client_steamvr": {
+      "total_dropped_frames": 8052,
+      "application_presents": 15635,
+      "application_dropped": 2386,
+      "timeout_events": 447
+    },
+    "host_retained_statistics": {
+      "samples": 17,
+      "median_encode_ms": 52.728,
+      "median_network_ms": 3.507,
+      "median_decode_ms": 7.058
+    },
+    "client_retained_timing": {
+      "samples": 17,
+      "median_unique_fps": 6.999,
+      "median_submitted_fps": 34.997,
+      "median_reused_percent": 53.191,
+      "median_per_window_max_wait_poses_ms": 80.386
+    },
+    "amf_evidence": "AMF active (native HostAMF stats). 452 pool-full raw-frame drops by 01:40:37, 1068 by 01:41:23; zero reported AMF failures. Output age per-second maxima usually 67\u201369ms in retained bad window.",
+    "qualification": "Partial retained incident windows, not representative whole-session averages. Frame age and ALVR latency fields are not motion-to-photon measurements."
+  },
+  "second_run": {
+    "started_utc": "2026-09-28T01:41:52Z",
+    "stop_requested_utc": "2026-09-28T01:45:06Z",
+    "host_retained_statistics": {
+      "samples": 65,
+      "median_encode_ms": 17.134,
+      "median_network_ms": 3.38,
+      "median_decode_ms": 3.544
+    },
+    "client_retained_timing": {
+      "samples": 49,
+      "median_unique_fps": 118.977,
+      "median_submitted_fps": 120.008,
+      "median_reused_percent": 0.833,
+      "median_per_window_max_wait_poses_ms": 5.424
+    },
+    "native_amf_before_dropout": {
+      "accepted": 22278,
+      "output": 22276,
+      "input_full": 0,
+      "pool_full": 0,
+      "failures": 0,
+      "output_age_max_us": 18134
+    },
+    "late_transport_interruption": {
+      "first_video_silence_utc": "2026-09-28T01:45:01Z",
+      "timeout_utc": "2026-09-28T01:45:03Z",
+      "client_tracking_hz_during_silence": [
+        246,
+        249
+      ],
+      "client_video_silence_ms_at_01_45_02": 1542,
+      "host_media_age_ms_at_timeout": 3003,
+      "finding": "Bilateral media/control interruption while client tracking and host encoding continued. Compatible with link interruption; report cannot identify Wi-Fi driver, AP or other network cause."
+    }
+  },
+  "startup_finding": "Both local compositor launches selected the same physical 120.019Hz mode. No evidence that another fixed startup delay or refresh-rate renegotiation fixes the first run. First-run root cause remains unresolved; local power/clock/resource observations were missing.",
+  "confirmed_cleanup": [
+    "Native host chaperone used full width/depth for each perimeter half-extent. Corrected to \u00b1half dimensions.",
+    "Native and host helper now inspect live bounds, wall geometry and remote identity origins before deciding a commit is needed; reconnect does not repeatedly rewrite unchanged chaperone.",
+    "Added off-frame-loop cached read-only Linux GPU/power/frequency evidence, omitted when unsupported."
+  ],
+  "deferred_amf_candidate": "Current full-pool path drains one output then unconditionally drops newest raw image. Rechecking a freed slot could avoid a subset of drops, but QueryOutput can block up to frame+2ms and adding a second drain would alter capture timing. Leave stable encoder implementation unchanged in this RC; design and GPU-test a separately bounded output-drain change later.",
+  "ethernet_test": "Keep codec, resolution, refresh and bitrate fixed. Select Ethernet adapter explicitly when Wi-Fi remains connected so comparison has a verified path."
+}

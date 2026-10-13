@@ -1,0 +1,1 @@
+Compiled transport: capability validation, discovery status, bounded message copy, resume/pause/destroy passed

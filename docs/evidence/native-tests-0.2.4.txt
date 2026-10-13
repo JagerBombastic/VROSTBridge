@@ -1,0 +1,7 @@
+26 core checks passed
+Stream ABI, rotations, pose provenance, geometry mismatch, queue ownership, bounds and epoch tests passed
+Validated 40 actions and 36 binding outputs; no system-button binding
+VROSTBridge 0.2.4 native Linux client
+--software-decode  Explicit CPU compatibility mode (not a performance path)
+Unable to read VR Path Registry from /root/.config/openvr/openvrpaths.vrpath
+RUNTIME_WAIT 110

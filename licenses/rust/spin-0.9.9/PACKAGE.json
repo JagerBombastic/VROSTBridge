@@ -1,0 +1,39 @@
+{
+  "crate": "spin",
+  "version": "0.9.9",
+  "license": "MIT",
+  "repository": "https://github.com/mvdnes/spin-rs.git",
+  "authors": [
+    "Mathijs van de Nes <git@mathijs.vd-nes.nl>",
+    "John Ericson <git@JohnEricson.me>",
+    "Joshua Barretto <joshua.s.barretto@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "6ac8711fb340c62ce0a4ecd463342d3fa0e8e70de697c863a2e1c0c53006003c",
+      "bytes": 1084,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e",
+    "windows_client": "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e"
+  },
+  "source_url": "https://crates.io/crates/spin/0.9.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d882207a7befa5dd74981306e9c2cc2c3ef21cd7"
+    },
+    "path_in_vcs": ""
+  }
+}

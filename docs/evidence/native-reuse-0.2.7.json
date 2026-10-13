@@ -1,0 +1,9 @@
+{
+  "release": "0.2.7",
+  "native_core": "0.2.6 unchanged",
+  "files": {
+    "VROSTBridgeClient": "407881838f4b069d02d1cf364d8313a9d8a9494572869dadf4c70363605d50de",
+    "VROSTBridgeLease": "51139c2b8bfe09999080fd266daa41e7fa25df520b93e1828ec694a7380e4082",
+    "libvrostbridge_transport.so": "204c1661cbb300325759133d84f96a2a76cab0b085ae6b14e9f920a602800bf8"
+  }
+}

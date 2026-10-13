@@ -1,0 +1,45 @@
+{
+  "crate": "socket2",
+  "version": "0.6.5",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/socket2",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>",
+    "Thomas de Zeeuw <thomasdezeeuw@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4",
+    "windows_client": "c3d1e2c7f27f8d4cb10542a02c49005dbd6e93095799d6f3be745fae9f8fedd4"
+  },
+  "source_url": "https://crates.io/crates/socket2/0.6.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "239dd83a4ced08e514d2c38942aab99791119f0d"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "patch": "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/patches/0004-host-capture-amf.patch",
+  "sha256": "934562d93f6fb89ea976704ac4066b8b74f0ffce339508e26c0fcdbf901b0705",
+  "applied_sequence": [
+    "0001-local-microphone-consent.patch",
+    "0002-transport-network-resilience.patch",
+    "0003-native-controller-fidelity.patch",
+    "0004-host-capture-amf.patch"
+  ],
+  "owned_byte_comparison": {
+    "alvr/server_openvr/cpp/platform/win32/CEncoder.cpp": "af51b9b812f0cc1ffd3f80749a16b8507a69136f14d84b5840a1d02296cbd74e",
+    "alvr/server_openvr/cpp/platform/win32/CEncoder.h": "068d8a88bde9ced24baaac2b2dcbd552aa2dee1d45d183a1b1ddfde2bc429df5",
+    "alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.cpp": "20c15b32d7a7b0450a454e5af4d8dbd5684897e9c04975397fc9f18daf5622d4",
+    "alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.h": "2ab7963442a42ecc8fc799e0f02f8284e2d0f478c5ee7d1d1ca506930bae3663",
+    "alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp": "40562d2d4706ebc29dfc66deb266c8b76d84d76e070e0f8834278997f8fa139e",
+    "alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h": "cda52d84a3a096939c49a5ecdd44077332a4a5a0ee20b319dde8c5804febd759",
+    "alvr/server_openvr/cpp/platform/win32/VROSTBridgeTiming.h": "65cb1929a2262c9d02b42ace7b5a810a7d453c1f72a028577c80a701c4355578"
+  },
+  "baseline": "4ddeb55a7c0e3d36de7d20bb857255e5059aea10",
+  "upstream_pin": "f5023f8e78fa14ea57fb1038548d7820289a8524"
+}

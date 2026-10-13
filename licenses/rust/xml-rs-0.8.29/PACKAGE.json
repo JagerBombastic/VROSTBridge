@@ -1,0 +1,35 @@
+{
+  "crate": "xml-rs",
+  "version": "0.8.29",
+  "license": "MIT",
+  "repository": "https://github.com/kornelski/xml-rs",
+  "authors": [
+    "Vladimir Matveev <vmatveev@citrine.cc>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "0dc18d924dc0a5f41172a393012843a5eaaef338e795b3645da9cc3b6068220b",
+      "bytes": 1083,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_client": "e450f9b2ed1dff33c94c12589a87338689467b9c4f5d8a5710bd09a847d2c8a7"
+  },
+  "source_url": "https://crates.io/crates/xml-rs/0.8.29",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "33cdf417b112c0ebd1f0858b2a67464b3712a4c6"
+    },
+    "path_in_vcs": ""
+  }
+}

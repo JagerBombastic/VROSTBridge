@@ -1,0 +1,2 @@
+Desktop connection workflow smoke checks passed.
+Validated 40 actions and 38 binding outputs; both system buttons mapped

@@ -1,0 +1,52 @@
+{
+  "version": "0.2.6",
+  "checks": {
+    "VROSTBridge-Host-Portable-0.2.6.zip": {
+      "sha256": "f200a075159a334164586f36e6fa0128e40f0bd58de7ca7ddda9a0c8a219f93a",
+      "bytes": 134730809,
+      "verified_files": 596,
+      "crc": "pass"
+    },
+    "VROSTBridge-Bazzite-Installer-0.2.6.zip": {
+      "sha256": "7b3695f8510e7622ea83e660a0eb7772868d18f399f70c3cf6a26d2a5d8c13f0",
+      "bytes": 40733672,
+      "verified_files": 606,
+      "crc": "pass"
+    },
+    "VROSTBridge Host.exe": {
+      "machine": "AMD64",
+      "subsystem": 2,
+      "imports": [
+        "KERNEL32.dll",
+        "USER32.dll",
+        "SHELL32.dll"
+      ],
+      "sha256": "0047c14c6a3ec67c35aa18a8b461212aca24dccef2455ab41be36d2314ca56af"
+    },
+    "host/VROSTBridgeVRHelper.exe": {
+      "machine": "AMD64",
+      "subsystem": 3,
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll"
+      ],
+      "sha256": "c2e6b68a6c21be160125fd9c503026658bfff3d6f6005dfdcf262fb29b35cbfc"
+    },
+    "VROSTBridge-Host-Setup-0.2.6.exe": {
+      "sha256": "3246581adfe59f7d094c175c8afc308a1834ad3509cfae2613137a7954f54863",
+      "bytes": 132946152,
+      "nsis_crc": "0x81693db5",
+      "verified_extracted_files": 596
+    }
+  },
+  "limits": [
+    "Windows execution and physical VR not tested"
+  ]
+}

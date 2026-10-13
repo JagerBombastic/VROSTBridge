@@ -1,0 +1,40 @@
+{
+  "crate": "rustls-pki-types",
+  "version": "1.14.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rustls/pki-types",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "45fd05c4865e7c350b98ad7ac50e1b15462d49af4a91e9b0c9dd933dc9a69742",
+      "bytes": 10835,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "9117d922e667125508dde62b02c1f57ed22f5ad21eb536aa2e2d99e1c796e639",
+      "bytes": 1080,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "be040f8b0a225e40375822a563fa9524378b9d63112f53e19ffff34df5d33fdd"
+  },
+  "source_url": "https://crates.io/crates/rustls-pki-types/1.14.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b829c966d2fcda87f2687af107051ae4770bef50"
+    },
+    "path_in_vcs": ""
+  }
+}

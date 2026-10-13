@@ -1,0 +1,85 @@
+diff --git a/alvr/server_openvr/cpp/alvr_server/bindings.h b/alvr/server_openvr/cpp/alvr_server/bindings.h
+index 0acf210e..c9a8b4ca 100644
+--- a/alvr/server_openvr/cpp/alvr_server/bindings.h
++++ b/alvr/server_openvr/cpp/alvr_server/bindings.h
+@@ -219,6 +219,8 @@ extern "C" unsigned long long PathStringToHash(const char* path);
+ extern "C" void ReportPresent(unsigned long long timestamp_ns, unsigned long long offset_ns);
+ extern "C" void ReportComposed(unsigned long long timestamp_ns, unsigned long long offset_ns);
+ extern "C" FfiDynamicEncoderParams GetDynamicEncoderParams();
++// VROSTBridge: gradual intra refresh requested for this session (patch 0011).
++extern "C" bool VROSTBridgeIntraRefresh();
+ // VROSTBridge: gaze-driven foveation centres (patch 0010). `shifts` is left X/Y, right X/Y:
+ // negotiated centres in, centres to use out. Returns false when the session keeps fixed centres.
+ extern "C" bool VROSTBridgeFoveationShifts(
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+index 26e32d7d..a6aacb19 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+@@ -593,6 +593,50 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+     }
+     }
+ 
++    // VROSTBridge (patch 0011): optional gradual intra refresh. Each frame re-codes a slice of
++    // the picture as intra, so a lost packet heals within about half a second without a large
++    // keyframe burst. Off unless the session's vrostbridge-stream.json enables it.
++    if (VROSTBridgeIntraRefresh()) {
++        const int64_t periodFrames = std::max<int64_t>(8, frameRateIn / 2);
++        AMF_RESULT refresh = AMF_NOT_SUPPORTED;
++        int64_t units = 0;
++        switch (codec) {
++        case ALVR_CODEC_H264:
++            units = int64_t((width + 15) / 16) * ((height + 15) / 16);
++            refresh = amfEncoder->SetProperty(
++                AMF_VIDEO_ENCODER_INTRA_REFRESH_NUM_MBS_PER_SLOT,
++                (units + periodFrames - 1) / periodFrames
++            );
++            break;
++        case ALVR_CODEC_HEVC:
++            units = int64_t((width + 63) / 64) * ((height + 63) / 64);
++            refresh = amfEncoder->SetProperty(
++                AMF_VIDEO_ENCODER_HEVC_INTRA_REFRESH_NUM_CTBS_PER_SLOT,
++                (units + periodFrames - 1) / periodFrames
++            );
++            break;
++        case ALVR_CODEC_AV1:
++            units = periodFrames;
++            refresh = amfEncoder->SetProperty(
++                AMF_VIDEO_ENCODER_AV1_INTRA_REFRESH_MODE,
++                AMF_VIDEO_ENCODER_AV1_INTRA_REFRESH_MODE__CONTINUOUS
++            );
++            if (refresh == AMF_OK) {
++                refresh = amfEncoder->SetProperty(
++                    AMF_VIDEO_ENCODER_AV1_INTRAREFRESH_STRIPES, periodFrames
++                );
++            }
++            break;
++        }
++        Info(
++            "VROST_INTRA_REFRESH backend=AMF codec=%d period_frames=%lld units=%lld accepted=%d",
++            codec,
++            (long long)periodFrames,
++            (long long)units,
++            refresh == AMF_OK ? 1 : 0
++        );
++    }
++
+     Debug("Configured %s.\n", pCodec);
+     AMF_THROW_IF(amfEncoder->Init(inputFormat, width, height));
+ 
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index 4384ff14..e406bfe2 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -595,6 +595,12 @@ extern "C" fn report_encoder_foveation_centers(
+     }
+ }
+ 
++/// VROSTBridge: gradual intra refresh for this session (vrostbridge-stream.json, patch 0011).
++#[unsafe(export_name = "VROSTBridgeIntraRefresh")]
++extern "C" fn vrostbridge_intra_refresh() -> bool {
++    alvr_server_core::vrostbridge_stream::current().intra_refresh
++}
++
+ /// VROSTBridge: per-frame foveation centres. `shifts` holds the negotiated left/right X/Y
+ /// centres on input and receives the centres to use. Returns false (nothing changed) when
+ /// gaze-driven foveation is off for this session.

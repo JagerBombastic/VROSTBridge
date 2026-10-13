@@ -1,0 +1,32 @@
+name: Checks
+# Runs every check a fresh clone can run: the Python tests, the page test and the native unit tests.
+# Release packages are built and checked separately (docs/BUILDING.md, packaging/README.md); this
+# workflow uploads no binaries.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - name: Python tests
+        run: |
+          python -m pip install --quiet pillow
+          python -m unittest discover -s tests -p 'test_*.py'
+      - name: Page test
+        run: node tests/test_desktop_ui.js
+      - name: Native unit tests (without the streaming client)
+        run: |
+          cmake -S . -B build-tests -DVROST_BUILD_LINUX_CLIENT=OFF
+          cmake --build build-tests -j 4
+          ctest --test-dir build-tests --output-on-failure

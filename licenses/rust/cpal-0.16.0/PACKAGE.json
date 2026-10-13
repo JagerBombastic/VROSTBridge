@@ -1,0 +1,37 @@
+{
+  "crate": "cpal",
+  "version": "0.16.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/rustaudio/cpal",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "cbd307f43cc2a697e2d1f8bc7a1d824b5269e052209e28883e5bc04d095aaa3f",
+    "linux_client": "cbd307f43cc2a697e2d1f8bc7a1d824b5269e052209e28883e5bc04d095aaa3f",
+    "windows_client": "cbd307f43cc2a697e2d1f8bc7a1d824b5269e052209e28883e5bc04d095aaa3f"
+  },
+  "source_url": "https://crates.io/crates/cpal/0.16.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "36b9fed079e3d3066acaa58b1ae935caf5c2bfb1"
+    },
+    "path_in_vcs": ""
+  }
+}

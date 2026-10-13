@@ -1,0 +1,6 @@
+[ 10%] Built target conversion_shader
+[ 30%] Built target core_tests
+[ 50%] Built target stream_tests
+[ 60%] Building CXX object CMakeFiles/VROSTBridgeClient.dir/client/device/openvr_device.cpp.o
+[ 70%] Linking CXX executable VROSTBridgeClient
+[100%] Built target VROSTBridgeClient

@@ -1,0 +1,71 @@
+#version 450
+// Decoded Y'CbCr (NV12 or P010 planes) -> RGBA8 stereo image for SteamVR.
+// Also undoes ALVR foveated encoding (alvr/graphics/resources/stream.wgsl) per eye,
+// samples chroma at its signalled position and dithers to 8 bits.
+// The CPU reference and push-constant layout are in client/device/conversion.hpp.
+layout(local_size_x=16,local_size_y=16) in;
+layout(binding=0) uniform sampler2D luma;
+layout(binding=1) uniform sampler2D chroma;
+layout(binding=2,rgba8) writeonly uniform image2D outputImage;
+layout(push_constant) uniform Conversion {
+ vec4 row0;         // matrix row 0; w: chroma centre
+ vec4 row1;         // matrix row 1; w: dither amplitude (8-bit steps)
+ vec4 row2;         // matrix row 2; w: 1 when foveated
+ vec4 adjustment;   // x: luma offset, y: luma scale, z: chroma scale
+ vec4 chromaSiting; // xy: chroma sample offset in luma pixels
+ vec4 fovSize;      // xy: centre size, zw: edge ratio
+ vec4 fovView;      // xy: view ratio
+ vec4 fovShifts;    // xy: left eye shift, zw: right eye shift (mirrored coordinates)
+} pc;
+
+float decompressAxis(float u,float centerSize,float shift,float edgeRatio){
+ float c0=(1.-centerSize)*.5;
+ float c2=(edgeRatio-1.)*centerSize+1.;
+ float c1=(edgeRatio-1.)*c0*(shift+1.)/edgeRatio;
+ float loBound=c0*(shift+1.);
+ float hiBound=c0*(shift-1.)+1.;
+ float loBoundC=c0*(shift+1.)/c2;
+ float hiBoundC=c0*(shift-1.)/c2+1.;
+ if(u<loBound){
+  float a=c2*(1.-edgeRatio)/(edgeRatio*loBoundC);
+  float b=(c1+c2*loBoundC)/loBoundC;
+  return (-b+sqrt(max(b*b+4.*a*u,0.)))/(2.*a);
+ }
+ if(u>hiBound){
+  float a=c2*(edgeRatio-1.)/(edgeRatio*(1.-hiBoundC));
+  float b=(c2-edgeRatio*c1-2.*edgeRatio*c2+c2*edgeRatio*(1.-hiBoundC)+edgeRatio)/(edgeRatio*(1.-hiBoundC));
+  float c=(c2*edgeRatio-c2)*(c1-hiBoundC+c2*hiBoundC)/(edgeRatio*(1.-hiBoundC)*(1.-hiBoundC));
+  return (-b+sqrt(max(b*b-4.*(c-a*u),0.)))/(2.*a);
+ }
+ return (u-c1)*edgeRatio/c2;
+}
+
+void main(){
+ ivec2 p=ivec2(gl_GlobalInvocationID.xy);ivec2 size=imageSize(outputImage);if(any(greaterThanEqual(p,size)))return;
+ int eyeWidth=size.x/2;
+ int eye=p.x>=eyeWidth?1:0;
+ vec2 local=vec2((float(p.x-eye*eyeWidth)+.5)/float(eyeWidth),(float(p.y)+.5)/float(size.y));
+ vec2 src=local;
+ if(pc.row2.w>.5){
+  vec2 shift=eye==0?pc.fovShifts.xy:pc.fovShifts.zw;
+  float x=eye==1?1.-local.x:local.x;
+  src=vec2(decompressAxis(x,pc.fovSize.x,shift.x,pc.fovSize.z),
+           decompressAxis(local.y,pc.fovSize.y,shift.y,pc.fovSize.w))*pc.fovView.xy;
+  if(eye==1)src.x=1.-src.x;
+ }
+ // Texel coordinates (pixel edges at integers), clamped inside this eye so filtering never mixes eyes.
+ vec2 lumaSize=vec2(textureSize(luma,0));
+ float lumaEye=lumaSize.x*.5;
+ vec2 at=vec2(src.x*lumaEye,src.y*lumaSize.y);
+ vec2 lumaAt=vec2(clamp(at.x,.5,lumaEye-.5)+float(eye)*lumaEye,clamp(at.y,.5,lumaSize.y-.5));
+ vec2 chromaSize=vec2(textureSize(chroma,0));
+ float chromaEye=chromaSize.x*.5;
+ vec2 c2=(at+pc.chromaSiting.xy)*.5;
+ vec2 chromaAt=vec2(clamp(c2.x,.5,chromaEye-.5)+float(eye)*chromaEye,clamp(c2.y,.5,chromaSize.y-.5));
+ float y=texture(luma,lumaAt/lumaSize).r;vec2 c=texture(chroma,chromaAt/chromaSize).rg;
+ vec3 v=vec3((y-pc.adjustment.x)*pc.adjustment.y,(c-vec2(pc.row0.w))*pc.adjustment.z);
+ vec3 rgb=vec3(dot(v,pc.row0.xyz),dot(v,pc.row1.xyz),dot(v,pc.row2.xyz));
+ float n=fract(52.9829189*fract(.06711056*float(p.x)+.00583715*float(p.y)))-.5;
+ rgb+=n*pc.row1.w/255.;
+ imageStore(outputImage,p,vec4(clamp(rgb,0.,1.),1.));
+}

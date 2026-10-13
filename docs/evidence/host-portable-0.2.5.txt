@@ -1,0 +1,2 @@
+Portable host ZIP CRC and 569 SHA-256 file hashes passed.
+Manifest equals the independently verified NSIS payload manifest.

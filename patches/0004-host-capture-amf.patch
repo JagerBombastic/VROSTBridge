@@ -1,0 +1,758 @@
+diff --git a/alvr/server_openvr/cpp/platform/win32/CEncoder.cpp b/alvr/server_openvr/cpp/platform/win32/CEncoder.cpp
+index bc10800..343e167 100644
+--- a/alvr/server_openvr/cpp/platform/win32/CEncoder.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/CEncoder.cpp
+@@ -1,7 +1,10 @@
+ #include "CEncoder.h"
++#include "VROSTBridgeTiming.h"
++#include <algorithm>
+ 
+ CEncoder::CEncoder()
+-    : m_bExiting(false)
++    : m_encodeFinished(true) // Manual-reset: an idle encoder stays ready across failed captures.
++    , m_bExiting(false)
+     , m_targetTimestampNs(0) {
+     m_encodeFinished.Set();
+ }
+@@ -31,8 +34,10 @@ void CEncoder::Initialize(std::shared_ptr<CD3DRender> d3dRender) {
+             m_videoEncoder
+                 = std::make_shared<VideoEncoderSW>(d3dRender, encoderWidth, encoderHeight);
+             m_videoEncoder->Initialize();
++            Info("VROST_HOST_ENCODER selected backend=software requested=1 width=%u height=%u", encoderWidth, encoderHeight);
+             return;
+         } catch (Exception e) {
++            Warn("VROST_HOST_ENCODER initialization failed backend=software requested=1: %s", e.what());
+             swException = e;
+         }
+     }
+@@ -42,8 +47,10 @@ void CEncoder::Initialize(std::shared_ptr<CD3DRender> d3dRender) {
+         Debug("Try to use VideoEncoderAMF.\n");
+         m_videoEncoder = std::make_shared<VideoEncoderAMF>(d3dRender, encoderWidth, encoderHeight);
+         m_videoEncoder->Initialize();
++        Info("VROST_HOST_ENCODER selected backend=AMF width=%u height=%u", encoderWidth, encoderHeight);
+         return;
+     } catch (Exception e) {
++        Warn("VROST_HOST_ENCODER initialization failed backend=AMF: %s", e.what());
+         vceException = e;
+     }
+     try {
+@@ -51,16 +58,20 @@ void CEncoder::Initialize(std::shared_ptr<CD3DRender> d3dRender) {
+         m_videoEncoder
+             = std::make_shared<VideoEncoderNVENC>(d3dRender, encoderWidth, encoderHeight);
+         m_videoEncoder->Initialize();
++        Info("VROST_HOST_ENCODER selected backend=NVENC width=%u height=%u", encoderWidth, encoderHeight);
+         return;
+     } catch (Exception e) {
++        Warn("VROST_HOST_ENCODER initialization failed backend=NVENC: %s", e.what());
+         nvencException = e;
+     }
+     try {
+         Debug("Try to use VideoEncoderVPL.\n");
+         m_videoEncoder = std::make_shared<VideoEncoderVPL>(d3dRender, encoderWidth, encoderHeight);
+         m_videoEncoder->Initialize();
++        Info("VROST_HOST_ENCODER selected backend=VPL width=%u height=%u", encoderWidth, encoderHeight);
+         return;
+     } catch (Exception e) {
++        Warn("VROST_HOST_ENCODER initialization failed backend=VPL: %s", e.what());
+         vplException = e;
+     }
+ #ifdef ALVR_GPL
+@@ -68,8 +79,10 @@ void CEncoder::Initialize(std::shared_ptr<CD3DRender> d3dRender) {
+         Debug("Try to use VideoEncoderSW.\n");
+         m_videoEncoder = std::make_shared<VideoEncoderSW>(d3dRender, encoderWidth, encoderHeight);
+         m_videoEncoder->Initialize();
++        Warn("VROST_HOST_ENCODER selected backend=software fallback=1 width=%u height=%u; hardware encoders failed", encoderWidth, encoderHeight);
+         return;
+     } catch (Exception e) {
++        Warn("VROST_HOST_ENCODER initialization failed backend=software fallback=1: %s", e.what());
+         swException = e;
+     }
+     throw MakeException(
+@@ -128,16 +141,36 @@ void CEncoder::Run() {
+         if (m_bExiting)
+             break;
+ 
+-        if (m_FrameRender->GetTexture()) {
+-            m_videoEncoder->Transmit(
+-                m_FrameRender->GetTexture().Get(),
+-                m_presentationTime,
+-                m_targetTimestampNs,
+-                m_scheduler.CheckIDRInsertion()
+-            );
++        const uint64_t started = VROSTBridgeNowUs();
++        try {
++            if (m_FrameRender->GetTexture()) {
++                m_videoEncoder->Transmit(
++                    m_FrameRender->GetTexture().Get(),
++                    m_presentationTime,
++                    m_targetTimestampNs,
++                    m_scheduler.CheckIDRInsertion()
++                );
++                ++m_transmitCount;
++            }
++        } catch (const std::exception& error) {
++            ++m_transmitFailures;
++            Warn("VROST_HOST_ENCODER transmit failed frame=%llu: %s", m_targetTimestampNs, error.what());
++            m_scheduler.InsertIDR();
++        } catch (...) {
++            ++m_transmitFailures;
++            Error("VROST_HOST_ENCODER unknown transmit failure frame=%llu", m_targetTimestampNs);
++            m_scheduler.InsertIDR();
+         }
+-
++        const uint64_t finished = VROSTBridgeNowUs();
++        m_maxTransmitUs = std::max(m_maxTransmitUs, finished - started);
++        // Always release the compositor's wait, including recoverable failures.
+         m_encodeFinished.Set();
++        if (finished - m_lastTransmitLogUs >= 1000000) {
++            Info("VROST_HOST_ENCODER frames=%llu failures=%llu transmit_max_us=%llu",
++                m_transmitCount, m_transmitFailures, m_maxTransmitUs);
++            m_lastTransmitLogUs = finished;
++            m_maxTransmitUs = 0;
++        }
+     }
+ }
+ 
+diff --git a/alvr/server_openvr/cpp/platform/win32/CEncoder.h b/alvr/server_openvr/cpp/platform/win32/CEncoder.h
+index 4770fd3..a057144 100644
+--- a/alvr/server_openvr/cpp/platform/win32/CEncoder.h
++++ b/alvr/server_openvr/cpp/platform/win32/CEncoder.h
+@@ -10,6 +10,7 @@
+ #include "VideoEncoderVPL.h"
+ #include "alvr_server/Utils.h"
+ #include <d3d11.h>
++#include <atomic>
+ #include <d3d11_1.h>
+ #include <map>
+ #include <wincodec.h>
+@@ -70,7 +71,9 @@ public:
+ private:
+     CThreadEvent m_newFrameReady, m_encodeFinished;
+     std::shared_ptr<VideoEncoder> m_videoEncoder;
+-    bool m_bExiting;
++    std::atomic<bool> m_bExiting;
++    uint64_t m_transmitCount = 0, m_transmitFailures = 0;
++    uint64_t m_maxTransmitUs = 0, m_lastTransmitLogUs = 0;
+     uint64_t m_presentationTime;
+     uint64_t m_targetTimestampNs;
+ 
+diff --git a/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.cpp b/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.cpp
+index b6bea74..d22f80d 100644
+--- a/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.cpp
+@@ -1,4 +1,6 @@
+ #include "OvrDirectModeComponent.h"
++#include "VROSTBridgeTiming.h"
++#include <algorithm>
+ 
+ OvrDirectModeComponent::OvrDirectModeComponent(
+     std::shared_ptr<CD3DRender> pD3DRender, std::shared_ptr<PoseHistory> poseHistory
+@@ -212,64 +214,75 @@ void OvrDirectModeComponent::SubmitLayer(const SubmitLayerPerEye_t (&perEye)[2])
+ void OvrDirectModeComponent::Present(vr::SharedTextureHandle_t syncTexture) {
+     Debug("OvrDirectModeComponent::Present");
+ 
+-    m_presentMutex.lock();
+-
++    std::lock_guard<std::mutex> presentLock(m_presentMutex);
++    LogCaptureDiagnostics(VROSTBridgeNowUs());
+     ReportPresent(m_targetTimestampNs, 0);
+ 
+-    bool useMutex = true;
+-
+-    IDXGIKeyedMutex* pKeyedMutex = NULL;
+-
+-    uint32_t layerCount = m_submitLayer;
++    const uint32_t layerCount = m_submitLayer;
+     m_submitLayer = 0;
+ 
+-    if (m_prevTargetTimestampNs == m_targetTimestampNs) {
+-        Debug("Discard duplicated frame. FrameIndex=%llu (Ignoring)", m_targetTimestampNs);
+-        // return;
+-    }
++    // The immediate D3D11 context is shared with the encoder. Wait BEFORE any
++    // context command (even Flush), and before acquiring the compositor texture.
++    // The previous order flushed concurrently and held SteamVR's keyed mutex
++    // throughout an encoder wait, increasing cross-process acquire stalls.
++    const uint64_t waitStarted = VROSTBridgeNowUs();
++    if (m_pEncoder) m_pEncoder->WaitForEncode();
++    m_maxEncodeWaitUs = std::max(m_maxEncodeWaitUs, VROSTBridgeNowUs() - waitStarted);
+ 
+-    ID3D11Texture2D* pSyncTexture = m_pD3DRender->GetSharedTexture((HANDLE)syncTexture);
+-    if (!pSyncTexture) {
++    ID3D11Texture2D* sync = m_pD3DRender->GetSharedTexture((HANDLE)syncTexture);
++    if (!sync) {
+         Warn("[VDispDvr] SyncTexture is NULL!");
+-        m_presentMutex.unlock();
+         return;
+     }
+-
+-    if (useMutex) {
+-        // Access to shared texture must be wrapped in AcquireSync/ReleaseSync
+-        // to ensure the compositor has finished rendering to it before it gets used.
+-        // This enforces scheduling of work on the gpu between processes.
+-        if (SUCCEEDED(pSyncTexture->QueryInterface(__uuidof(IDXGIKeyedMutex), (void**)&pKeyedMutex)
+-            )) {
+-            // TODO: Reasonable timeout and timeout handling
+-            HRESULT hr = pKeyedMutex->AcquireSync(0, 10);
+-            if (hr != S_OK) {
+-                Debug(
+-                    "[VDispDvr] ACQUIRESYNC FAILED!!! hr=%d %p %ls", hr, hr, GetErrorStr(hr).c_str()
+-                );
+-                pKeyedMutex->Release();
+-                m_presentMutex.unlock();
+-                return;
+-            }
++    ComPtr<IDXGIKeyedMutex> keyed;
++    const HRESULT queried = sync->QueryInterface(__uuidof(IDXGIKeyedMutex), (void**)keyed.GetAddressOf());
++    bool acquired = false;
++    uint64_t acquiredAt = 0;
++    if (SUCCEEDED(queried)) {
++        const uint64_t started = VROSTBridgeNowUs();
++        const HRESULT result = keyed->AcquireSync(0, 10);
++        m_maxAcquireUs = std::max(m_maxAcquireUs, VROSTBridgeNowUs() - started);
++        // WAIT_TIMEOUT / WAIT_ABANDONED are positive HRESULTs. SUCCEEDED is
++        // insufficient here: ReleaseSync is legal only after exact S_OK.
++        if (result != S_OK) {
++            ++m_acquireFailures;
++            LogPeriod("VROST_HOST_ACQUIRE", "VROST_HOST_CAPTURE acquire_failed result=0x%08lx frame=%llu", result, m_targetTimestampNs);
++            return;
+         }
++        acquired = true;
++        acquiredAt = VROSTBridgeNowUs();
++    } else if (queried != E_NOINTERFACE) {
++        ++m_acquireFailures;
++        LogPeriod("VROST_HOST_ACQUIRE", "VROST_HOST_CAPTURE query_mutex_failed result=0x%08lx", queried);
++        return;
+     }
+-
+-    CopyTexture(layerCount);
+-
+-    if (useMutex) {
+-        if (pKeyedMutex) {
+-            pKeyedMutex->ReleaseSync(0);
+-            pKeyedMutex->Release();
++    auto release = [&]() {
++        if (!acquired) return;
++        acquired = false;
++        const HRESULT result = keyed->ReleaseSync(0);
++        m_maxMutexHeldUs = std::max(m_maxMutexHeldUs, VROSTBridgeNowUs() - acquiredAt);
++        if (result != S_OK) {
++            ++m_releaseFailures;
++            LogPeriod("VROST_HOST_RELEASE", "VROST_HOST_CAPTURE release_failed result=0x%08lx frame=%llu", result, m_targetTimestampNs);
+         }
++    };
++    const uint64_t composeStarted = VROSTBridgeNowUs();
++    try {
++        CopyTexture(layerCount);
++    } catch (const std::exception& error) {
++        release();
++        Warn("VROST_HOST_CAPTURE composition failed: %s", error.what());
++        return;
++    } catch (...) {
++        release();
++        Error("VROST_HOST_CAPTURE unknown composition failure");
++        return;
+     }
+-
++    m_maxComposeUs = std::max(m_maxComposeUs, VROSTBridgeNowUs() - composeStarted);
++    release();
++    ++m_captureFrames;
+     ReportComposed(m_targetTimestampNs, 0);
+-
+-    if (m_pEncoder) {
+-        m_pEncoder->NewFrameReady();
+-    }
+-
+-    m_presentMutex.unlock();
++    if (m_pEncoder) m_pEncoder->NewFrameReady();
+ }
+ 
+ void OvrDirectModeComponent::PostPresent(const vr::IVRDriverDirectModeComponent::Throttling_t*) {
+@@ -334,10 +347,8 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
+     m_pD3DRender->GetContext()->Flush();
+ 
+     if (m_pEncoder) {
+-        // Wait for the encoder to be ready.  This is important because the encoder thread
+-        // blocks on transmit which uses our shared d3d context (which is not thread safe).
+-        m_pEncoder->WaitForEncode();
+-
++        // Present already waited for the encoder before acquiring SteamVR's
++        // keyed mutex or issuing any command on the shared immediate context.
+         std::string debugText;
+ 
+         uint64_t submitFrameIndex = m_targetTimestampNs;
+@@ -358,3 +369,12 @@ void OvrDirectModeComponent::CopyTexture(uint32_t layerCount) {
+         m_pD3DRender->GetContext()->Flush();
+     }
+ }
++
++void OvrDirectModeComponent::LogCaptureDiagnostics(uint64_t now) {
++    if (now - m_lastCaptureLogUs < 1000000) return;
++    m_lastCaptureLogUs = now;
++    Info("VROST_HOST_CAPTURE frames=%llu acquire_failures=%llu release_failures=%llu encoder_wait_max_us=%llu acquire_max_us=%llu compose_max_us=%llu mutex_held_max_us=%llu",
++        m_captureFrames, m_acquireFailures, m_releaseFailures, m_maxEncodeWaitUs,
++        m_maxAcquireUs, m_maxComposeUs, m_maxMutexHeldUs);
++    m_maxEncodeWaitUs = m_maxAcquireUs = m_maxComposeUs = m_maxMutexHeldUs = 0;
++}
+diff --git a/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.h b/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.h
+index 062f35e..ecc3d0b 100644
+--- a/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.h
++++ b/alvr/server_openvr/cpp/platform/win32/OvrDirectModeComponent.h
+@@ -73,4 +73,8 @@ private:
+     uint64_t m_prevTargetTimestampNs;
+ 
+     std::mutex m_presentMutex;
++    uint64_t m_captureFrames = 0, m_acquireFailures = 0, m_releaseFailures = 0;
++    uint64_t m_maxEncodeWaitUs = 0, m_maxAcquireUs = 0, m_maxComposeUs = 0;
++    uint64_t m_maxMutexHeldUs = 0, m_lastCaptureLogUs = 0;
++    void LogCaptureDiagnostics(uint64_t now);
+ };
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+index 5d627ea..26e32d7 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+@@ -1,5 +1,8 @@
+ #include "VideoEncoderAMF.h"
++#include "VROSTBridgeTiming.h"
+ #include "ALVR-common/packet_types.h"
++#include <algorithm>
++#include <cmath>
+ 
+ #include "alvr_server/Logger.h"
+ #include "alvr_server/bindings.h"
+@@ -8,12 +11,13 @@
+     {                                                                                              \
+         AMF_RESULT res = expr;                                                                     \
+         if (res != AMF_OK) {                                                                       \
+-            throw MakeException("AMF Error %d. %s", res, L#expr);                                  \
++            throw MakeException("AMF Error %d. %s", res, #expr);                                  \
+         }                                                                                          \
+     }
+ 
+ const wchar_t* VideoEncoderAMF::START_TIME_PROPERTY = L"StartTimeProperty";
+ const wchar_t* VideoEncoderAMF::FRAME_INDEX_PROPERTY = L"FrameIndexProperty";
++const wchar_t* VideoEncoderAMF::SURFACE_TOKEN_PROPERTY = L"VROSTBridgeSurfaceToken";
+ 
+ AMFPipe::AMFPipe(amf::AMFComponentPtr src, AMFDataReceiver receiver)
+     : m_amfComponentSrc(src)
+@@ -24,30 +28,32 @@ AMFPipe::~AMFPipe() {
+     m_amfComponentSrc->Drain();
+ }
+ 
+-void AMFPipe::doPassthrough(bool hasQueryTimeout, uint32_t timerResolution) {
+-    amf::AMFDataPtr data = nullptr;
+-    if (hasQueryTimeout) {
+-        AMF_RESULT res = m_amfComponentSrc->QueryOutput(&data);
+-        if (res == AMF_OK && data) {
+-            m_receiver(data);
+-        } else {
+-            Debug("Failed to get AMF component data. Last status: %d.\n", res);
++void AMFPipe::Reset() { m_pending = nullptr; }
++
++void AMFPipe::doPassthrough(bool hasQueryTimeout, uint32_t timerResolution, uint32_t waitBudgetMs) {
++    // A downstream INPUT_FULL is backpressure, not permission to discard an
++    // already-converted frame. Keep it referenced and retry on the next pass.
++    if (!m_pending) {
++        AMF_RESULT res = m_amfComponentSrc->QueryOutput(&m_pending);
++        if (!hasQueryTimeout && !m_pending && (res == AMF_OK || res == AMF_REPEAT)) {
++            const uint64_t deadline = VROSTBridgeNowUs() + uint64_t(waitBudgetMs) * 1000;
++            timeBeginPeriod(timerResolution);
++            while (!m_pending && VROSTBridgeNowUs() < deadline && (res == AMF_OK || res == AMF_REPEAT)) {
++                amf_sleep(1);
++                res = m_amfComponentSrc->QueryOutput(&m_pending);
++            }
++            timeEndPeriod(timerResolution);
+         }
+-    } else {
+-        uint16_t timeout = 1000; // 1s timeout
+-        AMF_RESULT res = m_amfComponentSrc->QueryOutput(&data);
+-
+-        timeBeginPeriod(timerResolution);
+-        while (!data && --timeout != 0) {
+-            amf_sleep(1);
+-            res = m_amfComponentSrc->QueryOutput(&data);
++        if (res != AMF_OK && res != AMF_REPEAT && res != AMF_EOF) {
++            throw MakeException("VROSTBridge AMF QueryOutput failed: %d", res);
+         }
+-        timeEndPeriod(timerResolution);
+-
+-        if (data) {
+-            m_receiver(data);
+-        } else {
+-            Debug("Failed to get AMF component data. Last status: %d.\n", res);
++    }
++    if (m_pending) {
++        const AMF_RESULT res = m_receiver(m_pending);
++        if (res == AMF_OK || res == AMF_NEED_MORE_INPUT) {
++            m_pending = nullptr;
++        } else if (res != AMF_INPUT_FULL) {
++            throw MakeException("VROSTBridge AMF downstream SubmitInput failed: %d", res);
+         }
+     }
+ }
+@@ -56,21 +62,8 @@ AMFSolidPipe::AMFSolidPipe(amf::AMFComponentPtr src, amf::AMFComponentPtr dst)
+     : AMFPipe(src, std::bind(&AMFSolidPipe::Passthrough, this, std::placeholders::_1))
+     , m_amfComponentDst(dst) { }
+ 
+-void AMFSolidPipe::Passthrough(AMFDataPtr data) {
+-    auto res = m_amfComponentDst->SubmitInput(data);
+-    switch (res) {
+-    case AMF_OK:
+-        break;
+-    case AMF_INPUT_FULL:
+-        Debug("m_amfComponentDst->SubmitInput returns AMF_INPUT_FULL.\n");
+-        break;
+-    case AMF_NEED_MORE_INPUT:
+-        Debug("m_amfComponentDst->SubmitInput returns AMF_NEED_MORE_INPUT.\n");
+-        break;
+-    default:
+-        Debug("m_amfComponentDst->SubmitInput returns code %d.\n", res);
+-        break;
+-    }
++AMF_RESULT AMFSolidPipe::Passthrough(AMFDataPtr data) {
++    return m_amfComponentDst->SubmitInput(data);
+ }
+ 
+ AMFPipeline::AMFPipeline()
+@@ -87,12 +80,16 @@ AMFPipeline::~AMFPipeline() {
+ 
+ void AMFPipeline::Connect(AMFPipePtr pipe) { m_pipes.emplace_back(pipe); }
+ 
+-void AMFPipeline::Run(bool hasQueryTimeout) {
++void AMFPipeline::Run(bool hasQueryTimeout, uint32_t waitBudgetMs) {
+     for (auto& pipe : m_pipes) {
+-        pipe->doPassthrough(hasQueryTimeout, m_timerResolution);
++        pipe->doPassthrough(hasQueryTimeout, m_timerResolution, waitBudgetMs);
+     }
+ }
+ 
++void AMFPipeline::Reset() {
++    for (auto& pipe : m_pipes) pipe->Reset();
++}
++
+ //
+ // VideoEncoderAMF
+ //
+@@ -107,6 +104,8 @@ VideoEncoderAMF::VideoEncoderAMF(std::shared_ptr<CD3DRender> d3dRender, int widt
+     , m_surfaceFormat(amf::AMF_SURFACE_RGBA)
+     , m_use10bit(Settings_Instance()->m_use10bitEncoder)
+     , m_hasQueryTimeout(false) {
++    m_queryWaitBudgetMs = static_cast<uint32_t>(std::max(3.0, std::min(20.0,
++        std::ceil(1000.0 / std::max(1, m_refreshRate)) + 2.0)));
+     if (Settings_Instance()->m_enableHdr) {
+         // Bypass preprocessor and converters for HDR, since it will already be YUV
+         m_surfaceFormat = m_use10bit ? amf::AMF_SURFACE_P010 : amf::AMF_SURFACE_NV12;
+@@ -301,8 +300,9 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         amfEncoder->SetProperty(AMF_VIDEO_ENCODER_MAX_NUM_REFRAMES, 0);
+ 
+         if (m_hasQueryTimeout) {
+-            amfEncoder->SetProperty(AMF_VIDEO_ENCODER_QUERY_TIMEOUT, 1000); // 1s timeout
++            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_QUERY_TIMEOUT, m_queryWaitBudgetMs));
+         }
++        break; // Each encoder accepts only its own codec properties.
+     }
+     case ALVR_CODEC_HEVC: {
+         amfEncoder->SetProperty(
+@@ -465,8 +465,9 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_NUM_REFRAMES, 0);
+ 
+         if (m_hasQueryTimeout) {
+-            amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUERY_TIMEOUT, 1000); // 1s timeout
++            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUERY_TIMEOUT, m_queryWaitBudgetMs));
+         }
++        break; // Each encoder accepts only its own codec properties.
+     }
+     case ALVR_CODEC_AV1: {
+         amfEncoder->SetProperty(
+@@ -586,8 +587,9 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         m_hasQueryTimeout = true;
+ 
+         if (m_hasQueryTimeout) {
+-            amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_QUERY_TIMEOUT, 1000); // 1s timeout
++            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_QUERY_TIMEOUT, m_queryWaitBudgetMs));
+         }
++        break; // Each encoder accepts only its own codec properties.
+     }
+     }
+ 
+@@ -675,7 +677,10 @@ void VideoEncoderAMF::Initialize() {
+     }
+ 
+     m_pipeline->Connect(new AMFPipe(
+-        m_amfComponents.back(), std::bind(&VideoEncoderAMF::Receive, this, std::placeholders::_1)
++        m_amfComponents.back(), [this](AMFDataPtr data) {
++            Receive(data);
++            return AMF_OK;
++        }
+     ));
+ 
+     Debug("Successfully initialized VideoEncoderAMF.\n");
+@@ -690,6 +695,7 @@ void VideoEncoderAMF::Shutdown() {
+         component->Terminate();
+     }
+     m_amfComponents.clear();
++    for (auto& slot : m_inFlight) slot.surface = nullptr;
+ 
+     m_amfContext->Terminate();
+     m_amfContext = NULL;
+@@ -705,9 +711,36 @@ void VideoEncoderAMF::Shutdown() {
+ void VideoEncoderAMF::Transmit(
+     ID3D11Texture2D* pTexture, uint64_t presentationTime, uint64_t targetTimestampNs, bool insertIDR
+ ) {
++    const uint64_t now = VROSTBridgeNowUs();
++    LogDiagnostics(now);
++    const bool hasPending = std::any_of(m_inFlight.begin(), m_inFlight.end(),
++        [](const InputSurface& slot) { return bool(slot.surface); });
++    if (m_recoveryPending || (hasPending && now - m_lastOutputProgressUs >= 250000)) {
++        if (now < m_nextRecoveryUs) {
++            if (insertIDR) RequestIDR();
++            return;
++        }
++        m_nextRecoveryUs = now + 250000;
++        Warn("VROST_HOST_AMF stalled output; recovering owned pipeline after %llu us", now - m_lastOutputProgressUs);
++        ResetAfterFailure();
++        insertIDR = true; // First image after a flush must itself be decodable.
++    }
++    auto available = std::find_if(m_inFlight.begin(), m_inFlight.end(),
++        [](const InputSurface& slot) { return !slot.surface; });
++    if (available == m_inFlight.end()) {
++        // Do not let an encoder stall accumulate or overwrite GPU inputs. Drop
++        // only this not-yet-encoded raw image; retained compressed references
++        // and pending AMF data remain intact. Recovery continues on later calls.
++        ++m_poolFull;
++        try { m_pipeline->Run(m_hasQueryTimeout, m_queryWaitBudgetMs); }
++        catch (const std::exception& error) {
++            Warn("VROSTBridge AMF recovery: %s", error.what());
++            ResetAfterFailure();
++        }
++        if (insertIDR) RequestIDR();
++        return;
++    }
+     amf::AMFSurfacePtr surface;
+-    // Surface is cached by AMF.
+-
+     auto params = GetDynamicEncoderParams();
+     if (params.updated) {
+         amf_int64 bitRateIn = params.bitrate_bps / params.framerate * m_refreshRate; // in bps
+@@ -741,31 +774,67 @@ void VideoEncoderAMF::Transmit(
+         }
+     }
+ 
++    const uint64_t allocateStarted = VROSTBridgeNowUs();
+     AMF_THROW_IF(m_amfContext->AllocSurface(
+         amf::AMF_MEMORY_DX11, m_surfaceFormat, m_renderWidth, m_renderHeight, &surface
+     ));
+-    ID3D11Texture2D* textureDX11 = (ID3D11Texture2D*)surface->GetPlaneAt(0)->GetNative(
+-    ); // no reference counting - do not Release()
++    m_maxAllocUs = std::max(m_maxAllocUs, VROSTBridgeNowUs() - allocateStarted);
++    ID3D11Texture2D* textureDX11 = (ID3D11Texture2D*)surface->GetPlaneAt(0)->GetNative();
+     m_d3dRender->GetContext()->CopyResource(textureDX11, pTexture);
+ 
+-    amf_pts start_time = amf_high_precision_clock();
+-    surface->SetProperty(START_TIME_PROPERTY, start_time);
+-    surface->SetProperty(FRAME_INDEX_PROPERTY, targetTimestampNs);
+-
++    const uint64_t token = ++m_nextSurfaceToken;
++    AMF_THROW_IF(surface->SetProperty(START_TIME_PROPERTY, amf_high_precision_clock()));
++    AMF_THROW_IF(surface->SetProperty(FRAME_INDEX_PROPERTY, targetTimestampNs));
++    AMF_THROW_IF(surface->SetProperty(SURFACE_TOKEN_PROPERTY, token));
+     ApplyFrameProperties(surface, insertIDR);
+ 
+-    m_amfComponents.front()->SubmitInput(surface);
+-    m_pipeline->Run(m_hasQueryTimeout);
++    const uint64_t submitStarted = VROSTBridgeNowUs();
++    const AMF_RESULT submitted = m_amfComponents.front()->SubmitInput(surface);
++    m_maxSubmitUs = std::max(m_maxSubmitUs, VROSTBridgeNowUs() - submitStarted);
++    if (submitted == AMF_OK || submitted == AMF_NEED_MORE_INPUT) {
++        if (!hasPending) m_lastOutputProgressUs = VROSTBridgeNowUs();
++        available->surface = surface;
++        available->token = token;
++        ++m_inputsAccepted;
++    } else if (submitted == AMF_INPUT_FULL) {
++        // Input was not accepted. It is safe to drop this raw frame; ask again
++        // for an IDR if this was the frame carrying a recovery request.
++        ++m_inputFull;
++        if (insertIDR) RequestIDR();
++    } else {
++        Warn("VROSTBridge AMF input failed: result=%d frame=%llu", submitted, targetTimestampNs);
++        ResetAfterFailure();
++        return;
++    }
++    const uint64_t pipelineStarted = VROSTBridgeNowUs();
++    try {
++        m_pipeline->Run(m_hasQueryTimeout, m_queryWaitBudgetMs);
++    } catch (const std::exception& error) {
++        Warn("VROSTBridge AMF pipeline recovery: %s", error.what());
++        ResetAfterFailure();
++    }
++    m_maxPipelineUs = std::max(m_maxPipelineUs, VROSTBridgeNowUs() - pipelineStarted);
+ }
+ 
+ void VideoEncoderAMF::Receive(AMFDataPtr data) {
+     amf_pts current_time = amf_high_precision_clock();
+     amf_pts start_time = 0;
+-    uint64_t targetTimestampNs;
+-    data->GetProperty(START_TIME_PROPERTY, &start_time);
+-    data->GetProperty(FRAME_INDEX_PROPERTY, &targetTimestampNs);
++    uint64_t targetTimestampNs = 0, token = 0;
++    AMF_THROW_IF(data->GetProperty(START_TIME_PROPERTY, &start_time));
++    AMF_THROW_IF(data->GetProperty(FRAME_INDEX_PROPERTY, &targetTimestampNs));
++    AMF_THROW_IF(data->GetProperty(SURFACE_TOKEN_PROPERTY, &token));
++    auto source = std::find_if(m_inFlight.begin(), m_inFlight.end(),
++        [token](const InputSurface& slot) { return slot.surface && slot.token == token; });
++    if (source == m_inFlight.end()) throw MakeException("VROSTBridge AMF output token is not owned");
++    source->surface = nullptr; // AMF keeps any references it still requires.
++    ++m_outputsReceived;
++    m_lastOutputProgressUs = VROSTBridgeNowUs();
++    if (current_time >= start_time)
++        m_maxOutputAgeUs = std::max(m_maxOutputAgeUs, uint64_t((current_time - start_time) / 10));
+ 
+     amf::AMFBufferPtr buffer(data); // query for buffer interface
++    if (!buffer || !buffer->GetNative() || buffer->GetSize() == 0)
++        throw MakeException("VROSTBridge AMF output is not a valid encoded buffer");
+ 
+     char* p = reinterpret_cast<char*>(buffer->GetNative());
+     int length = static_cast<int>(buffer->GetSize());
+@@ -787,6 +856,41 @@ void VideoEncoderAMF::Receive(AMFDataPtr data) {
+     ParseFrameNals(m_codec, reinterpret_cast<uint8_t*>(p), length, targetTimestampNs, isIdr);
+ }
+ 
++void VideoEncoderAMF::ResetAfterFailure() {
++    ++m_failures;
++    // Flush cancels queued work before references are released. The next accepted
++    // image requests a keyframe; no stale coded output crosses the reset.
++    m_recoveryPending = true;
++    m_nextRecoveryUs = VROSTBridgeNowUs() + 250000;
++    AMF_RESULT failed = AMF_OK;
++    for (auto& component : m_amfComponents) {
++        const AMF_RESULT result = component->Flush();
++        if (result != AMF_OK) failed = result;
++    }
++    if (failed != AMF_OK) {
++        // Retain ownership and retry at a bounded rate. Never declare a reset
++        // successful or reuse a texture while AMF refused to cancel its work.
++        throw MakeException("VROSTBridge AMF Flush failed: %d; retaining input ownership", failed);
++    }
++    m_pipeline->Reset();
++    for (auto& slot : m_inFlight) slot.surface = nullptr;
++    m_recoveryPending = false;
++    m_lastOutputProgressUs = VROSTBridgeNowUs();
++    RequestIDR();
++}
++
++void VideoEncoderAMF::LogDiagnostics(uint64_t now) {
++    if (now - m_lastDiagnosticsUs < 1000000) return;
++    m_lastDiagnosticsUs = now;
++    size_t inFlight = 0;
++    for (const auto& slot : m_inFlight) if (slot.surface) ++inFlight;
++    Info("VROST_HOST_AMF accepted=%llu output=%llu input_full=%llu pool_full=%llu failures=%llu in_flight=%u alloc_max_us=%llu submit_max_us=%llu output_wait_max_us=%llu output_age_max_us=%llu query_budget_ms=%u",
++        m_inputsAccepted, m_outputsReceived, m_inputFull, m_poolFull, m_failures,
++        static_cast<unsigned>(inFlight), m_maxAllocUs, m_maxSubmitUs, m_maxPipelineUs,
++        m_maxOutputAgeUs, m_queryWaitBudgetMs);
++    m_maxAllocUs = m_maxSubmitUs = m_maxPipelineUs = m_maxOutputAgeUs = 0;
++}
++
+ void VideoEncoderAMF::ApplyFrameProperties(const amf::AMFSurfacePtr& surface, bool insertIDR) {
+     switch (m_codec) {
+     case ALVR_CODEC_H264:
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+index 4985e28..f08a08f 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+@@ -1,5 +1,6 @@
+ #pragma once
+ #include "VideoEncoder.h"
++#include <array>
+ 
+ #include "../../shared/amf/public/common/AMFFactory.h"
+ #include "../../shared/amf/public/common/AMFSTL.h"
+@@ -11,7 +12,7 @@
+ #include "../../shared/amf/public/include/components/VideoEncoderVCE.h"
+ 
+ typedef amf::AMFData* AMFDataPtr;
+-typedef std::function<void(AMFDataPtr)> AMFDataReceiver;
++typedef std::function<AMF_RESULT(AMFDataPtr)> AMFDataReceiver;
+ 
+ class AMFPipeline;
+ 
+@@ -20,11 +21,13 @@ public:
+     AMFPipe(amf::AMFComponentPtr src, AMFDataReceiver receiver);
+     virtual ~AMFPipe();
+ 
+-    void doPassthrough(bool hasQueryTimeout, uint32_t timerResolution);
++    void doPassthrough(bool hasQueryTimeout, uint32_t timerResolution, uint32_t waitBudgetMs);
++    void Reset();
+ 
+ protected:
+     amf::AMFComponentPtr m_amfComponentSrc;
+     AMFDataReceiver m_receiver;
++    amf::AMFDataPtr m_pending;
+ };
+ 
+ typedef AMFPipe* AMFPipePtr;
+@@ -34,7 +37,7 @@ public:
+     AMFSolidPipe(amf::AMFComponentPtr src, amf::AMFComponentPtr dst);
+ 
+ protected:
+-    void Passthrough(AMFDataPtr);
++    AMF_RESULT Passthrough(AMFDataPtr);
+ 
+     amf::AMFComponentPtr m_amfComponentDst;
+ };
+@@ -45,7 +48,8 @@ public:
+     ~AMFPipeline();
+ 
+     void Connect(AMFPipePtr pipe);
+-    void Run(bool hasQueryTimeout);
++    void Run(bool hasQueryTimeout, uint32_t waitBudgetMs);
++    void Reset();
+ 
+ protected:
+     uint32_t m_timerResolution;
+@@ -75,6 +79,7 @@ public:
+ private:
+     static const wchar_t* START_TIME_PROPERTY;
+     static const wchar_t* FRAME_INDEX_PROPERTY;
++    static const wchar_t* SURFACE_TOKEN_PROPERTY;
+ 
+     amf::AMFComponentPtr MakeConverter(
+         amf::AMF_SURFACE_FORMAT inputFormat,
+@@ -112,5 +117,23 @@ private:
+     bool m_hasQueryTimeout;
+     bool m_hasPreAnalysis;
+ 
++    // Retain our reference until the matching output arrives; AMF also retains
++    // its own references. Reuse is delegated to AMF AllocSurface's cache only
++    // after all references are released. Never overwrite a submitted texture.
++    struct InputSurface {
++        amf::AMFSurfacePtr surface;
++        uint64_t token = 0;
++    };
++    std::array<InputSurface, 3> m_inFlight;
++    uint64_t m_nextSurfaceToken = 0;
++    uint64_t m_inputsAccepted = 0, m_outputsReceived = 0, m_inputFull = 0;
++    uint64_t m_poolFull = 0, m_failures = 0, m_lastDiagnosticsUs = 0;
++    uint64_t m_maxAllocUs = 0, m_maxSubmitUs = 0, m_maxPipelineUs = 0;
++    uint64_t m_maxOutputAgeUs = 0, m_lastOutputProgressUs = 0, m_nextRecoveryUs = 0;
++    bool m_recoveryPending = false;
++    uint32_t m_queryWaitBudgetMs = 12;
++    void LogDiagnostics(uint64_t now);
++    void ResetAfterFailure();
++
+     void ApplyFrameProperties(const amf::AMFSurfacePtr& surface, bool insertIDR);
+ };
+diff --git a/alvr/server_openvr/cpp/platform/win32/VROSTBridgeTiming.h b/alvr/server_openvr/cpp/platform/win32/VROSTBridgeTiming.h
+new file mode 100644
+index 0000000..6912a8d
+--- /dev/null
++++ b/alvr/server_openvr/cpp/platform/win32/VROSTBridgeTiming.h
+@@ -0,0 +1,9 @@
++#pragma once
++#include <chrono>
++#include <cstdint>
++
++// Stage durations must not jump when Windows adjusts its wall clock.
++inline uint64_t VROSTBridgeNowUs() {
++    return static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::microseconds>(
++        std::chrono::steady_clock::now().time_since_epoch()).count());
++}

@@ -1,0 +1,34 @@
+{
+  "crate": "libbz2-rs-sys",
+  "version": "0.2.2",
+  "license": "bzip2-1.0.6",
+  "repository": "https://github.com/trifectatechfoundation/libbzip2-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "54e1fd7bd53273e601c9599eb162a004dacddee031ae297ee7109a7beb93b1c2",
+      "bytes": 2123,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "2c4a545a15244c7d945065b5d392b2d2d7f21526fba56ce51467b06ed445e8f7"
+  },
+  "source_url": "https://crates.io/crates/libbz2-rs-sys/0.2.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f1d0a84f64e169305e721036a933c5f676dbee8e",
+      "dirty": true
+    },
+    "path_in_vcs": "libbz2-rs-sys"
+  }
+}

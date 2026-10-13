@@ -1,0 +1,42 @@
+{
+  "crate": "gpu-allocator",
+  "version": "0.27.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/Traverse-Research/gpu-allocator",
+  "authors": [
+    "Traverse Research <opensource@traverseresearch.nl>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "0178e21322b0e88aa3aeb3146f6a9611bc1f8df6d98bdfb34be28b9dd56a8107",
+      "bytes": 10845,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "ad41be6cc6538b29b9346648f41432b5e460bad6be073b5eeaa41320ea2921dc",
+      "bytes": 1065,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_client": "c151a2a5ef800297b4e79efa4f4bec035c5f51d5ae587287c9b952bdf734cacd"
+  },
+  "source_url": "https://crates.io/crates/gpu-allocator/0.27.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "a1aee6d8b1b65ac4cb1189daa240e397b312dac9"
+    },
+    "path_in_vcs": ""
+  }
+}

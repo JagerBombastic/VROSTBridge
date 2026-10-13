@@ -1,0 +1,28 @@
+MakeNSIS v3.09-4 - Copyright 1999-2023 Contributors
+See the file COPYING for license details.
+Credits can be found in the Users Manual.
+
+Command line defined: "PAYLOAD=/workspace/scratch/647ea6e3ae16/build-tools025/release/windows-package"
+Command line defined: "OUTPUT=/workspace/scratch/647ea6e3ae16/release-0.2.5/VROSTBridge-Host-Setup-0.2.5.exe"
+Processing script file: "/workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.5/packaging/windows-installer.nsi" (UTF8)
+
+Processed 1 file, writing output (x86-unicode):
+
+Output: "/workspace/scratch/647ea6e3ae16/release-0.2.5/VROSTBridge-Host-Setup-0.2.5.exe"
+Install: 4 pages (256 bytes), 3 sections (1 required) (12360 bytes), 1287 instructions (36036 bytes), 667 strings (33342 bytes), 1 language table (306 bytes).
+Uninstall: 2 pages (192 bytes), 1 section (4120 bytes), 87 instructions (2436 bytes), 116 strings (4306 bytes), 1 language table (254 bytes).
+Datablock optimizer saved 2261 KiB (~0.7%).
+
+Using lzma (compress whole) compression.
+
+EXE header size:              139264 / 100864 bytes
+Install code:                          (76620 bytes)
+Install data:                          (290523163 bytes)
+Uninstall code+data:                   (57875 bytes)
+Compressed data:           103822391 / 290657658 bytes
+CRC (0xB34DBD63):                  4 / 4 bytes
+
+Total size:                103961659 / 290758526 bytes (35.7%)
+/workspace/scratch/647ea6e3ae16/release-0.2.5/VROSTBridge-Bazzite-Installer-0.2.5.zip
+/workspace/scratch/647ea6e3ae16/release-0.2.5/VROSTBridge-Host-Setup-0.2.5.exe
+/workspace/scratch/647ea6e3ae16/release-0.2.5/VROSTBridge-Host-Portable-0.2.5.zip

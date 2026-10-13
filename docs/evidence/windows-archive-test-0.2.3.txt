@@ -1,0 +1,23 @@
+
+7-Zip (z) 23.01 (x64) : Copyright (c) 1999-2023 Igor Pavlov : 2023-06-20
+ 64-bit locale=C.UTF-8 Threads:9 OPEN_MAX:16384
+
+Scanning the drive for archives:
+1 file, 103195708 bytes (99 MiB)
+
+Testing archive: /workspace/scratch/647ea6e3ae16/deliverables-0.2.3/VROSTBridge-Host-Setup-0.2.3.exe
+--
+Path = /workspace/scratch/647ea6e3ae16/deliverables-0.2.3/VROSTBridge-Host-Setup-0.2.3.exe
+Type = Nsis
+Physical Size = 103195708
+Method = LZMA:23
+Solid = +
+Headers Size = 66378
+Embedded Stub Size = 115712
+SubType = NSIS-3 Unicode
+
+Everything is Ok
+
+Files: 468
+Size:       291163517
+Compressed: 103195708

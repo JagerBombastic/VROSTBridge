@@ -1,0 +1,44 @@
+{
+  "crate": "wgpu-hal",
+  "version": "25.0.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/gfx-rs/wgpu",
+  "authors": [
+    "gfx-rs developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE.APACHE",
+    "LICENSE.MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.APACHE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "bytes": 10173,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE.MIT",
+      "sha256": "c7fea58d1cfe49634cd92e54fc10a9d871f4b275321a4cd8c09e449122caaeb4",
+      "bytes": 1078,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "f968767fe4d3d33747bbd1473ccd55bf0f6451f55d733b5597e67b5deab4ad17",
+    "windows_client": "f968767fe4d3d33747bbd1473ccd55bf0f6451f55d733b5597e67b5deab4ad17"
+  },
+  "source_url": "https://crates.io/crates/wgpu-hal/25.0.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f35cf942af1a3bb6f48aa9185f4d2bcee809f814"
+    },
+    "path_in_vcs": "wgpu-hal"
+  }
+}

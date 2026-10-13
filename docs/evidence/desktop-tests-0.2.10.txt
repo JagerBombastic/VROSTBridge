@@ -1,0 +1,1 @@
+Desktop connection workflow smoke checks passed.

@@ -1,0 +1,46 @@
+{
+  "crate": "once_cell",
+  "version": "1.21.4",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/matklad/once_cell",
+  "authors": [
+    "Aleksey Kladov <aleksey.kladov@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+    "linux_client": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50",
+    "windows_client": "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+  },
+  "source_url": "https://crates.io/crates/once_cell/1.21.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "80fe900b21f6d76c1a2ed74d3343e8a3a88c46d0"
+    },
+    "path_in_vcs": ""
+  }
+}

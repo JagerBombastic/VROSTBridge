@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VROSTBridge</title><link rel="icon" href="/brand/favicon.ico" sizes="16x16 32x32 48x48"><link rel="icon" type="image/png" sizes="32x32" href="/brand/favicon-32.png">
+<style>
+@font-face{font-family:Inter;src:url(/fonts/Inter-Variable.ttf) format('truetype');font-weight:400 700;font-display:swap}
+@font-face{font-family:Outfit;src:url(/fonts/Outfit-Variable.ttf) format('truetype');font-weight:300 700;font-display:swap}
+:root{color-scheme:dark;--bg:#0b0c12;--panel:#141621;--panel-hi:#191c29;--line:#262a39;--line-hi:#353b52;--text:#f3f5fb;--muted:#a3abbf;--faint:#727a92;--cyan:#00e5ff;--blue:#0085ff;--purple:#a855ff;--magenta:#ff2dcb;--ok:#62d6b4;--warn:#ffbe7a;--bad:#ff8fb6;--brand:linear-gradient(90deg,#00e5ff,#0085ff 33%,#a855ff 66%,#ff2dcb);--button:linear-gradient(90deg,#0085ff,#a855ff)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(900px 520px at -5% -10%,#00e5ff1c,transparent 62%),radial-gradient(800px 480px at 105% -5%,#ff2dcb1a,transparent 60%),radial-gradient(700px 500px at 100% 105%,#ff2dcb10,transparent 60%),var(--bg);background-attachment:fixed;color:var(--text);font:14px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.metric b,summary.section{font-family:Outfit,Inter,system-ui,sans-serif}
+main{max-width:1120px;margin:auto;padding:26px 28px 10px}
+header{display:flex;gap:18px;justify-content:space-between;align-items:center;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:13px;min-width:0}.brand>div{min-width:0}.mark{height:44px;width:auto;flex:none}
+/* 1.0.0.3: the name in the logo's lettering on one line, VROST then Bridge (brand/assets/svg/vrostbridge-wordmark-inline.svg);
+   VROST's capitals are 19 px (16 px on narrow screens); the picture runs from the top of d to the foot of g */
+.brand-name{display:block;width:258px;max-width:100%;height:auto;margin:1px 0 0}
+.brand small{display:block;color:var(--muted);font:500 12px Inter,system-ui,sans-serif;letter-spacing:.2px;margin-top:3px}
+.tagline{text-wrap:balance}.tagline b{font-weight:700}.tagline .cyan{color:var(--cyan)}.tagline .blue{color:var(--blue)}.tagline .purple{color:var(--purple)}.tagline .magenta{color:var(--magenta)}
+.tagline .g1{color:#00e5ff}.tagline .g2{color:#00abff}.tagline .g3{color:#227bff}.tagline .g4{color:#865fff}.tagline .g5{color:#cb45ea}.tagline .g6{color:#ff2dcb}
+.header-actions,.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.badge{font-size:12px;font-weight:550;color:var(--text);border:1px solid var(--line-hi);padding:5px 12px;border-radius:20px;background:#ffffff08}
+.badge::before{content:'';display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--cyan);margin-right:8px;vertical-align:1px}
+body[data-role=host] .badge::before{background:var(--magenta)}
+h1{font-size:28px;line-height:1.2;letter-spacing:-.4px;margin:0;font-weight:600}
+h2{font-size:17px;font-weight:600;margin:0 0 4px;letter-spacing:-.1px}
+h3{font-size:14px;margin:18px 0 4px;font-weight:600}
+p{color:var(--muted);margin:8px 0 14px}
+.lede{font-size:13px;margin:0 0 14px}
+.layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,1fr);gap:18px;align-items:start}
+.card{background:linear-gradient(180deg,#171a26,#131520);border:1px solid var(--line);border-radius:18px;padding:22px 22px 18px;margin-bottom:18px;position:relative}
+.session{padding-top:24px;overflow:hidden}
+.session::before{content:'';position:absolute;inset:0 0 auto 0;height:3px;background:var(--brand)}
+.eyebrow{font:600 11px Outfit,Inter,sans-serif;letter-spacing:1.6px;text-transform:uppercase;color:var(--cyan);margin-bottom:10px}
+.state{display:flex;gap:12px;align-items:center}
+.dot{width:10px;height:10px;flex-shrink:0;background:var(--faint);border-radius:50%}
+.live .dot{background:var(--cyan);box-shadow:0 0 0 4px #00e5ff26,0 0 14px #00e5ff99}
+.state.attention .dot{background:var(--magenta);box-shadow:0 0 0 4px #ff2dcb26}
+#hint{min-height:2.8em;margin:10px 0 0}
+/* 1.0.0.7: a message with a long path (Windows writes them with no spaces) wraps instead of widening the page. */
+#hint,.small-note,.warning-note,.status-lines p{overflow-wrap:anywhere}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.metric{background:#0f111a;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.metric b{font-size:24px;display:block;font-weight:600;letter-spacing:-.3px}
+.metric span{color:var(--muted);font-size:11.5px}
+.session-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.session-actions #host-menu{margin-left:auto}
+.status-lines p{margin:6px 0;font-size:12.5px}
+button,input,select{font:inherit;border-radius:10px;border:1px solid var(--line-hi);padding:9px 13px;background:#0f111a;color:var(--text)}
+button{cursor:pointer;font-weight:550;transition:border-color .15s,filter .15s,background .15s}
+button:hover:not(:disabled){border-color:var(--cyan)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
+button:disabled{opacity:.42;cursor:default}
+.primary{background:var(--button);border-color:transparent;color:#fff;min-width:150px;box-shadow:0 8px 24px -10px #a855ffcc}
+.primary:hover:not(:disabled){filter:brightness(1.1);border-color:transparent}
+.secondary{font-size:12.5px;padding:7px 12px}
+.danger:hover:not(:disabled),#stop:hover:not(:disabled){border-color:var(--magenta)}
+.danger{color:#ffc4da}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 55%,calc(100% - 12px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.fovea{overflow:hidden}.fovea::before{content:'';position:absolute;inset:0 0 auto 0;height:3px;background:var(--brand)}
+.eyes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:4px 0 12px}
+.eyes figure{margin:0;background:#0f111a;border:1px solid var(--line);border-radius:14px;padding:10px 10px 8px;text-align:center}
+.eyes canvas{width:100%;aspect-ratio:1;display:block}
+.eyes figcaption{color:var(--muted);font-size:12px;margin-top:6px}
+.fovea-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:4px 0 6px}
+.fovea-stats div{background:#0f111a;border:1px solid var(--line);border-radius:10px;padding:8px 11px;min-width:0}
+.fovea-stats b{display:block;font-size:13.5px;color:var(--text);font-weight:600;overflow-wrap:anywhere}
+.fovea-stats span{color:var(--muted);font-size:11.5px}
+.fovea-key{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:0 0 8px}
+.fovea-key i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+@media (max-width:720px){.fovea-stats{grid-template-columns:1fr 1fr}}
+@media (max-width:420px){.eyes{gap:8px}.eyes figure{padding:6px 6px 4px}.fovea-stats{grid-template-columns:1fr}}
+.fields label{color:var(--muted);font-size:12px;font-weight:500}
+.fields input,.fields select{display:block;width:100%;margin-top:6px}
+.full-width{grid-column:1/-1}
+.option{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);cursor:pointer}
+.option span{flex:1;font-weight:550}
+.option small{display:block;color:var(--muted);font-size:12px;font-weight:400;margin-top:3px;line-height:1.45}
+.option small span{font-weight:inherit}
+.option input{appearance:none;flex-shrink:0;width:38px;height:22px;margin:1px 0 0;border-radius:11px;padding:0;border:1px solid var(--line-hi);background:#22263a;position:relative;cursor:pointer;transition:background .2s}
+.option input::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#cfd5e6;transition:transform .2s}
+.option input:checked{background:var(--button);border-color:transparent}
+.option input:checked::after{transform:translateX(16px);background:#fff}
+.option input:disabled{opacity:.45;cursor:default}
+.small-note{font-size:12px;color:var(--muted);margin:6px 0}
+.warning-note{font-size:12.5px;color:var(--warn);margin:6px 0}
+.success-note{color:var(--ok);font-size:12.5px}
+#error{color:var(--bad);white-space:pre-wrap}
+#error:empty,#notice:empty,.small-note:empty,.warning-note:empty{display:none}
+.chip{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:4px 11px;border-radius:20px;border:1px solid var(--line-hi);background:#ffffff08}
+.chip.wifi{border-color:#00e5ff66;color:#9ee6ff}.chip.ethernet{border-color:#ff2dcb66;color:#e3b9ff}
+.connection{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:10px 0 4px}
+.connection span:last-child{color:var(--muted);font-size:12.5px}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--text);font-weight:550;list-style:none;display:flex;align-items:center;gap:9px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'';width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);transition:transform .15s;margin:0 3px}
+details[open]>summary::before{transform:rotate(45deg)}
+.compact-summary{font-size:12.5px;color:var(--muted);font-weight:500}
+summary.section{font-size:17px;font-weight:600}
+summary.section small{font:400 12px Inter,system-ui,sans-serif;color:var(--muted);margin-left:auto}
+details.card{padding-bottom:16px}
+.details-content{padding-top:10px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:300px;overflow:auto;font:11px/1.6 ui-monospace,"Cascadia Mono",monospace;color:#c3cbe0;background:#0c0d14;border:1px solid var(--line);border-radius:10px;padding:12px}
+a{color:#7fd8fb;text-underline-offset:3px}a:hover{color:#c4efff}
+.hidden{display:none!important}
+.host,.client{display:none}
+body[data-role=host] .host,body[data-role=client] .client{display:block}
+body[data-role=host] label.option.host,body[data-role=client] label.option.client{display:flex}
+.connection-list,.report-list{display:grid;gap:10px}
+.device-row,.report-row{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0f111a}
+.device-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.device-name{font-weight:600;overflow-wrap:anywhere}
+.device-detail{font-size:11.5px;margin:5px 0;overflow-wrap:anywhere}
+.device-actions{margin-top:10px}.device-actions .primary{min-width:0;font-size:12.5px;padding:7px 12px}
+.connection-tag{font-size:10.5px;font-weight:600;border:1px solid var(--line-hi);border-radius:20px;padding:3px 8px;white-space:nowrap;color:var(--muted)}
+.connection-tag.connected{color:#9ee6ff;border-color:#00e5ff77}.connection-tag.approval{color:#e3b9ff;border-color:#ff2dcb88}
+.report-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.report-row span{font-size:12px;overflow-wrap:anywhere}.report-row small{display:block;color:var(--muted)}
+.empty-state{padding:12px;border:1px dashed var(--line-hi);border-radius:12px;font-size:12px;color:var(--muted)}
+.identity div{padding:7px 0}.identity dt{font-size:11px;color:var(--muted)}.identity dd{margin:3px 0;overflow-wrap:anywhere;font-size:12px}
+.readiness-row{font-size:12px;margin:4px 0}.readiness-row.fail{color:var(--bad)}.readiness-row.pass{color:var(--ok)}
+.advanced-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px}.advanced-grid section{min-width:0}
+.network-access{margin-top:14px;padding:12px 14px;border:1px solid #8a6a3c;border-radius:12px;background:#2a2318}
+.network-access p{margin:0 0 9px}
+.steam{display:flex;gap:16px;align-items:flex-start}
+.steam img{width:92px;height:138px;border-radius:10px;object-fit:cover;border:1px solid var(--line-hi);flex-shrink:0;background:#0f111a}
+.question{margin:10px 0 0;padding:12px 14px;border:1px solid #a855ff66;border-radius:12px;background:#a855ff14}
+.question p{margin:0 0 10px;color:var(--text)}
+.progress{height:6px;border-radius:3px;background:#22263a;overflow:hidden;margin:8px 0}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,#00e5ff,#ff2dcb);transition:width .4s}
+ol.small-note{padding-left:20px}ol.small-note li{margin:4px 0}
+.credits-list{display:grid;grid-template-columns:1fr 1fr;gap:18px 26px;margin:18px 0}
+.credits-list dt{font-weight:600}.credits-list dd{margin:5px 0 0;color:var(--muted);font-size:12px}
+.credits-list small{display:block;margin-top:4px;color:#d9b8ff}
+.credits p{font-size:12px}.credits code{overflow-wrap:anywhere}
+.credits-note{border-top:1px solid var(--line);padding-top:14px;font-size:12px}
+.about-logo{display:block;width:170px;max-width:60%;height:auto;margin:16px 0 4px}
+table{border-collapse:collapse;font-size:12px}th,td{padding:5px 10px 5px 0;text-align:left}th{color:var(--muted);font-weight:500}
+footer{font-size:11.5px;color:var(--faint);display:flex;justify-content:space-between;gap:15px;padding:4px 2px 20px}
+@media(max-width:820px){main{padding:18px}.layout,.advanced-grid{grid-template-columns:1fr}.card{padding:18px}.mark{height:38px;width:auto}.brand-name{width:220px}}
+@media(max-width:480px){main{padding:14px}.header-actions .badge{display:none}.metrics{gap:7px}.metric b{font-size:20px}.credits-list,.fields{grid-template-columns:1fr}.device-top{flex-wrap:wrap}.session-actions #host-menu{margin-left:0}.steam{flex-direction:column}}
+</style></head><body><main>
+<header><div class="brand"><img class="mark" src="/brand/vrostbridge-mark.svg" alt="VROSTBridge logo" width="50" height="44"><div><img class="brand-name" src="/brand/vrostbridge-name.svg" alt="VROSTBridge" width="258" height="26"><small class="tagline" id="tagline"><b class="cyan">V</b>R <b class="cyan">R</b>endering <b class="blue">O</b>ut<b class="purple">S</b>ide <b class="magenta">T</b>he <b class="magenta">B</b>ox – <b class="g1">B</b><b class="g2">r</b><b class="g3">i</b><b class="g4">d</b><b class="g5">g</b><b class="g6">e</b></small></div></div><div class="header-actions"><span class="badge" id="role">Connecting</span><button class="secondary" id="quit" onclick="act('quit')">Quit</button></div></header>
+<div class="layout"><div>
+<section class="card session" aria-label="Session"><div class="eyebrow" id="session-label">Session</div><div class="state" id="state"><span class="dot"></span><h1 id="status" role="status">Connecting to VROSTBridge</h1></div><p id="hint">Checking this PC.</p>
+<div class="metrics"><div class="metric"><b id="age">—</b><span>Frame age · ms</span></div><div class="metric"><b id="decoded">—</b><span>Frames shown</span></div><div class="metric"><b id="dropped">—</b><span>Frames dropped</span></div></div>
+<div class="client session-actions"><button class="primary" id="start" onclick="act('start')">Start session</button><button id="stop" onclick="act('stop')" disabled>Stop</button><button class="secondary" id="host-menu" onclick="act('host-menu')" disabled>Open host menu</button></div>
+<div id="client-network-access" class="client hidden network-access"><p id="client-network-state" class="small-note" role="status">Checking home-network access…</p><button id="allow-client-network" class="secondary hidden" onclick="act('allow-client-network')" disabled>Allow home-network connection</button><p id="client-network-note" class="small-note hidden"><span id="network-note-linux">Bazzite may ask for your password to allow this home network.</span><span id="network-note-windows" class="hidden">Windows shows its administrator (UAC) prompt once to add the firewall rules for this home network.</span></p></div>
+<div class="status-lines"><p id="video-details" class="small-note" role="status"></p><p id="video-pacing" class="small-note"></p><p id="quality-line" class="small-note"></p><div id="power-balance" class="client hidden"><p id="power-message" class="warning-note"></p><div class="actions"><button class="secondary hidden" id="gpu-auto" onclick="act('gpu-auto')">Set the GPU clock to automatic</button></div></div><div id="graphics-limit" class="client hidden"><p id="graphics-message" class="warning-note"></p><div class="actions"><button class="secondary hidden" id="graphics-gpu-auto" onclick="act('gpu-auto')">Set the GPU clock to automatic</button><button class="secondary hidden" id="use-standard" onclick="act('use-standard')">Use the smaller size</button></div></div><p id="wifi-status" class="warning-note client"></p><p id="host-addons" class="warning-note host"></p><p id="runtime-status" class="small-note">Waiting for session details.</p><p id="audio-status" class="small-note" role="status"></p><p id="error" role="alert"></p><p id="notice" class="success-note" role="status"></p></div></section>
+<section class="card fovea hidden" id="fovea-panel" aria-labelledby="fovea-title"><div class="eyebrow">Live</div><h2 id="fovea-title">Eye-tracked foveation</h2><p class="lede" id="fovea-lede">Where each eye is looking, and the sharp region of the stream that follows it.</p>
+<div class="fovea-key"><span><i style="background:linear-gradient(90deg,#00e5ff,#ff2dcb)"></i>Sharp region (full resolution)</span><span><i style="background:#ff2dcb;border-radius:50%"></i>Where the eye looks, with its last second</span><span><i style="background:repeating-conic-gradient(#2a3044 0 25%,#141722 0 50%) 0 0/6px 6px;border:1px solid #353b52"></i>Reduced outside (coarser squares: lower resolution)</span></div>
+<div class="eyes"><figure><canvas id="fovea-left" width="260" height="260" role="img" aria-label="Left eye: sharp region and gaze"></canvas><figcaption>Left eye</figcaption></figure><figure><canvas id="fovea-right" width="260" height="260" role="img" aria-label="Right eye: sharp region and gaze"></canvas><figcaption>Right eye</figcaption></figure></div>
+<p id="fovea-live-note" class="small-note" role="status"></p><p id="fovea-rate-note" class="warning-note"></p><div class="fovea-stats" id="fovea-stats"></div>
+<p class="small-note">Live view only: where you look is never saved. Reports include only how far the gaze reached each way.</p></section>
+<section class="card connection-card host" aria-labelledby="clients-title"><h2 id="clients-title">Headset connection</h2><p id="host-connection-hint" class="lede">Keep this app open. Start sessions from your headset client.</p><div id="host-clients" class="connection-list" aria-live="polite"><p class="empty-state">Waiting for your headset client.</p></div><p class="small-note hidden" id="auto-access-note">Removing access also turns off automatic connections.</p></section>
+<section class="card client" id="quality"><h2>Headset &amp; stream</h2><p id="display-identity" class="lede">Your headset is detected when you start a session.</p>
+<div class="fields"><label>Video codec<select id="codec"><option value="Auto">Auto · best for this headset</option><option id="codec-h264" value="H264">H.264</option><option value="Hevc">HEVC</option><option value="AV1">AV1 · needs AV1 on both PCs</option></select></label><label>Bitrate · Mbit/s<input id="bitrate" type="number" min="10" max="300" step="5" value="80"></label><label class="full-width">Stream resolution<select id="resolution"><option value="automatic">Auto · detect on Start</option></select></label><label class="full-width">Foveated encoding<select id="foveation"><option value="auto">Auto · match the headset and eye tracking</option><option value="off">Off · full resolution everywhere</option><option value="subtle">Subtle · edges at half resolution</option><option value="balanced">Balanced · more detail straight ahead</option><option value="eye-tracked">Eye-tracked · sharp where you look (Beyond 2e)</option></select></label>
+<label class="hidden" id="fov-region-field">Sharp region<select id="fov_region"><option value="small">Small · 30% of each eye</option><option value="medium">Medium · 40% of each eye</option><option value="large">Large · 55% of each eye</option></select></label><label class="hidden" id="fov-edge-field">Outside the sharp region<select id="fov_edge"><option value="detail">More detail · ⅓ resolution</option><option value="balanced">Balanced · ¼ resolution</option><option value="light">Lightest · ⅕ resolution</option></select></label>
+<label class="full-width">Sharpening<select id="sharpening" onchange="act('set-sharpening',{level:this.value})"><option value="off">Off</option><option value="low">Low</option><option value="medium">Medium · recommended</option><option value="high">High</option></select></label></div>
+<p id="eye-tuning-note" class="small-note hidden">With eye tracking the sharp region follows your gaze. A smaller region or a lighter outside sends fewer pixels: less work for both PCs and the network, and room for a higher stream resolution.</p>
+<p id="sharpening-note" class="small-note">Sharpening brings back fine detail when the picture is shown in the headset. It is separate from foveated encoding, which decides how much of the picture is sent. Applies immediately.</p>
+<p id="display-target" class="small-note"></p><p id="foveation-note" class="small-note"></p>
+<label class="option"><input id="auto_bitrate" type="checkbox" checked><span>Automatic bitrate<small>Tests the network to your host once per adapter (about 15 s), asks only for what the picture needs, and steps down during a session when decoding falls behind or frames go missing, then back up as it runs clean. Turn off to use the bitrate above.</small></span></label>
+<label class="option"><input id="ten_bit" type="checkbox" checked><span>10-bit colour<small>Smooth dark gradients without banding. HEVC and AV1; H.264 stays 8-bit.</small></span></label>
+<p id="bitrate-status" class="small-note" role="status"></p>
+<div class="actions"><button class="secondary" id="network-test" onclick="act('network-test')">Test network now</button><button class="secondary" id="recommended-settings" onclick="act('recommended-settings')">Use recommended settings</button></div><p id="network-test-result" class="small-note" role="status"></p>
+<p class="small-note">Recommended settings: codec, stream resolution, foveated encoding and bitrate on Auto, with the frame timing lock, re-aim, late-frame catch-up and performance balancing on.</p>
+<details><summary class="compact-summary">About the stream size</summary><p id="display-render" class="small-note"></p><p id="display-mode-note" class="small-note">The headset's refresh rate is used as it is set on the headset.</p><p class="small-note">Stream resolution is the picture the host sends per eye, not the headset's panel. H.264 is limited to 2048 pixels wide per eye; HEVC and AV1 to 4096. More pixels need more host and decoder time.</p></details>
+<p class="small-note">Changes apply to your next session.</p></section>
+<section class="card client" id="eye-tracking"><h2>Eye tracking</h2><p class="lede">Bigscreen Beyond 2e: the sharp region of the stream follows your eyes, so the rest of each eye can be sent with fewer pixels.</p>
+<label class="option"><input id="eye_tracking" type="checkbox" onchange="act('eye-tracking',{enabled:this.checked})"><span>Eye tracking<small><span id="eye-note-linux">VROSTBridge starts the headset's eye cameras and Baballonia with each session and sends where you look to the host. Calibrate once, in Desktop Mode.</span><span id="eye-note-windows" class="hidden">VROSTBridge starts Baballonia with each session and sends where you look to the host. Baballonia reads the headset's eye cameras directly (the camera “BigEye”), so close Bigscreen's own eye-tracking app while you use it. Calibrate once, in Baballonia's window during a session.</span></small></span></label>
+<p id="eye-status" class="small-note" role="status"></p><div id="eye-progress" class="progress hidden"><i id="eye-progress-bar"></i></div>
+<div id="eye-reach-row" class="actions hidden"><span id="eye-reach" class="small-note"></span><button class="secondary" id="eye-reach-reset" onclick="act('eye-reach-reset')">Measure again</button></div>
+<label class="option" id="gaze-centre-row"><input id="gaze_centre" type="checkbox" checked onchange="act('client-option',{name:'gaze_centre',enabled:this.checked})"><span>Keep my gaze centred<small>Your eyes rest near straight ahead most of the time. Where the eye tracker's middle sits further to one side, VROSTBridge takes the difference off, so the sharp region stays where you look. Remembered for each calibration.</small></span></label>
+<p id="gaze-centre-status" class="small-note"></p>
+<div class="actions"><button class="secondary hidden" id="gaze-centre-reset" onclick="act('gaze-centre-reset')">Reset centring</button><button class="secondary hidden" id="eye-previous" onclick="act('eye-calibration',{name:'previous'})">Use previous calibration</button></div>
+<p id="eye-licence" class="small-note hidden">Set up downloads <b>Baballonia</b> <span id="eye-version"></span> by Project Babble from its GitHub release (about <span id="eye-size"></span> MB; <span id="eye-disk"></span> MB once unpacked) and checks it. Baballonia is not part of VROSTBridge: its licence, the <a id="eye-licence-link" href="https://github.com/Project-Babble/Baballonia/blob/v1.1.1.0rc6/LICENSE" target="_blank" rel="noreferrer">Babble Software Distribution License 1.0</a>, allows personal, non-commercial use only. Setting up accepts it.</p>
+<div class="actions"><button class="primary hidden" id="eye-setup" onclick="act('eye-setup',{accept_licence:true})">Accept licence and set up</button><button class="secondary hidden" id="eye-cancel" onclick="act('eye-setup-cancel')">Cancel set-up</button><button class="secondary hidden" id="eye-open" onclick="act('eye-open')">Open Baballonia</button><button class="secondary hidden" id="eye-show" onclick="act('eye-show')">Show Baballonia</button><button class="secondary hidden" id="eye-close" onclick="act('eye-close')">Close Baballonia</button><button class="secondary hidden" id="eye-access" onclick="act('eye-camera-access')">Allow eye camera access</button></div>
+<details><summary class="compact-summary">Calibrate once</summary><ol class="small-note"><li><span id="eye-calibrate-linux">In Desktop Mode, start a session with Eye tracking on. Baballonia starts minimised: choose </span><span id="eye-calibrate-windows" class="hidden">Close Bigscreen's own eye-tracking app, then start a session with Eye tracking on. Baballonia starts minimised: choose </span><b>Show Baballonia</b> above to see its window. It shows its calibration in the headset only while SteamVR runs on this PC, so start the session first; without one it shows on this screen.</li><li>Put the headset on. In Baballonia's window choose the <b>Eye</b> calibration (the first one) and follow it in the headset, where it shows over the stream. While it shows the dot, keep your eyes on it and turn your head slowly, far enough each way (corners too) that the dot nears the edge of your view: Baballonia only learns as far as your eyes went, and the sharp region stops short beyond that. It then trains a model for your eyes for 5 to 10 minutes: keep the session running until it has finished. <i>Eye (no tutorial)</i> is the same without the explanations, for later; <i>Gaze</i> and <i>Blink</i> redo one half after a full Eye calibration.</li><li><span id="eye-restart-linux">Stop and start the session: the sharp region now follows your eyes, in Desktop Mode and Game Mode.</span><span id="eye-restart-windows" class="hidden">Stop and start the session: the sharp region now follows your eyes.</span></li></ol>
+<p class="small-note">Until Baballonia is calibrated the fixed Balanced region is used. Baballonia uses one to two CPU cores while it runs; on a handheld whose processor and graphics share one power limit, raise the TDP limit.</p>
+<p class="small-note"><span id="eye-folder-linux">VROSTBridge sets Baballonia's cameras, its output (127.0.0.1 port 9005, this PC only) and, once, the left and right eye areas. Its other settings, calibration and the choice to share eye data with Project Babble stay yours (in ~/.config/ProjectBabble).</span><span id="eye-folder-windows" class="hidden">VROSTBridge sets Baballonia's cameras, its output (127.0.0.1 port 9005, this PC only) and, once, the left and right eye areas. Its other settings, calibration and the choice to share eye data with Project Babble stay yours (in %APPDATA%\ProjectBabble).</span></p><p id="eye-relay" class="small-note"></p><div class="actions"><button class="secondary danger hidden" id="eye-remove" onclick="act('eye-remove')">Remove Baballonia</button></div></details></section>
+<section class="card client" id="motion"><h2>Motion &amp; timing</h2><p class="lede">How frames are timed and aimed so the picture stays steady as you move.</p>
+<label class="option"><input type="checkbox" id="reaim" checked onchange="act('set-reaim',{enabled:this.checked})"><span>Re-aim frames to your head<small>Turns each frame to where your head is when the headset shows it, so text and held objects stay still while you look around. Applies immediately.</small></span></label>
+<div class="actions"><button class="secondary" id="align-check" onclick="act('align-check')" disabled>Check alignment</button><span id="align-status" class="small-note">Needs a running session. Tells you whether SteamVR on this PC already re-aims frames.</span></div>
+<div id="align-question" class="question hidden"><p>Did the picture jump sideways once a second?</p><div class="actions"><button class="secondary" id="align-yes" onclick="act('align-answer',{jumped:true})">Yes, it jumped</button><button class="secondary" id="align-no" onclick="act('align-answer',{jumped:false})">No, it stayed still</button></div></div>
+<label class="option"><input type="checkbox" id="motion_prediction" checked><span>Motion prediction<small>Renders each frame for where your head and hands will be when it is shown, using the measured delay.</small></span></label>
+<label class="option"><input type="checkbox" id="timing_lock" checked><span>Frame timing lock<small>Times the host's frames to this headset's display so each arrives just in time.</small></span></label>
+<label class="option"><input type="checkbox" id="late_frame_catchup" checked><span>Catch late frames<small>Waits up to 3 ms for a nearly ready frame instead of showing the previous one again.</small></span></label>
+<label class="option"><input type="checkbox" id="pacing" checked><span>Pace video to the link<small>The host spreads each frame at the rate your link carries, so bursts cannot overflow it.</small></span></label>
+<label class="option"><input type="checkbox" id="intra_refresh"><span>Gradual loss recovery<small>A lost packet heals within half a second without a large keyframe. Recommended on Wi-Fi.</small></span></label>
+<div class="fields"><label>Encoder priority<select id="encoder"><option value="speed">Lowest latency</option><option value="balanced">Balanced quality</option></select></label><label>Quick resume<select id="keep_warm_minutes"><option value="0">Off</option><option value="5">Keep host SteamVR 5 min</option><option value="15">Keep host SteamVR 15 min</option><option value="30">Keep host SteamVR 30 min</option><option value="60">Keep host SteamVR 60 min</option></select></label></div>
+<p class="small-note">Quick resume keeps SteamVR open on the host after Stop, so starting again skips its startup.</p></section>
+<section class="card" id="reports"><h2>Reports</h2><p id="remote-debug-status" class="lede">Reports include connection, video and tracking details.</p>
+<div class="actions"><button id="report" onclick="downloadReport()">Save report</button><button class="secondary client" id="send-report" onclick="act('send-report')">Send report to host</button></div>
+<p id="report-delivery" class="small-note client" role="status"></p>
+<div class="host"><h3>From your headset PC</h3><div id="received-reports" class="report-list"><p class="empty-state">Reports sent from the headset client appear here.</p></div></div></section>
+<details class="card" id="diagnostics"><summary class="section">Diagnostics<small id="diagnostics-summary"></small></summary><div class="details-content">
+<div class="actions"><button class="secondary" id="check" onclick="act('check')">Check this PC</button></div><div id="checks" role="status"></div>
+<details><summary class="compact-summary">Live timing &amp; controller inputs</summary><p class="small-note">Finger curls: index / middle / ring / little, from open (0) to curled (1).</p><div style="overflow-x:auto"><table style="width:100%"><thead><tr><th>Hand</th><th>Source curls</th><th>Host applied</th></tr></thead><tbody id="finger-details"></tbody></table></div><pre id="timing-details"></pre><p class="small-note">Frame age is the age of received video, not total motion-to-photon latency.</p></details>
+<details><summary class="compact-summary">Session log</summary><pre id="logs">No session activity yet.</pre></details></div></details>
+</div><aside>
+<section class="card client" id="network"><h2>Network</h2><div class="connection"><span class="chip" id="connection-kind">Checking</span><span id="connection-summary">Checking how this PC connects.</span></div><div id="connection-warnings"></div>
+<div class="fields"><label class="full-width">Network adapter<select id="network-interface" onchange="act('select-client-network',{interface:this.value})"><option value="">Automatic · the route to your host</option></select></label><label class="full-width">Host address<input id="host_ip" autocomplete="off" spellcheck="false" placeholder="Found automatically"></label></div>
+<p id="network-path" class="small-note"></p><p id="host-link" class="small-note">Your rendering host is found automatically on the same home network.</p>
+<div id="wifi-options"><label class="option"><input id="stay_on_access_point" type="checkbox" checked><span>Stay on one access point<small><span id="stay-ap-linux">Stops the Wi-Fi background scans that pause the stream every few minutes. Wi-Fi reconnects once as a session starts and roams normally after the next reconnect.</span><span id="stay-ap-windows" class="hidden">Turns off Windows' background Wi-Fi scans during sessions, which pause the stream every few minutes. Nothing reconnects; scanning returns at Stop.</span></small></span></label><p id="roaming-status" class="small-note"></p><p id="wifi-mode" class="small-note"></p><p id="wifi-location" class="small-note"></p></div>
+<label class="option"><input id="pause_other_wifi" type="checkbox" checked><span><span id="pause-other-title">Pause other Wi-Fi adapters on this network</span><small id="pause-other-note">A second Wi-Fi adapter on your home network shares the radio channel and can stop the stream from reconnecting. It is reconnected when the session stops.</small></span></label><p id="other-wifi-status" class="small-note"></p>
+<div class="actions"><button class="secondary hidden" id="wifi-fix" onclick="act('wifi-powersave-off')">Turn off Wi-Fi power saving</button></div><p id="wifi-fix-note" class="small-note"></p></section>
+<section class="card client" id="this-pc"><h2>This PC</h2>
+<label class="option client hidden" id="client-startup-row"><input id="client-startup" type="checkbox" onchange="act('windows-startup',{enabled:this.checked})"><span>Start VROSTBridge Client when I sign in<small id="client-startup-hint">Starts quietly in the system tray. No browser or SteamVR opens.</small></span></label>
+<label class="option"><input type="checkbox" id="keep_awake" checked><span>Keep this PC awake during sessions<small><span id="keep-awake-linux">Blocks sleep and the lid switch and uses the performance power mode until Stop.</span><span id="keep-awake-windows" class="hidden">Keeps this PC and its display awake and uses the Best performance power mode until Stop.</span></small></span></label><p id="power-status" class="small-note"></p>
+<label class="option" id="balance-row"><input type="checkbox" id="balance_performance" checked onchange="act('client-option',{name:'balance_performance',enabled:this.checked})"><span>Balance performance during sessions<small>Only while video streams: the power limit at its maximum on the charger, and the GPU clock held higher when frames run late with the GPU at a low clock, never so high that the processor is squeezed. Uses steamos-manager (Bazzite, SteamOS); everything is set back at Stop.</small></span></label><p id="tuning-status" class="small-note"></p>
+<label class="option"><input type="checkbox" id="keep_frame_rate" checked onchange="act('client-option',{name:'keep_frame_rate',enabled:this.checked})"><span>Keep the frame rate when this PC falls behind<small>While this PC's graphics hold the stream below the headset's refresh, each eye is shown a little smaller (90 %, then 80 % of its size) instead of SteamVR halving the frame rate, and at full size again once there is room. The stream from the host does not change. Applies at once.</small></span></label><p id="frame-rate-status" class="small-note"></p>
+<label class="option"><input type="checkbox" id="base_stations_off" checked onchange="act('client-option',{name:'base_stations_off',enabled:this.checked})"><span>Base stations off when VROSTBridge closes<small>SteamVR 2.0 base stations, over this PC's Bluetooth: turned on as each session starts, so they are spinning when SteamVR looks for them, and off when VROSTBridge closes.</small></span></label><p id="base-station-status" class="small-note"></p>
+<div class="actions"><button class="secondary" id="base-stations-on" onclick="act('base-stations',{power:'on'})">Base stations on</button><button class="secondary" id="base-stations-off" onclick="act('base-stations',{power:'off'})">Base stations off</button></div>
+<label class="option"><input type="checkbox" id="headset_audio" checked><span>Use the headset's speakers and microphone<small><span id="headset-audio-linux">Makes the headset's audio devices the defaults for the session, then restores yours.</span><span id="headset-audio-windows" class="hidden">SteamVR switches the sound to the headset itself while it runs (SteamVR → Settings → Audio).</span></small></span></label><p id="audio-route" class="small-note"></p><p id="game-audio-status" class="small-note" role="status"></p>
+<label class="option"><input type="checkbox" id="wake_host" checked><span>Wake the host PC when it is asleep<small>Sends Wake-on-LAN on Start. Learnt after one session; the host needs Wake on Magic Packet.</small></span></label><p id="wake-status" class="small-note"></p>
+<label class="option"><input type="checkbox" id="headset_hud"><span>Stream quality in the headset<small>A small bar with frame rate, latency and lost frames. Status cards always appear when video stops.</small></span></label>
+<div class="actions"><button class="secondary" id="wake-now" onclick="act('wake-host')">Wake host now</button><button class="secondary" id="repair-async" onclick="act('repair-async')">Fix SteamVR reprojection</button></div><p id="async-status" class="small-note"></p></section>
+<section class="card client" id="game-mode"><h2>Steam Game Mode</h2><div class="steam"><img id="steam-art" src="/brand/steam/capsule.jpg" alt="VROSTBridge cover art" width="92" height="138"><div><p id="steam-status" class="lede">Checking Steam…</p><div class="actions"><button class="primary" id="steam-add" onclick="act('steam-add')">Add to Steam</button><button class="secondary hidden" id="steam-remove" onclick="act('steam-remove')">Remove from Steam</button></div><p class="small-note">Steam closes and reopens to apply this. In Game Mode a connected headset is never used as the screen.</p></div></div>
+<details><summary class="compact-summary">Headset display in Game Mode</summary><p id="game-mode-status" class="small-note">Checking display integration…</p><p class="small-note">Connect and power the headset before entering Game Mode. Display reservation needs a Bazzite gamescope with headset leasing.</p></details></section>
+
+<section class="card host" id="host-power"><h2>Power &amp; network</h2><div class="fields"><label class="full-width">Sleep after a session<select id="sleep_after_minutes" onchange="act('host-power',{sleep_after_minutes:Number(this.value)})"><option value="0">Off · this PC stays on</option><option value="15">15 minutes after the session</option><option value="30">30 minutes after the session</option><option value="60">1 hour after the session</option><option value="120">2 hours after the session</option></select></label></div><p id="sleep-status" class="small-note"></p><p id="wake-readiness" class="small-note"></p><p id="resume-status" class="small-note"></p><h3>Wi-Fi priority for video</h3><p id="qos-status" class="small-note">Windows QoS policy that marks video for Wi-Fi priority. Needs administrator approval and a restart.</p><div class="actions"><button class="secondary" id="qos-enable" onclick="act('qos',{enabled:true})">Turn on</button><button class="secondary" id="qos-disable" onclick="act('qos',{enabled:false})">Turn off</button></div><p id="host-features" class="small-note"></p></section>
+<section class="card host" id="host-microphone"><h2>Headset microphone</h2><p id="mic-status" class="lede">Checking this PC's audio devices…</p><div class="actions"><button class="primary" id="mic-setup" onclick="act('microphone-setup')">Set up headset microphone</button><button class="secondary" id="mic-check" onclick="act('microphone-check')">Check again</button></div><p class="small-note">Windows shows a microphone only when an audio driver provides one. Set up downloads <a href="https://vb-cable.com" target="_blank" rel="noreferrer">VB-CABLE</a>, the free virtual audio cable by VB-Audio Software (donationware), from VB-Audio's website, checks it and opens its own setup: select Install Driver. Then choose “CABLE Output (VB-Audio Virtual Cable)” as the microphone in Discord or your game.</p></section>
+<section class="card" id="play-area"><h2>Play area</h2><p id="room-status" class="lede">Waiting for the headset play area.</p><div class="actions client"><button class="secondary" id="sync-room" onclick="act('sync-playspace')" disabled>Resend play area</button><button class="secondary hidden" id="restore-runtime" onclick="act('restore-client-runtime')">Restore saved SteamVR settings</button></div></section>
+<section class="card" id="preferences"><h2>Preferences</h2><label class="option host"><input id="windows-startup" type="checkbox" onchange="act('set-startup',{enabled:this.checked})"><span>Launch at Windows sign-in<small id="startup-hint">Starts quietly in the system tray. No browser or SteamVR opens.</small></span></label><label class="option host"><input id="auto_connect" type="checkbox" checked><span>Allow home-network clients<small>Accept headset clients on your private home network automatically.</small></span></label><label class="option client"><input id="microphone" type="checkbox"><span>Headset microphone<small>Sends it to the host PC as a microphone. Set that up once on the host PC's VROSTBridge page (Set up headset microphone).</small></span></label><label class="option host"><input id="gaze" type="checkbox"><span>Eye tracking in VRChat<small>Always send the headset's eye tracking to VRChat on this PC (turn on OSC in VRChat). A client with Eye tracking on (1.0.0-rc4.5 or later) turns this on for its own sessions.</small></span></label><label class="option client"><input id="software" type="checkbox"><span>CPU decoding<small>Troubleshooting only. Hardware decoding is the default.</small></span></label><label class="option client"><input id="one_pass" type="checkbox" checked><span>One-pass frame path<small>Sharper and lighter on this PC's graphics. Turn off only if the headset picture looks wrong: RC4.2's two passes, without sharpening. Applies at the next Start.</small></span></label><label class="option client"><input id="lens_area" type="checkbox" checked><span>Skip what the lenses never show<small>The one-pass frame path leaves out the parts of each eye's picture the headset's lenses never show, as SteamVR describes them, and keeps a margin around the rest. Turn off only if the edges of the picture look wrong. Applies at the next Start.</small></span></label><div class="host actions"><button class="secondary" id="configure" onclick="act('configure')">Save preferences</button></div></section>
+</aside></div>
+<details class="card" id="advanced"><summary class="section">Advanced</summary><div class="details-content advanced-grid"><section class="client"><h3>Connection details</h3><dl class="identity"><div><dt>Client ID</dt><dd><code id="client-identity">Available after the client starts</code></dd></div><div><dt>LAN addresses</dt><dd id="client-addresses">Checking this PC…</dd></div></dl><button class="secondary" id="copy-identity" onclick="copyIdentity()" disabled>Copy connection details</button><p id="copy-result" class="success-note" role="status"></p></section>
+<section class="host"><h3>Manual client permission</h3><p class="small-note">Use the details from the client's Advanced section if automatic connection fails.</p><div class="fields" style="grid-template-columns:1fr"><label>Client ID<input id="client_hostname" autocomplete="off" spellcheck="false" placeholder="From the headset client"></label><label>Client LAN address<input id="client_ip" autocomplete="off" spellcheck="false" placeholder="192.168.1.20"></label></div><button class="secondary" id="connect-manual" onclick="manualConnect()" disabled>Allow &amp; connect</button><p id="manual-state" class="small-note">Available when the host connection service is ready.</p><button class="secondary" id="firewall" onclick="act('firewall')">Repair Windows Firewall access</button></section>
+<section class="host"><h3>Host recovery</h3><p class="small-note">Sessions normally start and stop from the headset client.</p><button class="secondary danger" id="emergency-stop" onclick="act('stop')" disabled>Stop host session</button><details><summary class="compact-summary">Installation tools</summary><div class="actions"><button class="secondary" id="remove-driver" onclick="act('unregister')">Remove host driver</button><button class="secondary" id="build-host" onclick="act('build-host')">Build Windows host</button></div><p id="build-state" class="small-note"></p></details></section>
+
+<section><h3>Controller menu</h3><p id="menu-note" class="small-note">Press either Index menu button to open the host dashboard. If SteamVR does not deliver it, use Open host menu or left B + left thumbstick.</p><p class="small-note">If a button is missing, check the inputs in Reports &amp; diagnostics and restore VROSTBridge's default controller binding in SteamVR. Finish local room setup before moving around; the client's boundary stays active.</p></section></div></details>
+<details class="card credits" id="credits"><summary class="section">About VROSTBridge &amp; open-source credits</summary>
+<img class="about-logo" src="/brand/vrostbridge-logo.svg" alt="VROSTBridge logo" width="170" height="146">
+<p><b id="about-role">VROSTBridge</b> <span id="about-version"></span> · An open-source remote PCVR bridge. It connects a SteamVR headset on one PC to a rendering PC elsewhere on your network. Its streaming foundation comes from ALVR, with native OpenVR integration and these desktop pages. VROSTBridge is free software by JagerBombastic under the MIT licence (<code>LICENSE</code>); the software it includes keeps its own licences, credited below.</p>
+<dl class="credits-list">
+<div><dt><a href="https://github.com/alvr-org/ALVR" target="_blank" rel="noreferrer">ALVR</a></dt><dd>Host streaming driver, client transport, audio and tracking protocol. Thanks to polygraphene, alvr-org and contributors. The Windows driver also contains source code provided by NVIDIA Corporation (Video Codec SDK samples, under NVIDIA's licence).<small>MIT licence</small></dd></div>
+<div><dt><a href="https://github.com/ValveSoftware/openvr" target="_blank" rel="noreferrer">OpenVR</a></dt><dd>Valve's API headers and loader connect the client to the local SteamVR runtime.<small>BSD 3-Clause licence</small></dd></div>
+<div id="credit-ffmpeg-linux"><dt><a href="https://ffmpeg.org/" target="_blank" rel="noreferrer">FFmpeg · Linux client</a></dt><dd>H.264, HEVC and AV1 decoding use our minimal shared n6.1.4 build. The Windows host contains no FFmpeg.<small>LGPL 2.1 or later · Linux corresponding source included</small></dd></div>
+<div id="credit-ffmpeg-windows" class="hidden"><dt><a href="https://ffmpeg.org/" target="_blank" rel="noreferrer">FFmpeg · Windows client</a></dt><dd>H.264, HEVC and AV1 decoding (D3D11 video decoding on this PC's graphics) use our minimal shared build, made with mingw-w64. The Windows host contains no FFmpeg.<small>LGPL 2.1 or later · source and notices: see THIRD_PARTY.md</small></dd></div>
+<div><dt><a href="https://github.com/rsms/inter" target="_blank" rel="noreferrer">Inter</a> &amp; <a href="https://github.com/Outfitio/Outfit-Fonts" target="_blank" rel="noreferrer">Outfit</a></dt><dd><span id="fonts-linux">The typefaces of these pages, the headset status cards and the Game Mode screen, by The Inter Project Authors and The Outfit Project Authors.</span><span id="fonts-windows" class="hidden">The typefaces of these pages and the headset status cards, by The Inter Project Authors and The Outfit Project Authors.</span><small>SIL Open Font License 1.1</small></dd></div>
+<div><dt><a href="https://github.com/nothings/stb" target="_blank" rel="noreferrer">stb</a></dt><dd>Sean Barrett's stb_truetype and stb_image draw the fonts and artwork on the headset PC.<small>Public domain or MIT</small></dd></div>
+<div id="credit-cams"><dt><a href="https://github.com/LilliaElaine/go-bsb-cams" target="_blank" rel="noreferrer">go-bsb-cams</a></dt><dd>Separate Beyond 2e camera helper by LilliaElaine and contributors. VROSTBridge limits its HTTP listener to this PC and gives it its own small MJPEG server.<small>GPL 2.0 · modified · corresponding source and dependency notices included</small></dd></div>
+<div id="credit-python-linux"><dt><a href="https://www.python.org/" target="_blank" rel="noreferrer">Python</a> &amp; <a href="https://pyinstaller.org/" target="_blank" rel="noreferrer">PyInstaller</a></dt><dd>Python runs the desktop companion. PyInstaller packages the Linux companion.<small>Python: PSF and accompanying notices<br>PyInstaller: GPL 2.0 or later with bootloader exception</small></dd></div>
+<div id="credit-python-windows" class="hidden"><dt><a href="https://www.python.org/" target="_blank" rel="noreferrer">Python</a></dt><dd>The embedded Python runtime runs the desktop companion on this PC.<small>PSF licence and accompanying notices</small></dd></div>
+<div><dt><a href="https://github.com/intel/libvpl" target="_blank" rel="noreferrer">Intel libvpl</a></dt><dd>The Windows host includes Intel's video-processing dispatcher. Its licence and ALVR's dependency notices are kept with the host.<small>MIT · see libvpl.txt and dependencies.html</small></dd></div>
+<div><dt><a href="https://github.com/dhepper/font8x8" target="_blank" rel="noreferrer">font8x8</a></dt><dd>Daniel Hepper's 8×8 bitmap font is the fallback for the headset status when the fonts are unavailable.<small>Public domain</small></dd></div>
+<div><dt><a href="https://github.com/python-websockets/websockets" target="_blank" rel="noreferrer">websockets</a></dt><dd>Bounded local host event collection uses the unmodified Python implementation.<small>BSD 3-Clause · version 16.0</small></dd></div>
+<div id="credit-sdl"><dt>SDL2 · Wayland</dt><dd>The Game Mode screen uses SDL2. Wayland supplies the standard DRM lease protocol and server library. Bazzite gamescope supplies the display lease and is installed separately.<small>SDL2: zlib · Wayland: MIT</small></dd></div>
+<div id="credit-deps-linux"><dt>Rust &amp; Go dependencies</dt><dd>ALVR and the camera helper build on many community libraries. Individual authors, versions and licence notices are kept in the package.<small>See the included dependency notices</small></dd></div>
+<div id="credit-deps-windows" class="hidden"><dt>Rust dependencies</dt><dd>ALVR builds on many community libraries. Individual authors, versions and licence notices are kept in the package.<small>See the included dependency notices</small></dd></div>
+</dl>
+<h3>Windows installer</h3><p><a href="https://nsis.sourceforge.io/" target="_blank" rel="noreferrer">NSIS</a>, by Nullsoft and contributors, provides the installer engine. Its core uses the zlib licence; the included NSIS notice keeps the component terms and LZMA linking exception.</p>
+<h3>Headset microphone on Windows</h3><p><a href="https://vb-cable.com" target="_blank" rel="noreferrer">VB-CABLE</a>, by VB-Audio Software, is the virtual audio cable that Set up headset microphone downloads from VB-Audio's website when you ask, then opens VB-Audio's own setup for you to complete. It is not included with VROSTBridge, and its own licence applies. It is donationware: if you use it, consider supporting its author.</p>
+<h3>Eye tracking</h3><p><a href="https://github.com/Project-Babble/Baballonia" target="_blank" rel="noreferrer">Baballonia</a>, by Project Babble and contributors, turns the eye-camera pictures into where you look and calibrates for your eyes. It is not part of VROSTBridge: Set up eye tracking downloads its unmodified release from Project Babble's GitHub page, checked against a pinned SHA-256, after you accept its licence (Babble Software Distribution License 1.0, personal and non-commercial use only).</p>
+<p class="credits-note">Full credits, component versions and paths to the original licence texts are in <code>THIRD_PARTY.md</code> and <code>docs/OPEN_SOURCE_CREDITS.md</code> in your installation. VROSTBridge is an independent open-source project and is not affiliated with or endorsed by Valve Corporation, Bigscreen, the ALVR project, Project Babble or other hardware or platform manufacturers. Third-party names and marks belong to their respective owners; references to products such as Valve Index, SteamVR, Steam and Bigscreen Beyond identify compatibility or dependencies and do not imply endorsement or certification. SteamVR is installed separately.</p>
+</details><footer><span id="app-version">VROSTBridge</span><span>Tested with Valve Index and Bigscreen Beyond 2e</span></footer></main><script>
+const token=location.hash.slice(1)||sessionStorage.getItem('vrostbridge-token');
+sessionStorage.setItem('vrostbridge-token',token||'');
+history.replaceState(null,'',location.pathname);
+let initialized=false,pending=false,pendingCount=0,startPending=false,stopPending=false,closed=false,lastStatus=null,requestNumber=0,clientsSignature='',autoConnectEdited=false,networkSignature='',reportsSignature='';
+const $=id=>document.getElementById(id);
+let resolutionSignature='';
+const CLIENT_SWITCHES=['auto_bitrate','ten_bit','pacing','intra_refresh','headset_hud','keep_awake','headset_audio','wake_host','pause_other_wifi','stay_on_access_point'];
+// 1.0.0.7: the Windows client (status.platform 'windows'). Linux-only controls hide there and some wording changes;
+// the Bazzite client (platform absent or 'linux') and the host page stay as they were. Wording that differs is
+// written twice, as NAME-linux and NAME-windows; LINUX_ONLY parts have no Windows counterpart.
+const isWindowsClient=s=>s?.role==='client'&&s?.platform==='windows';
+const PLATFORM_TEXTS=['network-note','eye-note','eye-calibrate','eye-restart','eye-folder','stay-ap','keep-awake','headset-audio','fonts','credit-ffmpeg','credit-python','credit-deps'];
+const LINUX_ONLY=['game-mode','credit-cams','credit-sdl','balance-row','tuning-status'];
+function renderPlatform(s){
+  const win=isWindowsClient(s);
+  for(const name of PLATFORM_TEXTS){$(name+'-linux').classList.toggle('hidden',win);$(name+'-windows').classList.toggle('hidden',!win);}
+  for(const id of LINUX_ONLY)$(id).classList.toggle('hidden',win);
+}
+// 1.0.0.7: the decoder the client reports (video.decoder).
+const DECODERS={d3d11va:'decoded with D3D11VA',vaapi:'decoded with VA-API',cpu:'decoded on the CPU'};
+function decoderText(decoder){return typeof decoder==='string'&&Object.hasOwn(DECODERS,decoder)?' · '+DECODERS[decoder]:'';}
+function renderResolution(s){
+  const display=s.display||{},select=$('resolution'),current=select.value||s.settings?.resolution||'automatic';
+  const options=[...(display.resolution_options?.[$('codec').value]||[{id:'automatic',label:'Auto - detect on Start',available:true}])];
+  // Keep a pending manual choice if detection changes while the page is open.
+  if(!options.some(option=>option.id===current))options.push({id:current,label:'Saved choice - size checked on Start',available:true});
+  $('codec-h264').disabled=current.startsWith('beyond-');
+  const signature=JSON.stringify([options,current]);
+  if(signature!==resolutionSignature){
+    select.replaceChildren();
+    for(const entry of options){const option=document.createElement('option');option.value=entry.id;option.textContent=entry.label.replaceAll(' - ',' · ').replaceAll(' x ',' × ');option.disabled=entry.available===false;select.append(option);}
+    select.value=current;resolutionSignature=signature;
+  }
+  const selected=options.find(option=>option.id===current);
+  $('display-target').textContent=selected?.width?`Stream: ${selected.encoded_width} × ${selected.encoded_height} encoded (both eyes side by side) · ${{Hevc:'HEVC',AV1:'AV1'}[selected.codec]||'H.264'}.`:(selected?.message||'The exact stream size appears once the headset is detected.');
+}
+$('codec').addEventListener('change',()=>{if(lastStatus)renderResolution(lastStatus);});
+$('resolution').addEventListener('change',()=>{
+  if($('resolution').value.startsWith('beyond-')&&$('codec').value==='H264')$('codec').value='Auto';
+  if(lastStatus)renderResolution(lastStatus);
+});
+$('auto_connect').addEventListener('change',()=>{autoConnectEdited=true;});
+const states={
+  stopped:['Ready to start','Start opens SteamVR on both PCs and connects them.'],
+  listening:['Waiting for headset','Start a session from your headset client. SteamVR opens on demand.'],
+  'host-listening':['Waiting for headset','Start a session from your headset client. SteamVR opens on demand.'],
+  'host-idle':['Waiting for headset','Start a session from your headset client. SteamVR opens on demand.'],
+  starting:['Starting your client','Connecting to the local headset runtime.'],
+  searching:['Finding your host','Open VROSTBridge on the host. It connects automatically when automatic connections are on.'],
+  connecting:['Connecting to your host','The host has been found. Waiting for the session to connect.'],
+  restarting:['Host is restarting','The host is applying the headset’s display settings. The session reconnects automatically.'],
+  streaming:['Streaming','Fresh video is reaching the headset.'],
+  recovery:['Recovering video','Waiting for fresh video or headset tracking.'],
+  unresponsive:['Waiting for client','The client has stopped reporting. Open Reports & diagnostics for details.'],
+  error:['Session needs attention','See the message below.'],
+  'host-starting':['Starting your host','Preparing SteamVR and the connection service.'],
+  'host-stopping':['Stopping your host','Closing the streaming session.'],
+  'host-ready':['Waiting for headset','Start a session from your headset client. SteamVR opens on demand.'],
+  'host-pairing':['Client approval needed','Select Allow & connect beside the device you want to use below.'],
+  'host-connecting':['Connecting to your client','The client is allowed. Waiting for the connection to finish.'],
+  'host-connected':['Headset connected','Launch a VR game on this PC or from the host menu in your headset.'],
+  'host-running':['Host is starting','Waiting for the connection service to become ready.']
+};
+function qualityLine(p){
+  if(!p||!p.total_ms||!p.stages_ms)return '';
+  const f=v=>Number(v||0).toFixed(1),st=p.stages_ms;
+  let text=`Pipeline ${f(p.total_ms.mean)} ms (p95 ${f(p.total_ms.p95)}): render ${f(st.render)} · encode ${f(st.encode)} · network ${f(st.network)} · decode ${f(st.decode)} · display wait ${f(st.display_wait)}`;
+  if(p.arrival)text+=` · frames wait ${f(p.arrival.wait_ms)} ms for the headset (±${f(p.arrival.spread_ms)})`;
+  if(p.timing_lock)text+=p.timing_lock.steering?' · timing lock on':' · timing lock settling';
+  return text;
+}
+async function act(action,extra={}){
+  if(closed||(pending&&!(action==='stop'&&startPending&&!stopPending)))return;
+  pendingCount++;pending=true;if(action==='start')startPending=true;if(action==='stop')stopPending=true;
+  $('error').textContent='';$('notice').textContent='';
+  const data={action,...extra};
+  if(action==='start'||action==='configure'){
+    for(const id of ['microphone','gaze','software'])data[id]=$(id).checked;
+    if(document.body.dataset.role==='client'){
+      data.gaze=$('eye_tracking').checked;  // RC4.5: the Eye tracking card's switch
+      data.late_frame_catchup=$('late_frame_catchup').checked;
+      data.motion_prediction=$('motion_prediction').checked;
+      data.timing_lock=$('timing_lock').checked;data.encoder=$('encoder').value||'speed';
+      data.codec=$('codec').value;data.bitrate=Number($('bitrate').value);data.resolution=$('resolution').value;
+      data.host_ip=$('host_ip').value.trim();
+      for(const id of CLIENT_SWITCHES)data[id]=$(id).checked;
+      data.reaim=$('reaim').checked;data.one_pass=$('one_pass').checked;data.lens_area=$('lens_area').checked;
+      data.foveation=$('foveation').value||'auto';data.keep_warm_minutes=Number($('keep_warm_minutes').value)||0;
+      data.fov_region=$('fov_region').value||'medium';data.fov_edge=$('fov_edge').value||'balanced';
+    }else data.auto_connect=$('auto_connect').checked;
+  }
+  if(lastStatus)renderControls(lastStatus);
+  try{
+    const r=await fetch('/action',{method:'POST',headers:{'Content-Type':'application/json','X-VROSTBridge-Token':token},body:JSON.stringify(data)});
+    const d=await r.json();
+    if(!r.ok||d.error){$('error').textContent=d.error||'The action could not be completed. Try again or save a report.';return;}
+    if(action==='quit'){
+      closed=true;const main=document.createElement('main'),heading=document.createElement('h1'),note=document.createElement('p');
+      heading.textContent='VROSTBridge is closed.';note.textContent='You can close this tab.';
+      main.append(heading,note);document.body.replaceChildren(main);return;
+    }
+    if(action==='start'||action==='configure')autoConnectEdited=false;
+    if(action==='recommended-settings')initialized=false;  // 1.0.0.8: show the settings it chose
+    const smaller=lastStatus?.graphics?.smaller;
+    if(action==='use-standard'){$('resolution').value='sharp';resolutionSignature='';}
+    const notices={'network-test':'Network test finished.','wake-host':'Wake-up sent.','repair-async':'SteamVR reprojection repaired; it applies when SteamVR next starts.','wifi-powersave-off':isWindowsClient(lastStatus)?'Wi-Fi power saving is off in the Windows power plan, for all networks.':'Wi-Fi power saving is off for your home network.',qos:'Windows QoS updated. Restart this PC if asked.',configure:'Preferences saved.',firewall:'Windows Firewall access is ready. Start the session from your headset client.',unregister:'Host streaming driver removed.','trust-client':'Client allowed. Waiting for the connection.','add-client':'Client allowed. Connecting to its LAN address.','forget-client':'Client access removed.','allow-client-network':'Home-network access saved. The client keeps trying to connect.','steam-add':'VROSTBridge is in your Steam library.','steam-remove':'VROSTBridge was removed from Steam.','send-report':'Report sent to the host.','align-check':'Check running: watch something that stays still.','use-standard':`Stream size set to ${smaller?`${smaller.label} (${smaller.width} per eye)`:'the smaller size'}. It applies at your next Start.`,'microphone-setup':'Downloading VB-CABLE from VB-Audio. Its setup opens next.','microphone-check':'Checking the audio devices.','set-sharpening':'Sharpening saved'+(lastStatus?.running?' and applied.':'.'),'gpu-auto':'The GPU clock is automatic again: the processor gets its share of the power.','recommended-settings':'Recommended settings chosen. They apply at your next Start.','eye-calibration':'The previous calibration is chosen. It applies when eye tracking next starts.','gaze-centre-reset':'Gaze centring starts again for this calibration.'};
+    $('notice').textContent=notices[action]||'';
+  }catch(e){$('error').textContent='The VROSTBridge companion is unavailable. Reopen it to continue.';}
+  finally{pendingCount--;pending=pendingCount>0;if(action==='start')startPending=false;if(action==='stop')stopPending=false;if(!closed)await update();}
+}
+function manualConnect(){
+  const hostname=$('client_hostname').value.trim(),address=$('client_ip').value.trim();
+  if(!hostname||!address){$('error').textContent='Enter the Client ID and LAN address shown on your headset client page.';return;}
+  act('add-client',{client_hostname:hostname,client_ip:address});
+}
+function clientConnectionState(client){
+  const value=String(client.connection_state||'Disconnected').toLowerCase();
+  if(!client.trusted)return ['Approval needed','approval'];
+  if(value==='streaming'||value==='connected')return ['Connected','connected'];
+  if(value==='connecting')return ['Connecting',''];
+  if(value==='disconnecting')return ['Disconnecting',''];
+  return ['Allowed · waiting',''];
+}
+function renderClients(s){
+  const h=s.host_control||{},clients=Array.isArray(h.clients)?h.clients:[];
+  const usable=!!h.available&&h.runtime_state==='ready'&&!h.session_stale&&!pending&&!s.busy;
+  const signature=JSON.stringify([clients,usable,h.runtime_state]);
+  if(signature===clientsSignature)return;
+  clientsSignature=signature;
+  const list=$('host-clients');list.replaceChildren();
+  if(!clients.length){
+    const empty=document.createElement('p');empty.className='empty-state';
+    empty.textContent='Start a session from your headset client. Its connection appears here.';
+    list.append(empty);return;
+  }
+  for(const client of clients){
+    const row=document.createElement('div');row.className='device-row';
+    const top=document.createElement('div');top.className='device-top';
+    const name=document.createElement('span');name.className='device-name';name.textContent=client.display_name||client.hostname||'Headset client';
+    const tag=document.createElement('span'),connection=clientConnectionState(client);tag.className='connection-tag '+connection[1];tag.textContent=connection[0];
+    top.append(name,tag);row.append(top);
+    const identity=document.createElement('p');identity.className='device-detail';identity.textContent='Client ID: '+(client.hostname||'Unavailable');row.append(identity);
+    const addresses=[client.current_ip,...(Array.isArray(client.manual_ips)?client.manual_ips:[])].filter(Boolean);
+    if(addresses.length){const address=document.createElement('p');address.className='device-detail';address.textContent='Address: '+[...new Set(addresses)].join(' · ');row.append(address);}
+    const actions=document.createElement('div');actions.className='actions device-actions';
+    const button=document.createElement('button');button.disabled=!usable||!client.hostname;
+    button.textContent=client.trusted?'Remove access':'Allow & connect';button.className=client.trusted?'secondary':'primary';
+    button.title=client.trusted?'Disconnect this client and remove its permission to connect':'Allow this client to use the rendering host';
+    button.addEventListener('click',()=>act(client.trusted?'forget-client':'trust-client',{hostname:client.hostname}));
+    actions.append(button);row.append(actions);list.append(row);
+  }
+}
+function renderReceivedReports(s){
+  const rows=Array.isArray(s.received_reports)?s.received_reports:[];
+  const signature=JSON.stringify(rows);
+  if(signature===reportsSignature)return;
+  reportsSignature=signature;
+  const list=$('received-reports');list.replaceChildren();
+  if(!rows.length){const empty=document.createElement('p');empty.className='empty-state';empty.textContent='Reports sent from the headset client appear here.';list.append(empty);return;}
+  for(const row of rows){
+    const item=document.createElement('div');item.className='report-row';
+    const label=document.createElement('span');label.textContent=row.name;
+    const detail=document.createElement('small');detail.textContent=`${Math.max(1,Math.round((row.bytes||0)/1024))} KB · received ${new Date((row.received||0)*1000).toLocaleString()}`;label.append(detail);
+    const button=document.createElement('button');button.className='secondary';button.textContent='Download';
+    button.addEventListener('click',()=>downloadReceived(row.name));
+    item.append(label,button);list.append(item);
+  }
+}
+function renderIdentity(s){
+  const identity=s.client_identity||{},hostname=identity.hostname||'';
+  $('client-identity').textContent=hostname||'Available after the client starts';
+  const addresses=Array.isArray(identity.addresses)?identity.addresses:[];
+  $('client-addresses').replaceChildren();
+  if(!addresses.length)$('client-addresses').textContent='LAN address unavailable. Check your Wi-Fi or Ethernet connection.';
+  for(const item of addresses){
+    const line=document.createElement('div');
+    line.textContent=typeof item==='string'?item:(item.address||'')+(item.interface?' · '+item.interface:'');
+    $('client-addresses').append(line);
+  }
+  $('copy-identity').disabled=!hostname;
+  const network=s.client_network||{};
+  $('client-network-state').textContent=network.message||'Checking home-network access…';
+  const canAllow=network.can_allow===true;
+  // 1.0.0.7, Windows: 'unavailable' there means the firewall check or the client program is missing (an installation problem).
+  $('client-network-access').classList.toggle('hidden',!canAllow&&network.state!=='error'&&!(isWindowsClient(s)&&network.state==='unavailable'));
+  $('allow-client-network').classList.toggle('hidden',!canAllow);
+  $('client-network-note').classList.toggle('hidden',!canAllow);
+}
+function renderFingers(s){
+  const host=s.role==='host',input=host?s.remote_diagnostics?.summary?.inputs:s.inputs;
+  const native=s.host_events?.native_hands||{};
+  const format=values=>Array.isArray(values)&&values.length===4&&values.every(v=>Number.isFinite(v)&&v>=0&&v<=1)?values.map(v=>v.toFixed(2)).join(' / '):'Unavailable';
+  $('finger-details').replaceChildren();
+  for(const hand of ['left','right']){
+    const controller=input?.[hand];
+    const tracked=controller?.tracked??controller?.connected;
+    const state=s.running&&controller?(controller.connected===false?'Disconnected':tracked===false?'Tracking lost':tracked===true?'Tracking':''):'';
+    const applied=native[hand],fresh=!!s.running&&applied&&applied.report_age_s<2.5;
+    const source=fresh?applied.source_curls:input?.[hand]?.finger_curls;
+    const sourceValid=fresh?applied.source_curls_valid:input?.[hand]?.finger_curls_valid;
+    const row=document.createElement('tr');
+    const values=[(hand==='left'?'Left':'Right')+(state?' · '+state:''),sourceValid?format(source?.slice(1)):'Unavailable',fresh&&applied.applied&&applied.source_curls_valid?format(applied.applied_curls):host?'Waiting for current host evidence':'See host diagnostics'];
+    for(const value of values){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}
+    $('finger-details').append(row);
+  }
+}
+function renderNetwork(s){
+  const network=s.session_link?.network||{},select=$('network-interface');
+  const chosen=network.interface||'';
+  const adapters=(network.adapters||[]).filter(a=>a.interface&&a.address);
+  const signature=JSON.stringify([chosen,adapters]);
+  if(signature!==networkSignature&&!pending){
+    select.replaceChildren();
+    const automatic=document.createElement('option');automatic.value='';automatic.textContent='Automatic · the route to your host';select.append(automatic);
+    const seen=new Set();
+    for(const a of adapters){
+      if(seen.has(a.interface))continue;seen.add(a.interface);
+      const option=document.createElement('option');option.value=a.interface;option.textContent=a.interface+' · '+a.address;select.append(option);
+    }
+    if(chosen&&!seen.has(chosen)){const option=document.createElement('option');option.value=chosen;option.textContent=chosen+' · unavailable';select.append(option);}
+    select.value=chosen;networkSignature=signature;
+  }
+  $('network-path').textContent=network.source_ip?'Session address: '+network.source_ip+(network.host_ip?' → '+network.host_ip:'')+'.':chosen?'The selected adapter is checked when you start.':'';
+  const connection=s.connection||{},kind=connection.kind||'unknown',wifi=kind==='wifi',wired=kind==='ethernet';
+  const chip=$('connection-kind');chip.textContent=wifi?'Wi-Fi':wired?'Ethernet':'Network';chip.className='chip'+(wifi?' wifi':wired?' ethernet':'');
+  $('connection-summary').textContent=connection.summary||'Checking how this PC connects.';
+  const warnings=$('connection-warnings');warnings.replaceChildren();
+  for(const text of [...(connection.warnings||[]),...(connection.notes||[])]){const p=document.createElement('p');p.className='warning-note';p.textContent=text;warnings.append(p);}
+  $('wifi-options').classList.toggle('hidden',wired);
+  const win=isWindowsClient(s);
+  $('pause-other-title').textContent=wired?'Pause Wi-Fi on this network during sessions':'Pause other Wi-Fi adapters on this network';
+  $('pause-other-note').textContent=wired?'Wi-Fi on the same network can answer for this PC and confuse reconnection. It is disconnected during sessions and reconnected at Stop.':
+    win?'A second Wi-Fi adapter on your home network shares the radio channel and can stop the stream from reconnecting. VROSTBridge disconnects it during the session and reconnects it after.':
+    'A second Wi-Fi adapter on your home network shares the radio channel and can stop the stream from reconnecting. It is reconnected when the session stops.';
+  const roaming=s.wifi_roaming||{};
+  $('roaming-status').textContent=['locked','refused','failed','multi_link','restore_failed'].includes(roaming.state)?roaming.message||'':'';
+  // 1.0.0.7, Windows: the session's Wi-Fi (power plan and media streaming mode; 'on' shows on the session card),
+  // and a Wi-Fi network name Windows would not give without location access.
+  const radio=s.wifi||{};
+  $('wifi-mode').textContent=win&&s.running&&!wired&&['off','disabled_for_session'].includes(radio.state)?radio.message||'':'';
+  const blocked=[s.wifi,s.connection,s.connection?.details,s.wifi_roaming].some(value=>value?.location_blocked===true);
+  $('wifi-location').textContent=win&&blocked&&!wired?'Windows didn’t allow reading the Wi-Fi network name; roaming detection is off. To allow it: Settings → Privacy & security → Location → Let desktop apps access your location.':'';
+}
+async function copyIdentity(){
+  const identity=lastStatus?.client_identity||{};
+  if(!identity.hostname)return;
+  const addresses=(identity.addresses||[]).map(item=>typeof item==='string'?item:item.address).filter(Boolean);
+  try{await navigator.clipboard.writeText('Client ID: '+identity.hostname+'\nLAN addresses: '+addresses.join(', '));$('copy-result').textContent='Connection details copied.';}
+  catch(e){$('copy-result').textContent='Select and copy the Client ID and address above.';}
+}
+// 1.0.0.5: the stream's colour as its decoder reports it (bit depth and sample range).
+function colourText(colour){
+  if(!colour||!colour.bits)return '';
+  const range={full:' full range',limited:' limited range'}[colour.range]||'';
+  return ` · ${colour.bits}-bit${range}`;
+}
+// 1.0.0.5: what to check when SteamVR has no head position (OpenVR tracking result codes).
+function headTrackingHint(result,where){
+  const why={1:' has not started tracking the headset yet.',100:' is still calibrating the headset.',101:' cannot see the base stations.',
+             201:' sees the headset out of the tracked area.',300:' has only the headset’s rotation.'}[Number(result)]||' has no position for the headset.';
+  return where+why+' Check that the base stations are on and can see the headset, and that the headset is awake (put it on or move it). The picture starts on its own once it is tracked.';
+}
+function renderControls(s){
+  const busy=pending||s.busy,h=s.host_control||{},hostReady=h.available&&h.runtime_state==='ready'&&!h.session_stale;
+  const sessionActive=!!s.running||!!s.session_link?.lease?.active||s.session_link?.lease_active===true||s.session_link?.active===true;
+  const settingsLocked=sessionActive||busy;
+  $('late_frame_catchup').disabled=settingsLocked;
+  $('motion_prediction').disabled=settingsLocked;
+  $('timing_lock').disabled=settingsLocked;$('encoder').disabled=settingsLocked;
+  $('start').disabled=settingsLocked||!s.available||s.build_running||s.game_mode?.supported===false;
+  const gm=s.game_mode_setup||{},steam=s.steam_shortcut||{};
+  $('game-mode-status').textContent=gm.message||'Available on the Bazzite client.';
+  $('steam-status').textContent=steam.message||'Checking Steam…';
+  $('steam-add').classList.toggle('hidden',!!steam.added);$('steam-remove').classList.toggle('hidden',!steam.added);
+  $('steam-add').disabled=settingsLocked||!steam.available||!!steam.in_game_mode;
+  $('steam-remove').disabled=settingsLocked||!!steam.in_game_mode;
+  $('stop').disabled=startPending?stopPending:(!sessionActive&&!s.client_runtime?.settings_pending_restore)||busy;
+  $('emergency-stop').disabled=!sessionActive||busy;
+  $('restore-runtime').classList.toggle('hidden',!s.client_runtime?.settings_pending_restore||sessionActive);
+  $('restore-runtime').disabled=busy||sessionActive;
+  $('host-menu').disabled=busy||!s.running;
+  $('sync-room').disabled=busy||!s.running;
+  for(const el of document.querySelectorAll('#preferences input,#preferences select,#preferences button,#quality input,#quality select,#network input,#network select'))el.disabled=settingsLocked;
+  for(const id of ['foveation','fov_region','fov_edge','keep_warm_minutes',...CLIENT_SWITCHES])$(id).disabled=settingsLocked;
+  $('reaim').disabled=busy;$('sharpening').disabled=busy;
+  $('bitrate').disabled=settingsLocked||$('auto_bitrate').checked;
+  $('network-test').disabled=settingsLocked;$('wake-now').disabled=busy||sessionActive||!s.system?.wake?.mac_known;
+  $('repair-async').disabled=busy||sessionActive;$('wifi-fix').disabled=busy||sessionActive;
+  const check=s.alignment_check||{};
+  $('align-check').disabled=busy||!s.running||s.state!=='streaming'||check.state==='running';
+  $('align-yes').disabled=busy;$('align-no').disabled=busy;
+  $('send-report').disabled=busy||(s.report_delivery||{}).state==='sending';
+  $('use-standard').disabled=busy;$('gpu-auto').disabled=busy;$('graphics-gpu-auto').disabled=busy;
+  $('sleep_after_minutes').disabled=busy;$('qos-enable').disabled=busy;$('qos-disable').disabled=busy;
+  $('remove-driver').disabled=sessionActive||busy;
+  $('quit').disabled=busy;$('check').disabled=busy;$('report').disabled=false;
+  $('build-host').disabled=sessionActive||busy||s.build_running;
+  $('client_hostname').disabled=busy;$('client_ip').disabled=busy;
+  $('connect-manual').disabled=busy||!hostReady;
+  $('firewall').disabled=busy;
+  const network=s.client_network||{};
+  $('allow-client-network').disabled=busy||network.can_allow!==true;
+  $('manual-state').textContent=hostReady?'Permission is saved for future sessions.':h.session_stale?'Refreshing the client list…':'Start from the headset client to open the host connection service.';
+  renderClients(s);
+}
+async function update(){
+  if(closed)return;
+  const thisRequest=++requestNumber;
+  try{
+    const r=await fetch('/status',{headers:{'X-VROSTBridge-Token':token}});
+    if(!r.ok)throw Error();
+    const s=await r.json();
+    if(closed||thisRequest!==requestNumber)return;
+    lastStatus=s;
+    document.body.dataset.role=s.role;
+    renderPlatform(s);
+    if(s.version){$('app-version').textContent=`VROSTBridge ${s.role==='host'?'Host':'Client'} ${s.version}`;$('about-version').textContent=s.version;$('about-role').textContent=`VROSTBridge ${s.role==='host'?'Host':'Client'}`;}
+    const host=s.role==='host';
+    $('build-host').style.display=s.packaged?'none':'';
+    $('role').textContent=host?'Rendering host':'Headset client';
+    $('session-label').textContent=host?'Host status':'Session';
+    if(!initialized){
+      for(const id of ['microphone','gaze','software'])$(id).checked=!!s.settings?.[id];
+      $('late_frame_catchup').checked=s.settings?.late_frame_catchup!==false;
+      $('motion_prediction').checked=s.settings?.motion_prediction!==false;
+      $('timing_lock').checked=s.settings?.timing_lock!==false;
+      if(['speed','balanced'].includes(s.settings?.encoder))$('encoder').value=s.settings.encoder;
+      if(['Auto','Hevc','H264','AV1'].includes(s.settings?.codec))$('codec').value=s.settings.codec;
+      if(Number.isFinite(s.settings?.bitrate))$('bitrate').value=s.settings.bitrate;
+      $('resolution').value=s.settings?.resolution||'automatic';
+      $('host_ip').value=s.settings?.host_ip||'';
+      for(const id of ['auto_bitrate','ten_bit','pacing','keep_awake','headset_audio','wake_host','pause_other_wifi','stay_on_access_point'])$(id).checked=s.settings?.[id]!==false;
+      for(const id of ['intra_refresh','headset_hud'])$(id).checked=s.settings?.[id]===true;
+      $('one_pass').checked=s.settings?.one_pass!==false;
+      $('lens_area').checked=s.settings?.lens_area!==false;
+      if(['auto','off','subtle','balanced','eye-tracked'].includes(s.settings?.foveation))$('foveation').value=s.settings.foveation;
+      if(['small','medium','large'].includes(s.settings?.fov_region))$('fov_region').value=s.settings.fov_region;
+      if(['detail','balanced','light'].includes(s.settings?.fov_edge))$('fov_edge').value=s.settings.fov_edge;
+      $('keep_warm_minutes').value=String(s.settings?.keep_warm_minutes||0);
+      $('sleep_after_minutes').value=String(s.settings?.sleep_after_minutes||0);
+      initialized=true;
+    }
+    if(!pending)$('reaim').checked=s.settings?.reaim!==false;
+    if(!pending&&['off','low','medium','high'].includes(s.settings?.sharpening))$('sharpening').value=s.settings.sharpening;
+    $('sharpening-note').textContent=s.settings?.one_pass===false?'Sharpening needs the one-pass frame path, which is off in Preferences.':'Sharpening brings back fine detail when the picture is shown in the headset. It is separate from foveated encoding, which decides how much of the picture is sent. Applies immediately.';
+    if(host&&(s.running||!autoConnectEdited))$('auto_connect').checked=s.settings?.auto_connect!==false;
+    const autoConnect=host&&s.host_control?.auto_connect===true;
+    const link=s.session_link||{};
+    const idleHost=host&&!s.running&&!['host-starting','host-stopping','error'].includes(s.state)&&!['starting','stopping','error'].includes(link.state);
+    const linkedState=link.state==='error'?states.error:link.state==='stopping'?['Stopping session','Closing SteamVR on both PCs.']:!s.running&&link.state==='starting'?states[host?'host-starting':'starting']:!host&&!s.running&&['clientdiscover','discovering'].includes(link.state)?states.searching:null;
+    const state=linkedState|| (idleHost?states.listening:autoConnect&&s.state==='host-pairing'?['Connecting automatically','Allowing your headset client on your private home network.']:states[s.state]||[host?'Checking host connection':'Checking client connection','Waiting for the latest connection status.']);
+    $('status').textContent=state[0];
+    let hint=state[1];
+    if(host&&s.host_control?.message&&!idleHost)hint=s.host_control.message;
+    if(!host&&['starting','searching','connecting','restarting','error'].includes(s.state)&&s.client_identity?.message)hint=s.client_identity.message;
+    if(link.message)hint=link.message;
+    const video=host?s.remote_diagnostics?.summary?.metrics:s.metrics;
+    if(s.running&&['host-connected','recovery','connecting'].includes(s.state)&&
+       !['error','stopping'].includes(link.state)&&['waiting_config','waiting_video'].includes(video?.video_phase)){
+      $('status').textContent=Number(video.video_silence_ms)>=10000?'Video not arriving':'Starting video';
+      hint=video.video_phase==='waiting_config'?'Connected. Requesting the video configuration from the host.':'Connected. Waiting for the first video frame; keyframe recovery is active.';
+      if(Number(video.video_silence_ms)>=10000)hint+=' Save a report if this continues.';
+    }
+    // 1.0.0.5: the host renders only for a head position this PC sends; without one no video comes.
+    if(!host&&s.running&&video&&Number(video.head_untracked_ms)>=2000&&!['error','stopping'].includes(link.state)){
+      $('status').textContent='Headset not tracked';
+      hint=headTrackingHint(video.head_tracking_result,'SteamVR on this PC');
+    }
+    const noPose=host?s.host_events?.statistics?.NoHeadPose:null;
+    if(host&&s.running&&noPose?.values&&Date.now()/1000-Number(noPose.received_utc)<=12&&
+       Number(noPose.values.dropped)>=30&&Number(noPose.values.dropped)>Number(noPose.values.sent)){
+      $('status').textContent='Waiting for the headset’s position';
+      hint='Frames are rendered but cannot be sent: the headset PC is not sending a head position. '+headTrackingHint(null,'SteamVR on the headset PC');
+    }
+    if(host&&s.host_control?.error)hint=s.host_control.error;
+    if(s.host_events?.connection_error&&s.running)hint=s.host_events.connection_error;
+    if(!host&&s.system?.wake?.state==='waking'&&s.system.wake.message)hint=s.system.wake.message;
+    if(link.last_error)hint=link.last_error;
+    if(s.runtime_restart?.message)hint=s.runtime_restart.message;
+    if(s.startup_error)hint=s.startup_error;
+    const audio=host?s.audio:link.host?.runtime?.audio;
+    $('audio-status').textContent=audio?.message||'';
+    $('hint').textContent=s.available?hint:(s.packaged?'Required application files are missing. Repair or reinstall VROSTBridge, then reopen it.':'This application has not been built yet. Follow the build instructions in START_HERE.html.');
+    $('state').classList.toggle('live',s.state==='streaming'||s.state==='host-connected');
+    $('state').classList.toggle('attention',s.state==='error'||!!s.startup_error);
+    $('host-connection-hint').textContent=autoConnect?'Keep this app open. Start and stop sessions from your headset client.':'Allow your headset client here after it starts connecting.';
+    $('host-link').textContent=link.host_name||link.host_ip?'Host: '+[link.host_name,link.host_ip].filter(Boolean).join(' · '):'Your rendering host is found automatically on the same home network.';
+    $('auto-access-note').classList.toggle('hidden',!autoConnect||!s.host_control?.clients?.length);
+    $('start').textContent=pending?'Please wait…':s.state==='host-starting'?'Starting…':'Start session';
+    $('build-state').textContent=s.build_running?'Building the host… see Reports & diagnostics for progress.':'';
+    renderControls(s);
+    const startup=s.windows_startup||{};
+    if(!pending)$('windows-startup').checked=!!startup.enabled;
+    $('windows-startup').disabled=pending||s.busy||!startup.supported||startup.conflict;
+    $('startup-hint').textContent=startup.message||'Starts quietly in the system tray. No browser or SteamVR opens.';
+    // 1.0.0.7: the Windows client's own sign-in startup (action windows-startup).
+    const clientStartup=isWindowsClient(s)&&s.windows_startup&&typeof s.windows_startup==='object'?s.windows_startup:null;
+    $('client-startup-row').classList.toggle('hidden',!clientStartup);
+    if(clientStartup){
+      if(!pending)$('client-startup').checked=!!clientStartup.enabled;
+      $('client-startup').disabled=pending||s.busy||!(clientStartup.available??clientStartup.supported)||!!clientStartup.conflict;
+      $('client-startup-hint').textContent=clientStartup.message||'Starts quietly in the system tray. No browser or SteamVR opens.';
+    }
+    if(!host){renderIdentity(s);renderNetwork(s);}else renderReceivedReports(s);
+    const remote=s.remote_diagnostics||{},area=host?s.host_control?.playspace:s.playspace;
+    const details=host?remote.summary?.video:s.video;
+    // 1.0.0.5: the host checks its 10-bit colour at the start of each stream and streams 8-bit when the check fails.
+    const hostStream=link.host?.pipeline?.stream||{};
+    const tenBitRefused=!host&&s.running&&s.settings?.ten_bit!==false&&details?.colour?.bits===8&&
+      String(hostStream.colour_refused||'none').startsWith('p010');
+    const physical=host?remote.summary?.client_runtime?.headset:s.client_runtime?.headset;
+    $('video-details').textContent=[physical?.model?`${physical.model} · ${physical.refresh_hz} Hz`:null,
+      details?.width?`${details.width} × ${details.height} per eye · ${{Hevc:'HEVC',AV1:'AV1'}[details.codec]||'H.264'}${details.foveated?' · foveated':''}${colourText(details.colour)}${decoderText(details.decoder)}${details.shown_width&&details.shown_width!==details.width?` · shown at ${details.shown_width} × ${details.shown_height}, SteamVR's render resolution on this PC`:''}${tenBitRefused?' · 10-bit off: the host could not make exact 10-bit colour, so it streams 8-bit':''}${s.running?'':' · last session'}`:null].filter(Boolean).join(' | ');
+    const display=s.display||{};
+    if(!host)renderResolution(s);
+    $('display-identity').textContent=display.detected?`${display.model} · ${display.refresh_hz} Hz${s.running?'':' · last detected, checked again on Start'}`:display.message||'Your headset is detected when you start a session.';
+    $('display-render').textContent=display.detected?`SteamVR on this PC recommends rendering ${display.recommended_width} × ${display.recommended_height} per eye for this headset.`:'';
+    $('display-mode-note').textContent='Refresh rate: '+(display.detected?`${display.refresh_hz} Hz, as set on the headset. `:'detected on Start. ')+'Stream resolution does not change the headset’s panel or refresh rate.';
+    $('runtime-status').textContent=host?(s.running?'The client controls this session.':'SteamVR stays closed until your client requests a session.'):s.client_runtime?.message||'';
+    $('room-status').textContent=area&&(area.applied||area.sent)?`Play area ${Number(area.width).toFixed(2)} × ${Number(area.depth).toFixed(2)} m · ${host?'applied on this host':'sent to the host'}. Rectangular; the client's boundary stays active.`:area?.reason||'Waiting for a valid client play area and host confirmation.';
+    $('remote-debug-status').textContent=host?'Save this PC\'s report, or download a report your headset PC sent. '+(remote.message||''):'Save the report on this PC, or send it to the host and download it there.';
+    renderFingers(s);
+    $('timing-details').textContent=JSON.stringify(host?{host:s.host_events||{},client:remote.summary||{},session:link}:{metrics:s.metrics,timings:s.timings,inputs:s.inputs||s.input_status||{},session:link},null,2);
+    if(!host)renderEye(s);
+    $('checks').replaceChildren();
+    let failed=0;
+    for(const c of s.readiness?.checks||[]){const p=document.createElement('p');p.className='readiness-row '+(c.result==='pass'?'pass':'fail');p.textContent=(c.result==='pass'?'✓ ':'! ')+c.name+': '+c.detail;if(c.result!=='pass')failed++;$('checks').append(p);}
+    $('diagnostics-summary').textContent=failed?`${failed} check${failed>1?'s':''} need attention`:'';
+    const metrics=host?remote.summary?.metrics:s.metrics;
+    const pacing=host?remote.summary?.timings:s.timings;
+    const cadenceNote={client_throttled:' · SteamVR on the headset PC runs the stream below refresh rate (headset-PC GPU or compositor)',source_limited:' · Fewer frames are arriving from the host (host rendering or network)',late_or_paired:' · Frames arrive but some miss the headset refresh'}[pacing?.cadence]||'';
+    const predictionNote=Number(pacing?.prediction_ms)>0?` · Prediction ${Number(pacing.prediction_ms).toFixed(0)} ms`:'';
+    const lossNote=Number(pacing?.net_lost_frames_total)>0?` · Lost frames: ${Number(pacing.net_lost_frames_total)}${Number(pacing.net_keyframe_requests)>0?' (keyframe requested)':''}`:'';
+    const fovNote=Number(pacing?.foveated_frames)>0?' · Foveated':'';
+    const reaimNote=Number(pacing?.reaimed_frames)>0?' · Re-aimed':'';
+    const gpu=!host&&s.graphics?.gpu;
+    const gpuNote=gpu?.clock_mhz&&gpu?.max_mhz?` · GPU ${gpu.clock_mhz} of ${gpu.max_mhz} MHz, ${gpu.busy_percent}% busy${gpu.power_w?`, ${gpu.power_w} W`:''}`:'';
+    // 1.0.0.11: the frame pass's own GPU time, and the shown size while it is smaller to keep the frame rate.
+    const passNote=Number(pacing?.frame_pass_gpu_samples)>0?` · Frame pass ${Number(pacing.frame_pass_gpu_mean_ms).toFixed(1)} ms on the GPU`:'';
+    const scaleNote=Number(pacing?.shown_scale)>0&&Number(pacing.shown_scale)<100?` · Shown at ${Number(pacing.shown_scale)} %`:'';
+    $('video-pacing').textContent=s.running&&pacing?.unique_fps?`Fresh video: ${Number(pacing.unique_fps).toFixed(1)} fps · Repeated: ${Number(pacing.reused_percent||0).toFixed(1)}% · Frame interval p95: ${Number(pacing.new_frame_interval_p95_ms||0).toFixed(1)} ms${predictionNote}${lossNote}${fovNote}${reaimNote}${passNote}${scaleNote}${gpuNote}${cadenceNote}`:'';
+    $('quality-line').textContent=s.running||host?qualityLine(host?s.host_events?.pipeline:link.host?.pipeline):'';
+    if(!host)renderGraphics(s);
+    const addons=host?(s.host_addons||[]):[];
+    $('host-addons').textContent=addons.length?`Other SteamVR add-ons load on this PC and may act on the virtual headset: ${addons.map(a=>a.name).join(', ')}. Turn them off in SteamVR → Settings → Startup / Shutdown → Manage Add-ons.`:'';
+    const wifi=s.wifi||{};
+    $('wifi-status').textContent=!host&&['on','restore_failed'].includes(wifi.state)?wifi.message||'':'';
+    $('wifi-fix').classList.toggle('hidden',host||!wifi.permanent_fix);
+    // 1.0.0.7, Windows: the fix is the power plan's setting, for every network (wifi_session).
+    const plan=[['power_saving_ac','plugged in'],['power_saving_dc','on battery']].filter(([key])=>wifi[key]&&wifi[key]!=='unknown').map(([key,when])=>`${wifi[key]} ${when}`).join(' · ');
+    $('wifi-fix-note').textContent=isWindowsClient(s)&&wifi.permanent_fix?'Sets Wi-Fi power saving in the Windows power plan (Wireless Adapter Settings) to Maximum Performance, plugged in and on battery. It applies to all networks.'+(plan?` Now: ${plan}.`:''):'';
+    if(!host)renderSystem(s);else{renderHostPower(s);renderHostMicrophone(s);}
+    renderFoveaPanel(host?s.fovea?.panel:s.system?.foveation?.panel);
+    $('age').textContent=s.running&&Number(metrics?.decoded)>0?metrics?.frame_age_ms??'—':'—';
+    $('decoded').textContent=s.running?metrics?.decoded??'—':'—';
+    $('dropped').textContent=s.running?metrics?.dropped??'—':'—';
+    $('logs').textContent=(s.logs||[]).join('\n')||'No session activity yet.';
+  }catch(e){
+    if(closed||thisRequest!==requestNumber)return;
+    clientsSignature='';reportsSignature='';
+    $('status').textContent='Companion unavailable';$('hint').textContent='Reopen VROSTBridge to reconnect.';$('state').classList.remove('live');
+    for(const el of document.querySelectorAll('button'))el.disabled=true;
+  }
+}
+// RC4.3 eye-tracked foveation panel: statistics with each status, the two eyes drawn live.
+// 1.0.0.3: the view is asked for twenty times a second and drawn at the screen's rate, the gaze
+// point and the region gliding to each new sample; the gaze leaves a trail of its last second;
+// the reduced area is drawn as coarse squares (their size follows its resolution) and the sharp
+// region as fine ones, so where the picture is sharp and where it is reduced is plain to see.
+const FRACTIONS={2:'½',3:'⅓',4:'¼',5:'⅕',6:'⅙',8:'⅛'};
+const SHARPENING_NAMES={off:'Off',low:'Low',medium:'Medium',high:'High'};
+const FOVEA_TRAIL_MS=1000;
+const SLOW_GAZE_RATE=30;  // 1.0.0.4: below this many samples a second the region visibly lags the eyes
+let foveaTimer=null,foveaBusy=false,foveaShown=false,foveaFrame=0,foveaView=null;
+const foveaEyes={left:{trail:[]},right:{trail:[]}},foveaPatterns={};
+function foveaStat(value,label){const d=document.createElement('div'),b=document.createElement('b'),span=document.createElement('span');b.textContent=value;span.textContent=label;d.append(b,span);return d;}
+function renderFoveaPanel(panel){
+  const show=!!panel?.show;
+  $('fovea-panel').classList.toggle('hidden',!show);
+  if(show!==foveaShown){
+    foveaShown=show;
+    if(show&&!foveaTimer){foveaTimer=setInterval(foveaTick,50);foveaFrame=requestAnimationFrame(foveaDraw);}
+    if(!show&&foveaTimer){clearInterval(foveaTimer);foveaTimer=null;cancelAnimationFrame(foveaFrame);foveaView=null;}
+  }
+  if(!show)return;
+  const stats=[];
+  const eye=panel.stream_eye,enc=panel.encoded_eye;
+  stats.push(foveaStat(`${panel.region_percent??'—'}%${eye?` · ${Math.round(eye[0]*(panel.region_percent||0)/100)} px`:''}`,`Sharp region${panel.region_label?' · '+panel.region_label:''}`));
+  const edge=Number(panel.edge_ratio)||0;
+  stats.push(foveaStat(edge?`${FRACTIONS[Math.round(edge)]||'1/'+edge} resolution`:'—','Outside the sharp region'));
+  stats.push(foveaStat(enc&&eye?`${enc[0]} × ${enc[1]}`:'—',enc&&eye?`Sent per eye, of ${eye[0]} × ${eye[1]}`:'Sent per eye'));
+  stats.push(foveaStat(panel.saving_percent!=null?`${panel.saving_percent}% fewer`:'—','Pixels to encode, send and decode'));
+  stats.push(foveaStat(panel.gaze_share!=null?`${Math.round(panel.gaze_share*100)}% of frames`:'—','Centred on your gaze'));
+  stats.push(foveaStat(panel.gaze_rate!=null?`${Number(panel.gaze_rate).toFixed(0)} per second`:'—','Eye-tracking samples'));
+  stats.push(foveaStat({fused:'One pass',['two-pass']:'Two passes',cpu:'CPU'}[panel.frame_pass]||'—','Frame pass on the headset PC'));
+  stats.push(foveaStat(SHARPENING_NAMES[panel.sharpening]||'—','Sharpening'));
+  if(panel.moves!=null)stats.push(foveaStat(String(panel.moves),'Region moves (host)'));
+  $('fovea-stats').replaceChildren(...stats);
+  // 1.0.0.4: too few samples and the region follows the eyes late, whatever the cause.
+  const rate=Number(panel.gaze_rate);
+  $('fovea-rate-note').textContent=panel.gaze_rate!=null&&rate>0&&rate<SLOW_GAZE_RATE?`Eye tracking sends only ${rate.toFixed(0)} samples a second, so the sharp region reaches where you look late. Check that this PC's processor is not held back (the session card says so if it is), or choose a larger sharp region.`:'';
+}
+async function foveaTick(){
+  if(foveaBusy||document.hidden||!foveaShown)return;
+  foveaBusy=true;
+  try{
+    const r=await fetch('/fovea',{headers:{'X-VROSTBridge-Token':token}});
+    if(r.ok)foveaUpdate(await r.json());
+  }catch(e){}finally{foveaBusy=false;}
+}
+function foveaUpdate(v){
+  foveaView=v;
+  const live=!!v?.live,now=performance.now();
+  for(const side of ['left','right']){
+    const e=foveaEyes[side],gaze=live?v['gaze_'+side]:null;
+    // A gaze that holds still keeps its point fresh, so the trail starts where the eye was when it moves on.
+    if(gaze){const last=e.trail[e.trail.length-1];if(last&&last.x===gaze[0]&&last.y===gaze[1])last.t=now;else e.trail.push({x:gaze[0],y:gaze[1],t:now});}
+    e.target={centre:live?v[side]:null,gaze};
+  }
+  $('fovea-live-note').textContent=!live?'Waiting for the stream…':v.gaze_left?`Following your eyes · sample ${v.gaze_age_ms??0} ms old`:'No current eye-tracking sample: the sharp region holds where you last looked, then returns to the middle.';
+}
+// The shown point moves most of the way to the newest one each frame (about 40 ms to settle).
+function foveaGlide(from,to,amount){return !to?null:!from?to.slice():[from[0]+(to[0]-from[0])*amount,from[1]+(to[1]-from[1])*amount];}
+function foveaDraw(stamp){
+  foveaFrame=requestAnimationFrame(foveaDraw);
+  if(document.hidden)return;
+  const v=foveaView,live=!!v?.live,aspect=live&&v.eye?.[0]&&v.eye?.[1]?v.eye[0]/v.eye[1]:1,now=performance.now();
+  for(const side of ['left','right']){
+    const e=foveaEyes[side],target=e.target||{};
+    e.trail=e.trail.filter(p=>now-p.t<FOVEA_TRAIL_MS);
+    e.centre=foveaGlide(e.centre,target.centre,.5);e.gaze=foveaGlide(e.gaze,target.gaze,.6);
+    drawEye($('fovea-'+side),live?v.region:null,e.centre,e.gaze,aspect,live?v.edge:null,e.trail,now);
+  }
+}
+function foveaPattern(g,cell,a,b){
+  const key=cell+a+b;
+  if(!foveaPatterns[key]){
+    const t=document.createElement('canvas');t.width=t.height=cell*2;const tg=t.getContext('2d');
+    tg.fillStyle=a;tg.fillRect(0,0,cell*2,cell*2);tg.fillStyle=b;tg.fillRect(0,0,cell,cell);tg.fillRect(cell,cell,cell,cell);
+    foveaPatterns[key]=t;
+  }
+  return g.createPattern(foveaPatterns[key],'repeat');
+}
+function drawEye(canvas,region,centre,gaze,aspect,edge,trail,now){
+  if(!canvas?.getContext)return;
+  const dpr=window.devicePixelRatio||1,size=canvas.clientWidth||260;
+  if(canvas.width!==Math.round(size*dpr)){canvas.width=Math.round(size*dpr);canvas.height=Math.round(size*dpr);}
+  const g=canvas.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,size,size);
+  let w=size-12,h=w/aspect;if(h>size-12){h=size-12;w=h*aspect;}
+  const x0=(size-w)/2,y0=(size-h)/2;
+  const rounded=(x,y,rw,rh,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+rw,y,x+rw,y+rh,r);g.arcTo(x+rw,y+rh,x,y+rh,r);g.arcTo(x,y+rh,x,y,r);g.arcTo(x,y,x+rw,y,r);g.closePath();};
+  // The reduced picture: coarse squares, as large as one of its pixels in the sharp region's squares.
+  const fine=Math.max(3,Math.round(w/64)),ratio=Math.max(1,Math.min(8,Number(edge?.[0])||(region?4:1)));
+  const coarse=Math.max(fine+1,Math.round(fine*ratio));
+  rounded(x0,y0,w,h,12);g.fillStyle=region?foveaPattern(g,coarse,'#151823','#202538'):'#1d2130';g.fill();
+  g.strokeStyle='#353b52';g.lineWidth=1;g.stroke();
+  g.save();rounded(x0,y0,w,h,12);g.clip();
+  if(region&&centre){
+    const rw=region[0]*w,rh=region[1]*h,rx=x0+centre[0]*w-rw/2,ry=y0+centre[1]*h-rh/2;
+    rounded(rx,ry,rw,rh,8);g.fillStyle=foveaPattern(g,fine,'#26304a','#2d3957');g.fill();
+    const fill=g.createLinearGradient(rx,ry,rx+rw,ry+rh);fill.addColorStop(0,'#00e5ff38');fill.addColorStop(1,'#ff2dcb38');
+    g.fillStyle=fill;g.fill();
+    const edgeLine=g.createLinearGradient(rx,ry,rx+rw,ry+rh);edgeLine.addColorStop(0,'#00e5ff');edgeLine.addColorStop(1,'#ff2dcb');
+    g.strokeStyle=edgeLine;g.lineWidth=2.5;g.stroke();
+    if(rw>58&&rh>26){g.font='600 11px Inter,system-ui,sans-serif';g.fillStyle='#e8f6ff';g.textBaseline='top';g.fillText('Sharp',rx+7,ry+6);}
+  }
+  if(trail&&trail.length>1&&gaze){
+    g.lineCap='round';g.lineJoin='round';
+    const points=trail.slice(0,-1).concat({x:gaze[0],y:gaze[1]});  // the trail ends at the dot as drawn (it glides)
+    for(let i=1;i<points.length;i++){
+      const a=points[i-1],b=points[i],age=Math.min(1,(now-a.t)/FOVEA_TRAIL_MS);
+      g.strokeStyle=`rgba(255,45,203,${(1-age)*.75})`;g.lineWidth=1+3*(1-age);
+      g.beginPath();g.moveTo(x0+a.x*w,y0+a.y*h);g.lineTo(x0+b.x*w,y0+b.y*h);g.stroke();
+    }
+  }
+  if(gaze){
+    const gx=x0+gaze[0]*w,gy=y0+gaze[1]*h;
+    const glow=g.createRadialGradient(gx,gy,0,gx,gy,20);glow.addColorStop(0,'#ff2dcbaa');glow.addColorStop(1,'#ff2dcb00');
+    g.fillStyle=glow;g.beginPath();g.arc(gx,gy,20,0,Math.PI*2);g.fill();
+    g.strokeStyle='#ffffffcc';g.lineWidth=1.5;g.beginPath();g.moveTo(gx-13,gy);g.lineTo(gx-8,gy);g.moveTo(gx+8,gy);g.lineTo(gx+13,gy);
+    g.moveTo(gx,gy-13);g.lineTo(gx,gy-8);g.moveTo(gx,gy+8);g.lineTo(gx,gy+13);g.stroke();
+    g.fillStyle='#ff2dcb';g.beginPath();g.arc(gx,gy,6,0,Math.PI*2);g.fill();
+    g.strokeStyle='#ffffff';g.lineWidth=2;g.stroke();
+  }
+  g.restore();
+}
+const presetNames={off:'Off',subtle:'Subtle',balanced:'Balanced','eye-tracked':'Eye-tracked'};
+function renderGraphics(s){
+  // 1.0.0.4: the processor held back by the shared power limit (a GPU clock fixed high), with the one-tap fix.
+  // 1.0.0.7: the fix is steamos-manager's, so never on the Windows client.
+  const p=s.power_balance||{},gpuAuto=(p.actions||[]).includes('gpu-auto'),win=isWindowsClient(s);
+  $('power-balance').classList.toggle('hidden',!p.message);$('power-message').textContent=p.message||'';
+  $('gpu-auto').classList.toggle('hidden',win||!gpuAuto);
+  // RC4.3: this PC's graphics holding the stream below the headset refresh, with the one-tap advice.
+  const g=s.graphics||{},smaller=g.smaller,standard=(g.actions||[]).includes('use-standard')&&!!smaller&&s.settings?.resolution!=='sharp';
+  $('graphics-limit').classList.toggle('hidden',!g.message);$('graphics-message').textContent=g.message||'';
+  $('use-standard').classList.toggle('hidden',!standard);
+  // 1.0.0.5: a GPU held low by a fixed clock: the same one-tap fix, unless the power card already offers it.
+  $('graphics-gpu-auto').classList.toggle('hidden',win||!(g.actions||[]).includes('gpu-auto')||gpuAuto);
+  if(smaller)$('use-standard').textContent=`Use ${smaller.label} · ${smaller.width} per eye`;
+}
+// RC4.5: why Eye-tracked does not follow the eyes (system.foveation.eye_state), page wording.
+function eyeNote(s,state){
+  const e=s.eye_tracking||{};
+  return ({
+    'off-here':'Eye tracking is off, so the fixed Balanced region is used and these two settings wait. Turn on Eye tracking (Eye tracking card) to let the sharp region follow your eyes.',
+    'setup':'Eye tracking is on, but Baballonia is not set up yet, so the fixed Balanced region is used. Set it up once in the Eye tracking card.',
+    'calibrate':'Baballonia is not calibrated yet, so the fixed Balanced region is used and these two settings wait. Calibrate it once '+(isWindowsClient(s)?'':'in Desktop Mode ')+'during a session (Eye tracking card → Calibrate once).',
+    'restart':'Eye tracking was not ready when this session started: stop and start the session for the sharp region to follow your eyes.',
+    'no-cameras':'This headset has no eye cameras, so the fixed Balanced region is used. Eye-tracked needs a Bigscreen Beyond 2e.',
+    'starting':'Eye tracking is starting (the eye cameras, then Baballonia). The sharp region stays centred until it runs.',
+    'cameras':(e.message||'The eye cameras cannot be used.')+' The sharp region stays centred until they work.',
+    'closed':'Baballonia was closed, so the sharp region stays centred. Open Baballonia (Eye tracking card) to start it again.',
+    'eye-error':(e.message||'Eye tracking stopped working.')+' The sharp region stays centred.',
+    'host-off':'The host PC keeps the sharp region centred: update VROSTBridge on the host PC (RC4 or later follows the eyes).',
+    'no-gaze':'The host follows your eyes, but no eye tracking reaches it, so the sharp region stays centred. Check the Eye tracking card.',
+    'cpu':'Foveated encoding is off while CPU decoding is selected (Preferences), so these two settings wait.'
+  })[state]||'';
+}
+function renderEye(s){
+  const e=s.eye_tracking;if(!e)return;
+  const b=e.baballonia||{},busy=pending||s.busy,working=['downloading','installing'].includes(b.state),installed=b.state==='installed';
+  if(!pending)$('eye_tracking').checked=!!e.enabled;
+  $('eye_tracking').disabled=busy;
+  const rate=e.relay?.rate;
+  // 1.0.0.7, Windows: when a Baballonia is already installed on this PC, the companion's words say whether it is used.
+  let text=b.state==='missing'?(isWindowsClient(s)&&b.installed_here&&b.message?b.message:'Baballonia is not set up yet.'):(b.message||'');
+  if(working)text=(b.message||'Setting up Baballonia…')+(b.progress!=null?` ${Math.round(b.progress*100)}%`:'');
+  else if(installed){
+    const cal=b.calibrated?`calibrated${b.date?' '+b.date:''}`:'not calibrated yet';
+    // 1.0.0.5: the eye cameras' own frame rate (the helper's counts), next to Baballonia's samples.
+    const feed=e.cameras?.feed,cameras=feed&&Number.isFinite(Number(feed.fps))?` from ${Math.round(Number(feed.fps))} camera frames a second`:'';
+    if(e.phase==='running')text=`Eye tracking is running: ${rate!=null?Math.round(rate)+' samples a second'+cameras:'Baballonia is sending'}`+(e.message?`. ${e.message}`:` · ${cal}.`);
+    else if(e.phase&&e.phase!=='off'&&e.message)text=e.message;
+    else text=`Baballonia ${b.version} is set up${b.installation==='yours'?' (the one installed on this PC)':''} · ${cal}. `+(e.enabled?'It starts with each session.':'Turn on Eye tracking to use it.');
+  }
+  // 1.0.0.7: on Windows Baballonia's calibration is a SteamVR overlay; it needs no OpenXR runtime there.
+  const win=isWindowsClient(s);
+  if(installed&&b.steamvr_openxr===false&&!win)text+=` SteamVR's OpenXR runtime (steamxr_linux64.json) was not found on this PC, so Baballonia's calibration may not show in the headset.`;
+  const access=e.access||{};
+  if(access.state==='asking')text=access.message||'Waiting for your password in the system prompt…';
+  else if(access.state==='error'&&e.camera_access)text=access.message;
+  $('eye-status').textContent=text;
+  $('eye-progress').classList.toggle('hidden',!working);
+  $('eye-progress-bar').style.width=`${Math.round((b.progress||0)*100)}%`;
+  const missing=['missing','error'].includes(b.state);
+  // 1.0.0.3: an earlier VROSTBridge's Baballonia keeps working; a newer one is offered (b.update).
+  const update=b.state==='installed'&&!!b.update;
+  $('eye-licence').classList.toggle('hidden',!missing&&!update);
+  if(b.version)$('eye-version').textContent=update?b.update:b.version;
+  if(b.size_mb)$('eye-size').textContent=b.size_mb;
+  if(b.disk_mb)$('eye-disk').textContent=b.disk_mb;
+  if(b.licence_url)$('eye-licence-link').href=b.licence_url;
+  $('eye-setup').textContent=update?`Accept licence and update to ${b.update}`:'Accept licence and set up';
+  $('eye-setup').classList.toggle('hidden',!missing&&!update);$('eye-setup').disabled=busy||(update&&!!b.running);
+  $('eye-cancel').classList.toggle('hidden',!working);
+  const active=!!b.running||(e.owners||[]).includes('user')||['starting','waiting','running','silent','calibrating','finishing','cameras'].includes(e.phase);
+  $('eye-open').classList.toggle('hidden',!installed||active);
+  $('eye-open').disabled=busy;
+  $('eye-close').classList.toggle('hidden',!installed||!active||e.phase==='finishing');
+  $('eye-show').classList.toggle('hidden',!installed||!b.running||!!e.game_mode);$('eye-show').disabled=busy;
+  $('eye-close').disabled=busy;
+  $('eye-access').classList.toggle('hidden',win||!e.camera_access);$('eye-access').disabled=busy||access.state==='asking';  // udev: Linux only
+  $('eye-remove').classList.toggle('hidden',!installed||active||(e.owners||[]).length>0);$('eye-remove').disabled=busy;
+  const relay=e.relay||{};
+  // 1.0.0.6: how far the gaze reached this session, in whole degrees (the relay's percentiles).
+  const reach=relay.reach,reachShown=!!reach&&e.phase==='running';
+  $('eye-reach-row').classList.toggle('hidden',!reachShown);
+  if(reachShown){
+    const short=['left','right','up','down'].some(way=>Number(reach[way])<30);
+    $('eye-reach').textContent=`Gaze reach this session: ${reach.left}° left · ${reach.right}° right · ${reach.up}° up · ${reach.down}° down (Baballonia reports up to 45°).`+
+      (short?' Looked further than that? Then Baballonia was not calibrated that far: calibrate again and turn your head further while you follow the dot.':'');
+  }
+  $('eye-reach-reset').disabled=busy;
+  // 1.0.0.8: the gaze centring and the calibration to go back to.
+  if(!pending)$('gaze_centre').checked=s.settings?.gaze_centre!==false;
+  $('gaze_centre').disabled=busy;
+  const centre=relay.centre||{},middle=centre.middle;
+  const side=(value,positive,negative)=>`${Math.abs(value)}° ${value>=0?positive:negative}`;
+  let centreText='';
+  if(installed&&middle&&e.phase==='running')centreText=`Your gaze rests ${side(middle[0],'right','left')} and ${side(middle[1],'up','down')} of straight ahead this session.`;
+  if(installed&&(Math.abs(centre.yaw||0)>=0.5||Math.abs(centre.pitch||0)>=0.5))centreText+=(centreText?' ':'')+(centre.enabled===false?'Centring is off; it would take':'Centring takes')+` ${side(Math.round(centre.yaw),'right','left')} and ${side(Math.round(centre.pitch),'up','down')} off this calibration.`;
+  if(centre.off_centre)centreText+=' This calibration looks off-centre: calibrate again, or go back to your previous calibration, for the best result.';
+  $('gaze-centre-status').textContent=centreText;
+  $('gaze-centre-row').classList.toggle('hidden',!installed);
+  $('gaze-centre-reset').classList.toggle('hidden',!installed||!(Math.abs(centre.yaw||0)>=0.5||Math.abs(centre.pitch||0)>=0.5));
+  $('gaze-centre-reset').disabled=busy;
+  const previous=e.previous_calibration;
+  $('eye-previous').classList.toggle('hidden',!installed||!previous||active);
+  if(previous)$('eye-previous').textContent=`Use previous calibration (${previous.date})`;
+  $('eye-previous').disabled=busy||!!s.running;
+  $('eye-relay').textContent=relay.state&&relay.state!=='off'?`Eye-tracking relay (127.0.0.1:9005): ${relay.received||0} samples received, ${relay.forwarded||0} passed to the stream${relay.invalid?`, ${relay.invalid} invalid`:''}.`:'';
+}
+function renderSystem(s){
+  const system=s.system||{},fov=system.foveation||{},tested=system.path_test,test=system.network_test||{};
+  // RC4.3: the sharp region and outside reduction apply while eye tracking moves the region.
+  // RC4.4: shown whenever Eye-tracked is chosen, with why the region does not follow the eyes (eye_state).
+  const eyeChoice=fov.preset==='eye-tracked'||s.settings?.foveation==='eye-tracked';
+  for(const id of ['fov-region-field','fov-edge-field','eye-tuning-note'])$(id).classList.toggle('hidden',!eyeChoice);
+  $('eye-tuning-note').textContent=eyeNote(s,fov.eye_state)||'With eye tracking the sharp region follows your gaze. A smaller region or a lighter outside sends fewer pixels: less work for both PCs and the network, and room for a higher stream resolution.';
+  const encoded=fov.encoded_eye?` Each eye is encoded at ${fov.encoded_eye[0]} × ${fov.encoded_eye[1]}.`:'';
+  $('foveation-note').textContent=fov.live?.text?fov.live.text:fov.preset==='off'?(s.settings?.software?'Foveated encoding is off while CPU decoding is selected.':'Foveated encoding is off: full resolution across each eye.'):
+    `Foveated encoding: ${presetNames[fov.preset]||fov.preset}${fov.choice==='auto'?' (Auto)':''}${fov.gaze_follow?' · the sharp region follows your eyes':' · centred on each eye\'s straight-ahead view'}.${encoded}`+
+    (fov.choice==='eye-tracked'&&['off-here','setup','calibrate'].includes(fov.eye_state)?' Eye-tracked needs eye tracking set up and calibrated (Eye tracking card); Balanced is used until then.':'');
+  $('network-test-result').textContent=test.state==='running'?test.message:(test.state==='error'?test.message:(tested?.message?tested.message+(tested.recommended_mbps&&s.settings?.auto_bitrate?' Automatic bitrate uses '+tested.recommended_mbps+' Mbit/s.':''):(s.settings?.auto_bitrate?'The network is tested before the first session on each adapter.':'')));
+  const power=system.power||{};$('power-status').textContent=power.message||'';
+  const audio=system.headset_audio||{};$('audio-route').textContent=audio.message||'';
+  const wake=system.wake||{};$('wake-status').textContent=wake.message||(wake.mac_known?'The host PC can be woken from here.':'Wake-on-LAN becomes available after one session with the host PC.');
+  // 1.0.0.7: Fix SteamVR reprojection repairs the Linux SteamVR's setting; not on the Windows client.
+  const win=isWindowsClient(s),async_=system.async_reprojection||{};$('async-status').textContent=win?'':async_.message||'';
+  const others=system.other_wifi||{};$('other-wifi-status').textContent=['paused','warning','restore_failed'].includes(others.state)?others.message||'':'';
+  $('repair-async').classList.toggle('hidden',win||!['missing','disabled'].includes(async_.state));
+  // 1.0.0.8: the running stream's bitrate as this PC steers it, the performance balance (Linux) and the base stations.
+  const rate=system.bitrate||{};let rateText='';
+  if(s.running&&rate.active&&rate.mbps){
+    const steps=(rate.steps_down||0)+(rate.steps_up||0);
+    rateText=`Bitrate now ${rate.mbps} Mbit/s (most for this picture: ${rate.ceiling} Mbit/s`+(steps?`; ${rate.steps_down||0} down, ${rate.steps_up||0} up so far`:'')+')'+(rate.reason?`. Last change: ${rate.reason}.`:'.');
+  }else if(s.running&&s.settings?.auto_bitrate===false)rateText=`Bitrate fixed at ${s.settings.bitrate} Mbit/s (Automatic bitrate is off).`;
+  else if(s.running&&rate.host_applies===false&&s.system?.host_features?.length)rateText='This host keeps the bitrate the session started with. With VROSTBridge Host 1.0.0.8 it follows how the stream runs.';
+  // 1.0.0.9: video frames rebuilt from the host's parity, and the game audio playing here.
+  if(rateText&&rate.repaired_frames>0)rateText+=` Rebuilt on the way: ${rate.repaired_frames} frame${rate.repaired_frames===1?'':'s'} that would have been lost.`;
+  $('bitrate-status').textContent=rateText;
+  const sound=system.game_audio||{};let soundText='';
+  if(s.running&&sound.active){
+    const rates=sound.stream_hz?(sound.device_hz&&sound.device_hz!==sound.stream_hz?`${sound.stream_hz/1000} kHz, played at ${sound.device_hz/1000} kHz`:`${sound.stream_hz/1000} kHz`):'';
+    soundText=`Game audio: ${rates}${rates?', ':''}${Math.round(sound.buffer_ms??0)} ms buffered (aim ${Math.round(sound.target_ms??0)} ms)`+
+      (sound.dropouts?`; ran dry ${sound.dropouts} time${sound.dropouts===1?'':'s'} this session (late packets).`:'; no dropouts.');
+  }
+  $('game-audio-status').textContent=soundText;
+  if(!pending){$('balance_performance').checked=s.settings?.balance_performance!==false;$('base_stations_off').checked=s.settings?.base_stations_off!==false;$('keep_frame_rate').checked=s.settings?.keep_frame_rate!==false;}
+  // 1.0.0.11: the picture shown smaller to keep the frame rate (launcher/output_scale.py).
+  const scale=s.graphics?.output_scale||{};
+  $('frame-rate-status').textContent=!s.running||!scale.steps?'':scale.level<100?`Each eye is shown at ${scale.level} % of its size now: ${scale.reason}.`:`Back at full size (${scale.steps} change${scale.steps>1?'s':''} this session).`;
+  const tuning=system.tuning||{};
+  $('tuning-status').textContent=win?'':(tuning.message||(s.settings?.balance_performance===false?'':'Applies only while a session streams video.'));
+  const bases=system.base_stations||{},basesWorking=bases.state==='working',last=bases.last||{};
+  const lastAt=last.time?new Date(last.time*1000):null;
+  const lastText=last.message?`${lastAt?`Last command (${lastAt.toLocaleDateString([],{weekday:'short'})} ${lastAt.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}): `:''}${last.message}`:'';
+  $('base-station-status').textContent=basesWorking?(bases.message||'Working…'):(bases.message||lastText||(bases.stations?.length?`Known base stations: ${bases.stations.join(', ')}.`:'Base stations are found over Bluetooth the first time they are turned on or off.'));
+  for(const id of ['base-stations-on','base-stations-off'])$(id).disabled=pending||basesWorking;
+  const check=s.alignment_check||{};
+  $('align-question').classList.toggle('hidden',check.state!=='ask');
+  $('align-status').textContent=check.state==='running'?`Watch something that stays still… ${check.remaining_s??10} s`:check.state==='ask'?'':check.state==='answered'?check.message||'':'Needs a running session. Tells you whether SteamVR on this PC already re-aims frames.';
+  const delivery=s.report_delivery||{};$('report-delivery').textContent=delivery.message||'';
+}
+function renderHostMicrophone(s){
+  // RC4.3: one-step virtual microphone for the headset microphone (VB-CABLE by VB-Audio).
+  const m=s.host_microphone||{},working=!!m.busy||['downloading','installing'].includes(m.state);
+  $('mic-status').textContent=m.message||'Checking this PC\'s audio devices…';
+  $('mic-setup').classList.toggle('hidden',['ready','restart','disabled'].includes(m.state));
+  $('mic-setup').textContent=m.state==='error'?'Try again':m.state==='installing'?'Waiting for the VB-CABLE setup…':m.state==='downloading'?'Downloading…':'Set up headset microphone';
+  $('mic-setup').disabled=pending||working;$('mic-check').disabled=pending||working;
+}
+function renderHostPower(s){
+  const p=s.host_power||{},sleep=p.sleep_after||{},wake=p.wake||{},qos=p.qos||{},resume=p.resume||{};
+  $('sleep-status').textContent=sleep.message||(sleep.minutes?`This PC sleeps ${sleep.minutes} minutes after a session ends, unless someone uses it.`:'');
+  $('wake-readiness').textContent=wake.message||'';
+  $('resume-status').textContent=resume.parked?`Quick resume: SteamVR stays open for ${Math.ceil((resume.remaining_seconds||0)/60)} more minutes.`:'';
+  if(qos.message)$('qos-status').textContent=qos.message;
+  const features=p.features||[];$('host-features').textContent=features.length?'Host stream features: '+features.join(', ')+'.':'';
+}
+function saveBlob(text,name){
+  const blob=new Blob([text],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+async function downloadReport(){
+  try{
+    const r=await fetch('/report',{headers:{'X-VROSTBridge-Token':token}});if(!r.ok)throw Error();
+    const report=await r.json();
+    saveBlob(JSON.stringify(report,null,2),report.report_info?.file_name||'VROSTBridge-report.json');
+  }catch(e){$('error').textContent='Could not save the report. Reopen VROSTBridge.';}
+}
+async function downloadReceived(name){
+  try{
+    const r=await fetch('/received-report?name='+encodeURIComponent(name),{headers:{'X-VROSTBridge-Token':token}});if(!r.ok)throw Error();
+    saveBlob(JSON.stringify(await r.json(),null,2),name);
+  }catch(e){$('error').textContent='That report could not be downloaded.';}
+}
+// RC4.6: one VROSTBridge tab. Opening VROSTBridge again (the tray icon, the taskbar pin) opens a new tab, as the
+// browser does for any address; the newest tab stays and earlier ones close themselves, because a page cannot
+// bring another tab forward.
+const pageOpenedAt=Date.now()*1000+Math.floor(Math.random()*1000);
+function replacedByNewerPage(){
+  if(closed)return;
+  closed=true;
+  if(foveaTimer){clearInterval(foveaTimer);foveaTimer=null;}
+  try{window.close();}catch(e){}
+  const main=document.createElement('main'),heading=document.createElement('h1'),note=document.createElement('p');
+  heading.textContent='VROSTBridge is open in a newer tab.';note.textContent='You can close this one.';
+  main.append(heading,note);document.body.replaceChildren(main);
+}
+try{
+  const pages=new BroadcastChannel('vrostbridge-page');
+  pages.onmessage=event=>{const message=event.data||{};if(message.type==='opened'&&message.at>pageOpenedAt)replacedByNewerPage();};
+  pages.postMessage({type:'opened',at:pageOpenedAt});
+}catch(e){}
+update();setInterval(update,1000);
+</script></body></html>

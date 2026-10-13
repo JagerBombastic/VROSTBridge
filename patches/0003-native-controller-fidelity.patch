@@ -1,0 +1,481 @@
+--- a/alvr/packets/src/lib.rs
++++ b/alvr/packets/src/lib.rs
+@@ -229,11 +229,40 @@
+     pub face_expressions: Option<FaceExpressions>,
+ }
+ 
++/// VROSTBridge native OpenVR hand extension v1. Both ranges are PARENT-space
++/// OpenVR bones; they MUST NOT pass through OpenXR basis/retarget conversion.
++#[derive(Serialize, Deserialize, Clone, Debug)]
++pub struct NativeOpenvrHand {
++    pub sampled_at: Duration,
++    pub ranges: [[Pose; 31]; 2], // WithController, WithoutController
++    pub curls: Option<[f32; 5]>, // thumb, index, middle, ring, little
++}
++impl NativeOpenvrHand {
++    pub const MAX_AGE: Duration = Duration::from_millis(50);
++    pub fn valid_at(&self, poll_timestamp: Duration) -> bool {
++        poll_timestamp.checked_sub(self.sampled_at).is_some_and(|age| age <= Self::MAX_AGE)
++            && self.ranges.iter().flatten().all(|bone| {
++                let norm=bone.orientation.length_squared();
++                bone.position.is_finite() && bone.position.abs().max_element() <= 2.0
++                    && norm.is_finite() && (norm - 1.0).abs() <= 0.02
++            })
++            && self.curls.is_none_or(|c| c.iter().all(|v| v.is_finite() && (0.0..=1.0).contains(v)))
++    }
++}
++#[derive(Serialize, Deserialize, Clone, Debug, Default)]
++pub enum NativeOpenvrHandUpdate {
++    #[default]
++    Unavailable,
++    Unchanged(Duration),
++    Sample(Box<NativeOpenvrHand>),
++}
++
+ #[derive(Serialize, Deserialize)]
+ pub struct TrackingData {
+     pub poll_timestamp: Duration,
+     pub device_motions: Vec<(u64, DeviceMotion)>,
+     pub hand_skeletons: [Option<[Pose; 26]>; 2],
++    pub native_openvr_hands: [NativeOpenvrHandUpdate; 2],
+     pub face: FaceData,
+     pub body: Option<BodySkeleton>,
+ }
+--- a/alvr/client_core/src/c_api.rs
++++ b/alvr/client_core/src/c_api.rs
+@@ -504,6 +504,7 @@
+ 
+     if let Some(context) = &*CLIENT_CORE_CONTEXT.lock() {
+         context.send_tracking(TrackingData {
++            native_openvr_hands: Default::default(),
+             poll_timestamp: Duration::from_nanos(poll_timestamp_ns),
+             device_motions,
+             hand_skeletons,
+--- a/alvr/client_mock/src/main.rs
++++ b/alvr/client_mock/src/main.rs
+@@ -161,6 +161,7 @@
+         let position = Vec3::new(0.0, input_lock.height, 0.0);
+ 
+         context.send_tracking(TrackingData {
++            native_openvr_hands: Default::default(),
+             poll_timestamp: timestamp_origin.elapsed(),
+             device_motions: vec![(
+                 *HEAD_ID,
+--- a/alvr/client_openxr/src/stream.rs
++++ b/alvr/client_openxr/src/stream.rs
+@@ -649,6 +649,7 @@
+         // submitting frames to OpenXR. This won't cause any desync with the server because no time
+         // sync step is performed between client and server.
+         core_ctx.send_tracking(TrackingData {
++            native_openvr_hands: Default::default(),
+             poll_timestamp: target_time,
+             device_motions,
+             hand_skeletons: [
+--- a/alvr/server_core/src/lib.rs
++++ b/alvr/server_core/src/lib.rs
+@@ -293,6 +293,10 @@
+             .copied()
+     }
+ 
++    pub fn get_native_openvr_hand(&self, hand_type: HandType, timestamp: Duration) -> Option<alvr_packets::NativeOpenvrHand> {
++        self.connection_context.tracking_manager.read().get_native_openvr_hand(hand_type,timestamp)
++    }
++
+     pub fn get_motion_to_photon_latency(&self) -> Duration {
+         dbg_server_core!("get_motion_to_photon_latency");
+ 
+--- a/alvr/server_core/src/tracking/mod.rs
++++ b/alvr/server_core/src/tracking/mod.rs
+@@ -1,4 +1,5 @@
+ mod body;
++mod native_hands;
+ mod face;
+ mod vmc;
+ 
+@@ -28,7 +29,7 @@
+     cmp::Ordering,
+     collections::{HashMap, VecDeque},
+     f32::consts::PI,
+-    time::Duration,
++    time::{Duration, Instant},
+ };
+ 
+ const DEG_TO_RAD: f32 = PI / 180.0;
+@@ -54,6 +55,7 @@
+     device_motions_history: HashMap<u64, VecDeque<(Duration, DeviceMotion)>>,
+     hand_skeletons_history: [VecDeque<(Duration, [Pose; 26])>; 2],
+     max_history_size: usize,
++    native_hands: [native_hands::NativeHandHistory; 2],
+ }
+ 
+ impl TrackingManager {
+@@ -64,6 +66,7 @@
+             device_motions_history: HashMap::new(),
+             hand_skeletons_history: [VecDeque::new(), VecDeque::new()],
+             max_history_size,
++            native_hands: std::array::from_fn(|_| native_hands::NativeHandHistory::new(max_history_size)),
+         }
+     }
+ 
+@@ -254,6 +257,10 @@
+             .map(|(_, skeleton)| skeleton)
+     }
+ 
++    pub fn get_native_openvr_hand(&self, hand_type: HandType, timestamp: Duration) -> Option<alvr_packets::NativeOpenvrHand> {
++        self.native_hands[hand_type as usize].get(timestamp, Instant::now())
++    }
++
+     pub fn unrecenter_view_params(&self, view_params: &mut [ViewParams; 2]) {
+         for params in view_params {
+             params.pose = self.inverse_recentering_origin.inverse() * params.pose;
+@@ -367,6 +374,12 @@
+                 timestamp,
+                 &tracking.device_motions,
+             );
++
++            // Parent-space native bones do not need world recentering. Tie each
++            // cache reference to its exact pose packet, including explicit loss.
++            for (hand,update) in std::mem::take(&mut tracking.native_openvr_hands).into_iter().enumerate() {
++                tracking_manager_lock.native_hands[hand].report(timestamp,update,Instant::now());
++            }
+ 
+             if let Some(skeleton) = tracking.hand_skeletons[0] {
+                 tracking_manager_lock.report_hand_skeleton(HandType::Left, timestamp, skeleton);
+--- /dev/null
++++ b/alvr/server_core/src/tracking/native_hands.rs
+@@ -0,0 +1,93 @@
++// VROSTBridge: bounded, timestamped native OpenVR hand cache. Freshness is
++// checked in the client's monotonic domain AND against host receipt time.
++use alvr_packets::{NativeOpenvrHand, NativeOpenvrHandUpdate};
++use std::{collections::VecDeque, sync::Arc, time::{Duration, Instant}};
++
++pub struct NativeHandHistory {
++    latest_poll: Option<Duration>,
++    cached: Option<Arc<NativeOpenvrHand>>,
++    history: VecDeque<(Duration, Instant, Option<Arc<NativeOpenvrHand>>)>,
++    capacity: usize,
++}
++impl NativeHandHistory {
++    pub fn new(capacity: usize) -> Self {
++        Self { latest_poll: None, cached: None, history: VecDeque::new(), capacity: capacity.max(1) }
++    }
++    pub fn report(&mut self, poll: Duration, update: NativeOpenvrHandUpdate, now: Instant) {
++        if self.latest_poll.is_some_and(|last| poll <= last) { return; }
++        self.latest_poll=Some(poll);
++        self.cached=match update {
++            NativeOpenvrHandUpdate::Sample(value) if value.valid_at(poll) => Some(Arc::from(value)),
++            NativeOpenvrHandUpdate::Unchanged(sampled_at) => self.cached.take().filter(|value|
++                value.sampled_at==sampled_at && value.valid_at(poll)),
++            _ => None,
++        };
++        self.history.push_front((poll, now, self.cached.clone()));
++        self.history.truncate(self.capacity);
++    }
++    pub fn get(&self, poll: Duration, now: Instant) -> Option<NativeOpenvrHand> {
++        let (_,received,value)=self.history.iter().find(|(timestamp,_,_)| *timestamp==poll)?;
++        let value=value.as_ref()?;
++        (now.saturating_duration_since(*received)<=NativeOpenvrHand::MAX_AGE && value.valid_at(poll))
++            .then(|| (**value).clone())
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use alvr_common::Pose;
++    fn sample(at:u64, offset:f32) -> NativeOpenvrHandUpdate {
++        let mut ranges=[[Pose::IDENTITY;31];2];
++        for (r,range) in ranges.iter_mut().enumerate() {
++            for (b,bone) in range.iter_mut().enumerate() { bone.position.x=offset+r as f32/10.0+b as f32/100.0; }
++        }
++        NativeOpenvrHandUpdate::Sample(Box::new(NativeOpenvrHand {
++            sampled_at:Duration::from_millis(at),ranges,curls:Some([0.05,0.2,0.4,0.6,0.8]),
++        }))
++    }
++    #[test]
++    fn exact_channels_ranges_aux_and_hand_identity() {
++        let now=Instant::now();
++        let mut left=NativeHandHistory::new(8); let mut right=NativeHandHistory::new(8);
++        left.report(Duration::from_millis(104),sample(100,0.0),now);
++        right.report(Duration::from_millis(104),sample(100,0.5),now);
++        let l=left.get(Duration::from_millis(104),now).unwrap();
++        let r=right.get(Duration::from_millis(104),now).unwrap();
++        assert_eq!(l.curls,Some([0.05,0.2,0.4,0.6,0.8]));
++        assert!((l.ranges[1][30].position.x-0.4).abs()<1e-6);
++        assert!((r.ranges[0][30].position.x-0.8).abs()<1e-6);
++        assert_ne!(l.ranges[0][26].position,l.ranges[1][26].position);
++    }
++    #[test]
++    fn unchanged_stale_reordered_lost_and_disconnect() {
++        let now=Instant::now(); let mut h=NativeHandHistory::new(8);
++        h.report(Duration::from_millis(104),sample(100,0.0),now);
++        h.report(Duration::from_millis(108),NativeOpenvrHandUpdate::Unchanged(Duration::from_millis(100)),now);
++        assert!(h.get(Duration::from_millis(108),now).is_some());
++        h.report(Duration::from_millis(106),NativeOpenvrHandUpdate::Unavailable,now);
++        assert!(h.get(Duration::from_millis(108),now).is_some());
++        assert!(h.get(Duration::from_millis(108),now+Duration::from_millis(51)).is_none());
++        h.report(Duration::from_millis(152),NativeOpenvrHandUpdate::Unchanged(Duration::from_millis(100)),now);
++        assert!(h.get(Duration::from_millis(152),now).is_none());
++        h.report(Duration::from_millis(156),NativeOpenvrHandUpdate::Unchanged(Duration::from_millis(153)),now);
++        assert!(h.get(Duration::from_millis(156),now).is_none()); // lost Sample, no wrong cached fingers
++        h.report(Duration::from_millis(160),sample(159,0.0),now);
++        h.report(Duration::from_millis(164),NativeOpenvrHandUpdate::Unavailable,now);
++        assert!(h.get(Duration::from_millis(164),now).is_none());
++    }
++    #[test]
++    fn rejects_future_invalid_and_curl_corruption() {
++        let now=Instant::now(); let mut h=NativeHandHistory::new(8);
++        h.report(Duration::from_millis(100),sample(101,0.0),now);
++        assert!(h.get(Duration::from_millis(100),now).is_none());
++        let NativeOpenvrHandUpdate::Sample(mut s)=sample(104,0.0) else { panic!() };
++        s.curls=Some([0.0,0.1,f32::NAN,0.3,0.4]);
++        h.report(Duration::from_millis(104),NativeOpenvrHandUpdate::Sample(s),now);
++        assert!(h.get(Duration::from_millis(104),now).is_none());
++        let NativeOpenvrHandUpdate::Sample(mut s)=sample(108,0.0) else { panic!() };
++        s.ranges[1][30].position.x=3.0;
++        h.report(Duration::from_millis(108),NativeOpenvrHandUpdate::Sample(s),now);
++        assert!(h.get(Duration::from_millis(108),now).is_none());
++    }
++}
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -351,7 +351,7 @@
+                         ) = if let Some(ControllersConfig {
+                             hand_skeleton: Switch::Enabled(hand_skeleton_config),
+                             ..
+-                        }) = controllers_config
++                        }) = &controllers_config
+                         {
+                             let left_hand_skeleton = context
+                                 .get_hand_skeleton(HandType::Left, poll_timestamp)
+@@ -382,7 +382,12 @@
+                             (None, None, false, false)
+                         };
+ 
++                        let native_hands_enabled=tracked && controllers_config.as_ref().is_some_and(|c| matches!(&c.hand_skeleton,Switch::Enabled(_)));
++                        let ffi_native_left=native_hands_enabled.then(|| context.get_native_openvr_hand(HandType::Left,poll_timestamp)).flatten().map(tracking::to_native_openvr_ffi_hand);
++                        let ffi_native_right=native_hands_enabled.then(|| context.get_native_openvr_hand(HandType::Right,poll_timestamp)).flatten().map(tracking::to_native_openvr_ffi_hand);
++
+                         let ffi_left_hand_data = FfiHandData {
++                            nativeOpenvrHand: ffi_native_left.as_ref().map_or(ptr::null(), |hand| hand),
+                             controllerMotion: if let Some(motion) = &ffi_left_controller_motion {
+                                 motion
+                             } else {
+@@ -399,6 +404,7 @@
+                             predictHandSkeleton: predict_hand_skeleton,
+                         };
+                         let ffi_right_hand_data = FfiHandData {
++                            nativeOpenvrHand: ffi_native_right.as_ref().map_or(ptr::null(), |hand| hand),
+                             controllerMotion: if let Some(motion) = &ffi_right_controller_motion {
+                                 motion
+                             } else {
+--- a/alvr/server_openvr/src/tracking.rs
++++ b/alvr/server_openvr/src/tracking.rs
+@@ -1,4 +1,4 @@
+-use crate::{FfiDeviceMotion, FfiFov, FfiHandSkeleton, FfiPose, FfiQuat, FfiViewParams};
++use crate::{FfiDeviceMotion, FfiFov, FfiHandSkeleton, FfiNativeOpenvrHand, FfiPose, FfiQuat, FfiViewParams};
+ use alvr_common::{
+     BODY_CHEST_ID, BODY_HIPS_ID, BODY_LEFT_ELBOW_ID, BODY_LEFT_FOOT_ID, BODY_LEFT_KNEE_ID,
+     BODY_RIGHT_ELBOW_ID, BODY_RIGHT_FOOT_ID, BODY_RIGHT_KNEE_ID, DeviceMotion, Fov, HAND_LEFT_ID,
+@@ -117,6 +117,15 @@
+             .collect::<Vec<_>>()
+             .try_into()
+             .unwrap(),
++    }
++}
++
++pub fn to_native_openvr_ffi_hand(hand: alvr_packets::NativeOpenvrHand) -> FfiNativeOpenvrHand {
++    FfiNativeOpenvrHand {
++        sampledAtNs: hand.sampled_at.as_nanos() as u64,
++        ranges: hand.ranges.each_ref().map(to_ffi_skeleton),
++        curls: hand.curls.unwrap_or_default(),
++        curlsValid: hand.curls.is_some(),
+     }
+ }
+ 
+--- a/alvr/server_openvr/cpp/alvr_server/Controller.cpp
++++ b/alvr/server_openvr/cpp/alvr_server/Controller.cpp
+@@ -1,4 +1,6 @@
+ #include "Controller.h"
++#include "VROSTBridgeButtonInput.h"
++#include "VROSTBridgeHand.h"
+ #include "Logger.h"
+ #include "Paths.h"
+ #include "Utils.h"
+@@ -6,6 +8,7 @@
+ #include "include/openvr_math.h"
+ #include <algorithm>
+ #include <cstring>
++#include <cmath>
+ #include <string_view>
+ 
+ Controller::Controller(uint64_t deviceID, vr::EVRSkeletalTrackingLevel skeletonLevel)
+@@ -142,19 +145,20 @@
+ void Controller::SetButton(uint64_t id, FfiButtonValue value) {
+     Debug("Controller::SetButton deviceID=%llu buttonID=%llu", this->device_id, id);
+ 
+-    if (!this->last_pose.poseIsValid) {
+-        return;
+-    }
+-
+-    for (auto id : ALVR_TO_STEAMVR_PATH_IDS[id]) {
+-        if (value.type == BUTTON_TYPE_BINARY) {
+-            vr::VRDriverInput()->UpdateBooleanComponent(
+-                m_buttonHandles[id], (bool)value.binary, 0.0
+-            );
+-        } else {
+-            vr::VRDriverInput()->UpdateScalarComponent(m_buttonHandles[id], value.scalar, 0.0);
+-        }
+-    }
++    // Input components stay alive while Lighthouse re-acquires an optical
++    // pose. Dropping a one-shot release/press here leaves the application with
++    // a stuck control until that value changes again. Only device activation
++    // and registered component handles govern whether input can be published.
++    if (!VROSTBridgePublishControllerButton(
++            this->object_id != vr::k_unTrackedDeviceIndexInvalid, id, value,
++            ALVR_TO_STEAMVR_PATH_IDS, m_buttonHandles,
++            [](vr::VRInputComponentHandle_t handle, FfiButtonValue input) {
++                if (input.type == BUTTON_TYPE_BINARY) {
++                    vr::VRDriverInput()->UpdateBooleanComponent(handle, (bool)input.binary, 0.0);
++                } else {
++                    vr::VRDriverInput()->UpdateScalarComponent(handle, input.scalar, 0.0);
++                }
++            })) return;
+ 
+     // todo: remove when moving inferred controller hand skeleton to rust
+     if (id == LEFT_A_TOUCH_ID || id == LEFT_B_TOUCH_ID || id == LEFT_X_TOUCH_ID
+@@ -267,11 +271,45 @@
+ 
+     this->submit_pose(pose);
+ 
++    if (targetTimestampNs < m_poseTargetTimestampNs) m_nativeHandLogAt = 0;
+     m_poseTargetTimestampNs = targetTimestampNs;
+ 
+     // Early return to skip updating the skeleton
+     if (!enabled) {
+         return false;
++    } else if (controllerMotion != nullptr && VROSTBridgeNativeHandIsFresh(handData.nativeOpenvrHand,targetTimestampNs)) {
++        const auto& native=*handData.nativeOpenvrHand;
++        bool applied=true;
++        for (int range=0;range<2;++range) {
++            vr::VRBoneTransform_t bones[SKELETON_BONE_COUNT] = {};
++            for (int j=0;j<SKELETON_BONE_COUNT;++j) {
++                auto rotation=native.ranges[range].jointRotations[j];
++                bones[j].orientation={rotation.w,rotation.x,rotation.y,rotation.z};
++                std::copy_n(native.ranges[range].jointPositions[j],3,bones[j].position.v);
++                bones[j].position.v[3]=1.0f;
++            }
++            // Root is ignored by OpenVR; publish its canonical parent transform.
++            bones[0]={}; bones[0].orientation.w=1.0f; bones[0].position.v[3]=1.0f;
++            applied &= vr_driver_input->UpdateSkeletonComponent(m_compSkeleton,
++                range==0 ? vr::VRSkeletalMotionRange_WithController : vr::VRSkeletalMotionRange_WithoutController,
++                bones,SKELETON_BONE_COUNT)==vr::VRInputError_None;
++        }
++        const uint64_t curlIds[]={ALVR_INPUT_FINGER_INDEX,ALVR_INPUT_FINGER_MIDDLE,ALVR_INPUT_FINGER_RING,ALVR_INPUT_FINGER_PINKY};
++        const auto hostCurls=VROSTBridgeNativeFingerCurls(native);
++        // Measured source scalars are published once; this branch skips the
++        // legacy quaternion estimate below so it cannot overwrite them.
++        for (int finger=0;finger<4;++finger) {
++            applied &= vr_driver_input->UpdateScalarComponent(m_buttonHandles[curlIds[finger]],hostCurls[finger],0.0)==vr::VRInputError_None;
++        }
++        ++m_nativeHandUpdates;
++        if (targetTimestampNs >= m_nativeHandLogAt) {
++            Info("VROST_NATIVE_HAND {\"hand\":\"%s\",\"updates\":%llu,\"sample_ns\":\"%llu\",\"packet_ns\":\"%llu\",\"sample_age_ms\":%.3f,\"source_curls_valid\":%s,\"source_curls\":[%.4f,%.4f,%.4f,%.4f,%.4f],\"applied_curls\":[%.4f,%.4f,%.4f,%.4f],\"applied\":%s,\"ranges\":\"both\"}",
++                device_id==HAND_LEFT_ID ? "left" : "right",m_nativeHandUpdates,
++                native.sampledAtNs,targetTimestampNs,double(targetTimestampNs-native.sampledAtNs)/1000000.0,
++                native.curlsValid ? "true" : "false",native.curls[0],native.curls[1],native.curls[2],native.curls[3],native.curls[4],
++                hostCurls[0],hostCurls[1],hostCurls[2],hostCurls[3],applied ? "true" : "false");
++            m_nativeHandLogAt=targetTimestampNs+1000000000ULL;
++        }
+     } else if (handSkeleton != nullptr) {
+         vr::VRBoneTransform_t boneTransform[SKELETON_BONE_COUNT] = {};
+ 
+--- a/alvr/server_openvr/cpp/alvr_server/Controller.h
++++ b/alvr/server_openvr/cpp/alvr_server/Controller.h
+@@ -23,7 +23,9 @@
+     vr::VRInputComponentHandle_t m_compSkeleton = vr::k_ulInvalidInputComponentHandle;
+     vr::EVRSkeletalTrackingLevel m_skeletonLevel;
+ 
+-    uint64_t m_poseTargetTimestampNs;
++    uint64_t m_poseTargetTimestampNs = 0;
++    uint64_t m_nativeHandLogAt = 0;
++    uint64_t m_nativeHandUpdates = 0;
+ 
+     // These variables are used for controller hand animation
+     // todo: move to rust
+--- a/alvr/server_openvr/cpp/alvr_server/bindings.h
++++ b/alvr/server_openvr/cpp/alvr_server/bindings.h
+@@ -36,9 +36,17 @@
+     FfiQuat jointRotations[31];
+ };
+ 
++struct FfiNativeOpenvrHand {
++    unsigned long long sampledAtNs;
++    FfiHandSkeleton ranges[2]; // WithController, WithoutController
++    float curls[5]; // thumb, index, middle, ring, little
++    bool curlsValid;
++};
++
+ struct FfiHandData {
+     const FfiDeviceMotion* controllerMotion;
+     const FfiHandSkeleton* handSkeleton;
++    const FfiNativeOpenvrHand* nativeOpenvrHand;
+     bool isHandTracker;
+     bool predictHandSkeleton;
+ };
+--- /dev/null
++++ b/alvr/server_openvr/cpp/alvr_server/VROSTBridgeHand.h
+@@ -0,0 +1,26 @@
++#pragma once
++#include "bindings.h"
++#include <algorithm>
++#include <array>
++#include <cmath>
++#include <cstdint>
++
++inline bool VROSTBridgeNativeHandIsFresh(const FfiNativeOpenvrHand* hand, uint64_t packetNs) {
++    return hand && packetNs >= hand->sampledAtNs && packetNs - hand->sampledAtNs <= 50000000ULL;
++}
++inline std::array<float,4> VROSTBridgeNativeFingerCurls(const FfiNativeOpenvrHand& hand) {
++    std::array<float,4> output{};
++    bool measured=hand.curlsValid;
++    for (float value:hand.curls) measured &= std::isfinite(value) && value>=0.0f && value<=1.0f;
++    for (int finger=0;finger<4;++finger) {
++        if (measured) output[finger]=hand.curls[finger+1];
++        else {
++            const int joint=7+5*finger;
++            const float estimate=(hand.ranges[1].jointRotations[joint].z
++                +hand.ranges[1].jointRotations[joint+1].z
++                +hand.ranges[1].jointRotations[joint+2].z)*0.67f;
++            output[finger]=std::isfinite(estimate) ? std::clamp(estimate,0.0f,1.0f) : 0.0f;
++        }
++    }
++    return output;
++}
+--- /dev/null
++++ b/alvr/server_openvr/cpp/alvr_server/VROSTBridgeButtonInput.h
+@@ -0,0 +1,24 @@
++#pragma once
++#include "bindings.h"
++#include <cmath>
++
++// Component lifetime follows activation, not optical tracking validity. This
++// shared helper is also exercised by the native regression tests without a
++// running SteamVR service.
++template<typename Mappings, typename Handles, typename Publish>
++bool VROSTBridgePublishControllerButton(bool activated, uint64_t path,
++    FfiButtonValue value, const Mappings& mappings, const Handles& handles,
++    Publish publish) {
++    if (!activated || (value.type != BUTTON_TYPE_BINARY && value.type != BUTTON_TYPE_SCALAR)) return false;
++    if (value.type == BUTTON_TYPE_SCALAR && !std::isfinite(value.scalar)) return false;
++    const auto mapping = mappings.find(path);
++    if (mapping == mappings.end()) return false;
++    bool sent = false;
++    for (auto component : mapping->second) {
++        const auto handle = handles.find(component);
++        if (handle == handles.end() || handle->second == 0) continue;
++        publish(handle->second, value);
++        sent = true;
++    }
++    return sent;
++}

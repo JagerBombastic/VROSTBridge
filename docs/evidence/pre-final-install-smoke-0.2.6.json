@@ -1,0 +1,30 @@
+{
+  "release": "0.2.6",
+  "platform": "Linux container; no physical headset",
+  "checks": {
+    "fresh_install_spaces_unicode_manifest_and_shortcuts": "pass",
+    "frozen_http_page_logo_identity_network_report_auth_and_reopen": "pass",
+    "background_and_reopen_do_not_start_steamvr_or_browser": "pass",
+    "explicit_stop_stays_stopped": "pass",
+    "same_version_reinstall_stops_running_launcher_and_repairs": "pass",
+    "corrupt_install_rejected_and_logged": "pass",
+    "same_version_corruption_repaired_atomically": "pass",
+    "web_quit_releases_single_instance": "pass",
+    "graceful_sigterm_removes_endpoint_and_releases_single_instance": "pass",
+    "real_0_2_5_upgrade_stops_old_app_cleans_payload_and_retains_state": "pass",
+    "real_uninstall_preserves_settings_identity_logs_and_unowned_files": "pass"
+  },
+  "limits": [
+    "No physical headset or live stream test",
+    "No Windows host execution",
+    "No privileged firewall mutation or physical display test"
+  ],
+  "time_utc": "2026-09-27T03:31:31Z",
+  "tested_inputs_sha256": {
+    "new_payload_manifest": "72323db059964f076e7c5fbfc2afa17ba3acbee1c5200018da949bbd7433c04a",
+    "new_client_companion": "1e209c0c80c3a0dc8aafd90869aef651cc90b1bf002de08c26ec0d08a9ea8f06",
+    "new_native_client": "407881838f4b069d02d1cf364d8313a9d8a9494572869dadf4c70363605d50de",
+    "old_payload_manifest": "4d46ca9e8722729f116115589c60fb67b734b730467a203418b2f739c8bcd9ca"
+  },
+  "outcome": "pass"
+}

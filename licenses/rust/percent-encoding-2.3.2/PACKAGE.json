@@ -1,0 +1,43 @@
+{
+  "crate": "percent-encoding",
+  "version": "2.3.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/servo/rust-url/",
+  "authors": [
+    "The rust-url developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "b38f11f6096706e6de553dabe2a7ed142d59b6fa8c97e290c67496154745cdd5",
+      "bytes": 1072,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
+  },
+  "source_url": "https://crates.io/crates/percent-encoding/2.3.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "91377f48bf35011d042aa5abef9e7f2a0a625aaa",
+      "dirty": true
+    },
+    "path_in_vcs": "percent_encoding"
+  }
+}

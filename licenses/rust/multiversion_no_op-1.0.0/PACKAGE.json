@@ -1,0 +1,50 @@
+{
+  "crate": "multiversion_no_op",
+  "version": "1.0.0",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/hsivonen/multiversion_no_op",
+  "authors": [
+    "Henri Sivonen <hsivonen@hsivonen.fi>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYRIGHT",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYRIGHT",
+      "sha256": "d2a809eafabba137f508bea16a1b93d8ff24df7da6f38129d830db9bc118bdfe",
+      "bytes": 644,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "3fa4ca83dcc9237839b1bdeb2e6d16bdfb5ec0c5ce42b24694d8bbf0dcbef72c",
+      "bytes": 1053,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "743fb55ba31b18fb1ecef6bdc9aa2743314978ac084044301a7eee33fb99a20d",
+    "windows_client": "743fb55ba31b18fb1ecef6bdc9aa2743314978ac084044301a7eee33fb99a20d"
+  },
+  "source_url": "https://crates.io/crates/multiversion_no_op/1.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5463f2d9272305f21eed5111eaf221a195abf2f4"
+    }
+  }
+}

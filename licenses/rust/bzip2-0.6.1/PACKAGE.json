@@ -1,0 +1,40 @@
+{
+  "crate": "bzip2",
+  "version": "0.6.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/trifectatechfoundation/bzip2-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "c8c6324cf2f0f076e3ed5dea4a21f00bd4dd6fce44f72b110bc52e7fe06f6e1e",
+      "bytes": 1079,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "f3a53fac24f34a81bc9954b5d6cfce0c21e18ec6959f44f56e8e90e4bb7c346c"
+  },
+  "source_url": "https://crates.io/crates/bzip2/0.6.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "eebf6e470f6c4a14295fcaf43c619ae4a0e5690a"
+    },
+    "path_in_vcs": ""
+  }
+}

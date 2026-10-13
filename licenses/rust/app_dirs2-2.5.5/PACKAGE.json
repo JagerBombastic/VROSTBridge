@@ -1,0 +1,38 @@
+{
+  "crate": "app_dirs2",
+  "version": "2.5.5",
+  "license": "MIT",
+  "repository": "https://github.com/app-dirs-rs/app_dirs2",
+  "authors": [
+    "Andy Barron <AndrewLBarron@gmail.com>",
+    "Simon Heath <icefoxen@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.txt",
+      "sha256": "7a0195a0e945035f051e831c04a61c99a9985943dca081d861bbea63381ea4b1",
+      "bytes": 1083,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "a7e7b35733e3a8c1ccb90385088dd5b6eaa61325cb4d1ad56e683b5224ff352e",
+    "windows_client": "a7e7b35733e3a8c1ccb90385088dd5b6eaa61325cb4d1ad56e683b5224ff352e"
+  },
+  "source_url": "https://crates.io/crates/app_dirs2/2.5.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ffce45b500bdb1a7324e8c3267371e2ffe452221"
+    },
+    "path_in_vcs": ""
+  }
+}

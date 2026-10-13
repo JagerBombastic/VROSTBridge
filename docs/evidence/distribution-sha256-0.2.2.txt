@@ -1,0 +1,3 @@
+d2022c490c36cb55e90991fe627b825f08da4546bb867daeced35a8e1345e85e  VROSTBridge-Bazzite-Installer-0.2.2.zip
+cf04aff656cc28e19e3fb1e53e4fceb94b8004ca6249992b088015436f16cf6a  VROSTBridge-Host-Setup-0.2.2.exe
+5fe6fe633a8cb6c2572b3f3233e4a5943958068927a7d076d2508084962bf865  VROSTBridge-Host-Portable-0.2.2.zip

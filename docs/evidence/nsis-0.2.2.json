@@ -1,0 +1,34 @@
+{
+  "installer": "VROSTBridge-Host-Setup-0.2.2.exe",
+  "sha256": "cf04aff656cc28e19e3fb1e53e4fceb94b8004ca6249992b088015436f16cf6a",
+  "bytes": 103153050,
+  "PE": {
+    "machine": "0x14c",
+    "optional_magic": "0x10b",
+    "subsystem": 2
+  },
+  "archive_test": "7-Zip NSIS integrity test passed",
+  "payload_files_compared": 451,
+  "payload_result": "Every staged file was recovered from the installer and matched its SHA256 exactly; avcodec-62.dll required separate stdout extraction as recorded below.",
+  "extra_extracted_files": [
+    "$PLUGINSDIR/System.dll",
+    "$PLUGINSDIR/modern-wizard.bmp",
+    "$PLUGINSDIR/nsDialogs.dll",
+    "Uninstall.exe"
+  ],
+  "extractor_notes": [
+    {
+      "path": "dist/host/bin/win64/avcodec-62.dll",
+      "directory_extracted_bytes": 46137344,
+      "expected_and_stdout_extracted_bytes": 118089216,
+      "resolution": "The directory extractor returned a truncated but byte-correct prefix. A separate 7-Zip x -so extraction of the exact archive entry produced the complete expected file and SHA256.",
+      "verified_sha256": "6a945d93e8c25db74ac3966bb1de0834029fa06f230dc1c220734a26606cb917"
+    }
+  ],
+  "launcher_direct_DLL_imports": [
+    "KERNEL32.dll",
+    "USER32.dll",
+    "SHELL32.dll"
+  ],
+  "limits": "Static PE inspection and archive recovery only; no Windows execution or installation was performed."
+}

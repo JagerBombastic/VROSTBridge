@@ -1,0 +1,45 @@
+{
+  "crate": "proc-macro2",
+  "version": "1.0.107",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/dtolnay/proc-macro2",
+  "authors": [
+    "David Tolnay <dtolnay@gmail.com>",
+    "Alex Crichton <alex@alexcrichton.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9",
+    "windows_client": "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
+  },
+  "source_url": "https://crates.io/crates/proc-macro2/1.0.107",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ed8a5497669cd63db33bf24646f261b012bbbc4a"
+    },
+    "path_in_vcs": ""
+  }
+}

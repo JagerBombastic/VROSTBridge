@@ -1,0 +1,40 @@
+{
+  "crate": "serde_spanned",
+  "version": "1.1.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/toml-rs/toml",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "6662b5879511e06e8999a8a235d848113e942c9124f211511b16466ee2995f26"
+  },
+  "source_url": "https://crates.io/crates/serde_spanned/1.1.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "9db8aad6eafbc62f6b9d1950117649cc41eaf695"
+    },
+    "path_in_vcs": "crates/serde_spanned"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0-rc1.3",
+  "checks": {
+    "managed_rc1_2_upgrade": true,
+    "state_file_retention": true,
+    "same_version_reinstall": true,
+    "old_managed_file_cleanup": true,
+    "frozen_launcher_resource_selftest": true,
+    "installed_probe_executable": true,
+    "installed_missing_runtime_probe_returns_wait": true,
+    "rebuilt_native_streamer_launches": true,
+    "web_ui_version": true,
+    "authenticated_client_report_fields": true,
+    "background_companion_clean_quit": true
+  },
+  "limitations": [
+    "Upgrade used a managed RC1.2 directory fixture; no physical SteamVR session was running.",
+    "No attached headset, Bazzite graphical desktop or Game Mode rendering was available."
+  ]
+}

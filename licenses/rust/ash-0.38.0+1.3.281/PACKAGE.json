@@ -1,0 +1,48 @@
+{
+  "crate": "ash",
+  "version": "0.38.0+1.3.281",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/ash-rs/ash",
+  "authors": [
+    "Maik Klein <maikklein@googlemail.com>",
+    "Benjamin Saunders <ben.e.saunders@gmail.com>",
+    "Marijn Suijten <marijn@traverseresearch.nl>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "0e8a410375e1ee5c75c6198b08b534fec6e5edef766cf971bab4a404542636ab",
+      "bytes": 9691,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "c733ccf8ab25df175a63d9d844677b98e3a5ab8f8de1c1616087e6868a7f948e",
+      "bytes": 1047,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "0bb44936d800fea8f016d7f2311c6a4f97aebd5dc86f09906139ec848cf3a46f",
+    "linux_client": "0bb44936d800fea8f016d7f2311c6a4f97aebd5dc86f09906139ec848cf3a46f",
+    "windows_client": "0bb44936d800fea8f016d7f2311c6a4f97aebd5dc86f09906139ec848cf3a46f"
+  },
+  "source_url": "https://crates.io/crates/ash/0.38.0+1.3.281",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b724b78dac8d83879ed7a1aad2b91bb9f2beb5cf"
+    },
+    "path_in_vcs": "ash"
+  }
+}

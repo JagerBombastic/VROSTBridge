@@ -1,0 +1,43 @@
+{
+  "crate": "utf8-zero",
+  "version": "0.8.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/algesten/utf8-zero",
+  "authors": [
+    "Simon Sapin <simon.sapin@exyr.org>",
+    "Martin Algesten <martin@algesten.se>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "b8c0a043c9540bae7c578c88f91dda8bd82e59ae27c21baca69c8b191aaf5a6e"
+  },
+  "source_url": "https://crates.io/crates/utf8-zero/0.8.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b6967a15edb15bde05b587f23783109c92acc0bb"
+    },
+    "path_in_vcs": ""
+  }
+}

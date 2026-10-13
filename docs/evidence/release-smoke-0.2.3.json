@@ -1,0 +1,21 @@
+{
+  "release": "0.2.3",
+  "platform": "Linux container; no physical headset",
+  "checks": {
+    "fresh_install_spaces_unicode_manifest_and_shortcuts": "pass",
+    "frozen_http_page_logo_identity_network_report_auth_and_reopen": "pass",
+    "explicit_stop_stays_stopped": "pass",
+    "same_version_reinstall_stops_running_launcher_and_repairs": "pass",
+    "corrupt_install_rejected_and_logged": "pass",
+    "same_version_corruption_repaired_atomically": "pass",
+    "web_quit_releases_single_instance": "pass",
+    "real_0_2_2_upgrade_stops_old_app_cleans_payload_and_retains_state": "pass",
+    "real_uninstall_preserves_settings_identity_logs_and_unowned_files": "pass"
+  },
+  "limits": [
+    "No physical headset or live stream test",
+    "No Windows host execution",
+    "No privileged firewall mutation or graphical rendering test"
+  ],
+  "outcome": "pass"
+}

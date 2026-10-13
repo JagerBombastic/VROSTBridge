@@ -1,0 +1,3 @@
+Verified 1606 packaged files.
+Installed host API 21.0.0-dev14
+VROSTBridge packaged resources OK

@@ -1,0 +1,178 @@
+$ g++ -pthread /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/main.o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/vulkan.o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/decoder.o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/openvr_device.o -L/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/client/transport/target/release -Ldist/client/lib -lvrostbridge_transport -l:libavcodec.so.60 -l:libavutil.so.58 -l:libswscale.so.7 -l:libvulkan.so.1 -ldl -Wl,-rpath,$ORIGIN:$ORIGIN/lib -o /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/VROSTBridgeClient
+
+$ readelf -d /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/VROSTBridgeClient
+
+Dynamic section at offset 0x39608 contains 36 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libvrostbridge_transport.so]
+ 0x0000000000000001 (NEEDED)             Shared library: [libavcodec.so.60]
+ 0x0000000000000001 (NEEDED)             Shared library: [libavutil.so.58]
+ 0x0000000000000001 (NEEDED)             Shared library: [libswscale.so.7]
+ 0x0000000000000001 (NEEDED)             Shared library: [libvulkan.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN:$ORIGIN/lib]
+ 0x000000000000000c (INIT)               0x7000
+ 0x000000000000000d (FINI)               0x31848
+ 0x0000000000000019 (INIT_ARRAY)         0x39e50
+ 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x39e58
+ 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)
+ 0x000000006ffffef5 (GNU_HASH)           0x3b0
+ 0x0000000000000005 (STRTAB)             0x1d30
+ 0x0000000000000006 (SYMTAB)             0x470
+ 0x000000000000000a (STRSZ)              7974 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000015 (DEBUG)              0x0
+ 0x0000000000000003 (PLTGOT)             0x3a888
+ 0x0000000000000002 (PLTRELSZ)           5448 (bytes)
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000017 (JMPREL)             0x4c78
+ 0x0000000000000007 (RELA)               0x4078
+ 0x0000000000000008 (RELASZ)             3072 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE
+ 0x000000006ffffffe (VERNEED)            0x3e68
+ 0x000000006fffffff (VERNEEDNUM)         7
+ 0x000000006ffffff0 (VERSYM)             0x3c56
+ 0x000000006ffffff9 (RELACOUNT)          78
+ 0x0000000000000000 (NULL)               0x0
+
+$ readelf -d /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so
+
+Dynamic section at offset 0xab3740 contains 30 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libasound.so.2]
+ 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-x86-64.so.2]
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW
+ 0x0000000000000007 (RELA)               0x3348
+ 0x0000000000000008 (RELASZ)             423168 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000006ffffff9 (RELACOUNT)          17420
+ 0x0000000000000017 (JMPREL)             0x6a848
+ 0x0000000000000002 (PLTRELSZ)           72 (bytes)
+ 0x0000000000000003 (PLTGOT)             0xabb720
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000006 (SYMTAB)             0x2d0
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000005 (STRTAB)             0x21f8
+ 0x000000000000000a (STRSZ)              4427 (bytes)
+ 0x000000006ffffef5 (GNU_HASH)           0x2028
+ 0x0000000000000019 (INIT_ARRAY)         0xa6cf90
+ 0x000000000000001b (INIT_ARRAYSZ)       16 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0xa6cf88
+ 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)
+ 0x000000000000000c (INIT)               0x2d7858
+ 0x000000000000000d (FINI)               0x2d7874
+ 0x000000006ffffff0 (VERSYM)             0x1c08
+ 0x000000006ffffffe (VERNEED)            0x1e24
+ 0x000000006fffffff (VERNEEDNUM)         5
+ 0x0000000000000000 (NULL)               0x0
+
+$ ldd /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/VROSTBridgeClient
+	linux-vdso.so.1 (0x00007faceb474000)
+	libvrostbridge_transport.so => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so (0x00007facea972000)
+	libavcodec.so.60 => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/lib/libavcodec.so.60 (0x00007facea65a000)
+	libavutil.so.58 => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/lib/libavutil.so.58 (0x00007face9564000)
+	libswscale.so.7 => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/lib/libswscale.so.7 (0x00007face94ec000)
+	libvulkan.so.1 => /lib/x86_64-linux-gnu/libvulkan.so.1 (0x00007face9463000)
+	libstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007face91e5000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007face90fc000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007face90ce000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007face8ebc000)
+	libasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007face8db2000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007faceb476000)
+	libva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007face8d80000)
+	libva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007face8d7b000)
+	libdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007face8d64000)
+
+$ ldd /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so
+	linux-vdso.so.1 (0x00007f32d214f000)
+	libasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007f32d1576000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f32d1548000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f32d145f000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f32d124d000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f32d2151000)
+
+$ /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/VROSTBridgeClient --help
+VROSTBridge 0.2.14 native Linux client
+--software-decode  Explicit CPU compatibility mode (not a performance path)
+--no-late-frame-catchup  Disable bounded late-frame selection for comparison
+
+$ nm -D --defined-only /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so
+00000000003399b0 T alvr_create_decoder
+0000000000339be0 T alvr_dbg_client_impl
+0000000000339be0 T alvr_dbg_decoder
+0000000000339bf0 T alvr_destroy
+0000000000339cc0 T alvr_destroy_decoder
+0000000000339d20 T alvr_destroy_opengl
+0000000000339d30 T alvr_get_decoder_config
+0000000000339db0 T alvr_get_frame
+0000000000339e10 T alvr_get_server_version
+0000000000339f40 T alvr_get_settings_json
+000000000033a070 T alvr_hostname
+000000000033a1a0 T alvr_hud_message
+000000000033a380 T alvr_initialize
+000000000033a5b0 T alvr_initialize_logging
+000000000033a5c0 T alvr_initialize_opengl
+000000000033a690 T alvr_log
+000000000033aa00 T alvr_log_time
+000000000033ab60 T alvr_mdns_service
+000000000033ac40 T alvr_path_string_to_id
+000000000033acc0 T alvr_pause
+000000000033ad40 T alvr_pause_opengl
+000000000033ad90 T alvr_poll_event
+000000000033b590 T alvr_protocol_id
+000000000033b6c0 T alvr_render_lobby_opengl
+000000000033b920 T alvr_render_stream_opengl
+000000000033bac0 T alvr_report_compositor_start
+000000000033bc50 T alvr_report_fatal_decoder_error
+000000000033be50 T alvr_report_frame_decoded
+000000000033bf90 T alvr_report_submit
+000000000033c060 T alvr_resume
+000000000033c120 T alvr_resume_opengl
+000000000033c290 T alvr_rotation_delta
+000000000033c320 T alvr_send_active_interaction_profile
+000000000033c4c0 T alvr_send_battery
+000000000033c560 T alvr_send_button
+000000000033c650 T alvr_send_playspace
+000000000033c700 T alvr_send_tracking
+000000000033cd10 T alvr_send_view_params
+000000000033ce10 T alvr_set_decoder_input_callback
+000000000033cee0 T alvr_start_stream_opengl
+000000000033d0c0 T alvr_update_hud_message_opengl
+00000000002d9c60 T vrost_battery
+00000000002d9c80 T vrost_button
+00000000002d9d40 T vrost_buttons
+00000000002d9e10 T vrost_config
+00000000002d9f30 T vrost_create
+00000000002da160 T vrost_decoded
+00000000002da1a0 T vrost_decoder
+00000000002da210 T vrost_destroy
+00000000002da250 T vrost_fail
+00000000002da2d0 T vrost_frame_views
+00000000002da3a0 T vrost_message
+00000000002da510 T vrost_path
+00000000002da580 T vrost_pause
+00000000002da5a0 T vrost_playspace
+00000000002da5e0 T vrost_poll
+00000000002db160 T vrost_prediction_ns
+00000000002db180 T vrost_profile
+00000000002db290 T vrost_proximity
+00000000002db2b0 T vrost_resume
+00000000002db2d0 T vrost_submit
+00000000002db330 T vrost_tracking
+00000000002db370 T vrost_tracking_native
+00000000002de7e0 T vrost_views
+
+
+Final transport includes stateful partial TCP receive fix and mDNS announcer cleanup; unchanged C ABI.
+Contract tests: 9 passed, 0 failed. Installed payload checks use no LD_LIBRARY_PATH/LD_PRELOAD override.
+Physical headset/GPU validation unavailable here.

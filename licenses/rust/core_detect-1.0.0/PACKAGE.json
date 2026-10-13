@@ -1,0 +1,43 @@
+{
+  "crate": "core_detect",
+  "version": "1.0.0",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/thomcc/core_detect",
+  "authors": [
+    "Thom Chiovoloni <chiovolonit@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "769f80b5bcb42ed0af4e4d2fd74e1ac9bf843cb80c5a29219d1ef3544428a6bb",
+      "bytes": 10846,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "8569ebf6bf52937b961d9c9c934d8400a2bb6b09651a9afacbb3fc18fe5c09b1",
+      "bytes": 1076,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "7f8f80099a98041a3d1622845c271458a2d73e688351bf3cb999266764b81d48",
+    "windows_client": "7f8f80099a98041a3d1622845c271458a2d73e688351bf3cb999266764b81d48"
+  },
+  "source_url": "https://crates.io/crates/core_detect/1.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "a0f957776563806e7d20978471676e0db72892ba"
+    }
+  }
+}

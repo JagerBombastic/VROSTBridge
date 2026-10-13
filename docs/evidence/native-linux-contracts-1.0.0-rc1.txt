@@ -1,0 +1,28 @@
+Internal ctest changing into directory: /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/build-linux
+Test project /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/build-linux
+      Start  1: core_contracts
+ 1/11 Test  #1: core_contracts ...................   Passed    0.00 sec
+      Start  2: lease_protocol
+ 2/11 Test  #2: lease_protocol ...................   Passed    0.00 sec
+      Start  3: stream_contracts
+ 3/11 Test  #3: stream_contracts .................   Passed    0.00 sec
+      Start  4: video_handshake_contracts
+ 4/11 Test  #4: video_handshake_contracts ........   Passed    0.00 sec
+      Start  5: presentation_contracts
+ 5/11 Test  #5: presentation_contracts ...........   Passed    0.00 sec
+      Start  6: live_geometry_contracts
+ 6/11 Test  #6: live_geometry_contracts ..........   Passed    0.00 sec
+      Start  7: input_contracts
+ 7/11 Test  #7: input_contracts ..................   Passed    0.00 sec
+      Start  8: skeletal_contracts
+ 8/11 Test  #8: skeletal_contracts ...............   Passed    0.00 sec
+      Start  9: runtime_settings_contracts
+ 9/11 Test  #9: runtime_settings_contracts .......   Passed    0.00 sec
+      Start 10: native_host_hand_contracts
+10/11 Test #10: native_host_hand_contracts .......   Passed    0.00 sec
+      Start 11: chaperone_geometry_contracts
+11/11 Test #11: chaperone_geometry_contracts .....   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 11
+
+Total Test time (real) =   0.02 sec

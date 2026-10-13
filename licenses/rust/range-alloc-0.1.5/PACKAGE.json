@@ -1,0 +1,42 @@
+{
+  "crate": "range-alloc",
+  "version": "0.1.5",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/gfx-rs/range-alloc",
+  "authors": [
+    "the gfx-rs Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE.APACHE",
+    "LICENSE.MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.APACHE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "bytes": 10173,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE.MIT",
+      "sha256": "ba00052102ed87948bb8822d6e1c496260c83042887b22bb5caad922ec025a60",
+      "bytes": 1078,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_client": "ca45419789ae5a7899559e9512e58ca889e41f04f1f2445e9f4b290ceccd1d08"
+  },
+  "source_url": "https://crates.io/crates/range-alloc/0.1.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "34a5b93f04850e25315f87841d2555f2c0e0ed80"
+    },
+    "path_in_vcs": ""
+  }
+}

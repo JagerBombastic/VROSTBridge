@@ -1,0 +1,42 @@
+{
+  "crate": "cc",
+  "version": "1.2.65",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/cc-rs",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e228eec9be7c17ccb640b59b36a5cd805ea2a564a4c5e162c2f659fea30d3b96"
+  },
+  "source_url": "https://crates.io/crates/cc/1.2.65",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "640c66a8b8a225146a16068bad637d5e3417ffbf"
+    },
+    "path_in_vcs": ""
+  }
+}

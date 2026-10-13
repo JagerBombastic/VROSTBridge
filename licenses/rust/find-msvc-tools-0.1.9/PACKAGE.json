@@ -1,0 +1,40 @@
+{
+  "crate": "find-msvc-tools",
+  "version": "0.1.9",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/cc-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "5baebc0774151f905a1a2cc41989300b1e6fbb29aff0ceffa1064fdd3088d582"
+  },
+  "source_url": "https://crates.io/crates/find-msvc-tools/0.1.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "0767349e1d1253e6849b4c2af2059db661f54343"
+    },
+    "path_in_vcs": "find-msvc-tools"
+  }
+}

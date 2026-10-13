@@ -1,0 +1,675 @@
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+index 76853115..486aacb1 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+@@ -689,7 +689,8 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeConverter(
+     int width,
+     int height,
+     amf::AMF_SURFACE_FORMAT outputFormat,
+-    int64_t colorProfile
++    int64_t colorProfile,
++    bool plainSdr
+ ) {
+     amf::AMFComponentPtr amfConverter;
+     AMF_THROW_IF(
+@@ -717,6 +718,31 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeConverter(
+         if (inputRange != AMF_OK || outputRange != AMF_OK) {
+             Info("VROST_COLOR_CONVERTER range_properties input=%d output=%d", inputRange, outputRange);
+         }
++        if (plainSdr) {
++            // Patch 0020: SDR in, SDR out. The same transfer and primaries on both sides
++            // leave the picture's tones and colours as they are, and no tone mapping is
++            // applied (AMF's default output tone mapping is its own, AMD), so only the
++            // matrix and range above change. Whatever a runtime does with them, the test
++            // image at stream start shows it.
++            const struct {
++                const wchar_t* name;
++                int64_t value;
++            } plain[] = {
++                {AMF_VIDEO_CONVERTER_INPUT_TRANSFER_CHARACTERISTIC, AMF_COLOR_TRANSFER_CHARACTERISTIC_BT709},
++                {AMF_VIDEO_CONVERTER_OUTPUT_TRANSFER_CHARACTERISTIC, AMF_COLOR_TRANSFER_CHARACTERISTIC_BT709},
++                {AMF_VIDEO_CONVERTER_INPUT_COLOR_PRIMARIES, AMF_COLOR_PRIMARIES_BT709},
++                {AMF_VIDEO_CONVERTER_OUTPUT_COLOR_PRIMARIES, AMF_COLOR_PRIMARIES_BT709},
++                {AMF_VIDEO_CONVERTER_INPUT_TONEMAPPING, AMF_VIDEO_CONVERTER_TONEMAPPING_COPY},
++                {AMF_VIDEO_CONVERTER_OUTPUT_TONEMAPPING, AMF_VIDEO_CONVERTER_TONEMAPPING_COPY},
++            };
++            int refused = 0;
++            for (const auto& property : plain) {
++                if (amfConverter->SetProperty(property.name, property.value) != AMF_OK) ++refused;
++            }
++            if (amfConverter->SetProperty(AMF_VIDEO_CONVERTER_USE_DECODER_HDR_METADATA, false) != AMF_OK) ++refused;
++            if (amfConverter->SetProperty(AMF_VIDEO_CONVERTER_LINEAR_RGB, false) != AMF_OK) ++refused;
++            if (refused) Info("VROST_COLOR_CONVERTER plain_sdr_properties_refused=%d", refused);
++        }
+     }
+ 
+     AMF_THROW_IF(amfConverter->Init(inputFormat, width, height));
+@@ -728,6 +754,7 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeConverter(
+ bool VideoEncoderAMF::ProbeConverter(
+     amf::AMF_SURFACE_FORMAT outputFormat,
+     int64_t profile,
++    bool plainSdr,
+     vrost_color::Measured& measured,
+     std::string& why
+ ) {
+@@ -740,7 +767,7 @@ bool VideoEncoderAMF::ProbeConverter(
+     }
+     amf::AMFComponentPtr converter;
+     try {
+-        converter = MakeConverter(m_surfaceFormat, kWidth, kHeight, outputFormat, profile);
++        converter = MakeConverter(m_surfaceFormat, kWidth, kHeight, outputFormat, profile, plainSdr);
+         amf::AMFSurfacePtr image;
+         if (m_amfContext->AllocSurface(
+                 amf::AMF_MEMORY_HOST, m_surfaceFormat, kWidth, kHeight, &image
+@@ -816,24 +843,55 @@ bool VideoEncoderAMF::AddYuvConverter(
+     amf::AMF_SURFACE_FORMAT outputFormat, const char* path, std::string& why
+ ) {
+     // Convert to the colour space the encoder would write for RGB input (MakeEncoder).
++    // Patch 0020: first with the plain SDR settings (transfer and primaries kept, no tone
++    // mapping), then as 1.0.0.5 did; the first whose test image checks out is used. Each
++    // attempt is logged with what it measured.
+     const int64_t wanted = m_color.profile;
+-    vrost_color::Measured measured;
+-    if (!ProbeConverter(outputFormat, wanted, measured, why)) return false;
+-    m_colorMeasured = measured;
+-    m_colorProbed = true;
+-    const vrost_color::Verdict verdict = vrost_color::Classify(measured);
+-    if (!verdict.known || !verdict.displayable) {
+-        why = verdict.reason;
+-        return false;
+-    }
+-    try {
+-        m_amfComponents.emplace_back(
+-            MakeConverter(m_surfaceFormat, m_renderWidth, m_renderHeight, outputFormat, wanted)
++    const struct {
++        bool plainSdr;
++        const char* name;
++    } variants[] = {{true, "plain"}, {false, "auto"}};
++    vrost_color::Verdict verdict;
++    const char* chosen = nullptr;
++    std::string reasons;
++    for (const auto& variant : variants) {
++        vrost_color::Measured measured;
++        std::string attemptWhy;
++        if (!ProbeConverter(outputFormat, wanted, variant.plainSdr, measured, attemptWhy)) {
++            reasons += (reasons.empty() ? "" : "/") + std::string(variant.name) + "-" + attemptWhy;
++            Info("VROST_COLOR_PROBE path=%s variant=%s measured=0 reason=%s", path, variant.name, attemptWhy.c_str());
++            continue;
++        }
++        m_colorMeasured = measured;
++        m_colorProbed = true;
++        verdict = vrost_color::Classify(measured);
++        const auto& c = measured.code;
++        Info(
++            "VROST_COLOR_PROBE path=%s variant=%s measured=1 known=%d displayable=%d reason=%s black=%d,%d,%d white=%d,%d,%d red=%d,%d,%d grey=%d,%d,%d",
++            path, variant.name, verdict.known ? 1 : 0, verdict.displayable ? 1 : 0,
++            verdict.reason[0] ? verdict.reason : "none",
++            c[0][0], c[0][1], c[0][2], c[1][0], c[1][1], c[1][2],
++            c[2][0], c[2][1], c[2][2], c[3][0], c[3][1], c[3][2]
+         );
+-    } catch (const std::exception& error) {
+-        why = error.what();
++        if (verdict.known && verdict.displayable) {
++            try {
++                m_amfComponents.emplace_back(MakeConverter(
++                    m_surfaceFormat, m_renderWidth, m_renderHeight, outputFormat, wanted, variant.plainSdr
++                ));
++                chosen = variant.name;
++                break;
++            } catch (const std::exception& error) {
++                reasons += (reasons.empty() ? "" : "/") + std::string(variant.name) + "-" + error.what();
++                continue;
++            }
++        }
++        reasons += (reasons.empty() ? "" : "/") + std::string(variant.name) + "-" + verdict.reason;
++    }
++    if (!chosen) {
++        why = reasons.empty() ? std::string("no-variant") : reasons;
+         return false;
+     }
++    m_colorVariant = chosen;
+     // Label the stream with what the samples really are. When the converter ignored the
+     // requested range (or matrix), the decoder still reconstructs the picture exactly.
+     m_color.profile = verdict.profile;
+@@ -860,7 +918,7 @@ void VideoEncoderAMF::LogColorSetup(
+         if (!isalnum(static_cast<unsigned char>(c)) && c != ':' && c != '-' && c != '.' && c != '_' && c != '+')
+             c = '-';
+     }
+-    if (reason.size() > 48) reason.resize(48);
++    if (reason.size() > 96) reason.resize(96); // patch 0020: two attempts' reasons
+     const bool hdr = Settings_Instance()->m_enableHdr;
+     const int matrix = hdr ? 2020 : vrost_color::MatrixOfProfile(m_color.profile);
+     char codes[160] = "";
+@@ -876,12 +934,13 @@ void VideoEncoderAMF::LogColorSetup(
+         );
+     }
+     Info(
+-        "VROST_COLOR path=%s bits=%d range=%s matrix=%d verified=%d refused=%s%s",
++        "VROST_COLOR path=%s bits=%d range=%s matrix=%d verified=%d variant=%s refused=%s%s",
+         path,
+         m_use10bit ? 10 : 8,
+         hdr || m_color.full ? "full" : "studio",
+         matrix,
+         m_color.verified ? 1 : 0,
++        m_color.verified && m_colorVariant[0] ? m_colorVariant : "none",
+         reason.c_str(),
+         codes
+     );
+@@ -929,6 +988,7 @@ void VideoEncoderAMF::Initialize() {
+         m_color.profile = m_codec == ALVR_CODEC_AV1 ? AMF_VIDEO_CONVERTER_COLOR_PROFILE_JPEG
+                                                     : AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_709;
+         m_colorProbed = false;
++        m_colorVariant = "";
+         m_preprocActive = false;
+         const char* path = "rgb";
+         amf::AMF_SURFACE_FORMAT inFormat = m_surfaceFormat;
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+index bcace3bc..a3ae4c60 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+@@ -93,12 +93,17 @@ private:
+ 
+     // colorProfile (patch 0018): an AMF_VIDEO_CONVERTER_COLOR_PROFILE value for an RGB to
+     // Y'CbCr conversion with that matrix and range; UNKNOWN keeps AMF's automatic choice.
++    // plainSdr (patch 0020): also state that the picture's transfer and primaries stay as
++    // they are (BT.709 in and out) and that nothing is tone mapped, so the converter only
++    // changes the matrix. In the 1.0.0.5 test AMF's P010 output without these was dimmed
++    // (white at 297 of 1023), as if mapped for HDR.
+     amf::AMFComponentPtr MakeConverter(
+         amf::AMF_SURFACE_FORMAT inputFormat,
+         int width,
+         int height,
+         amf::AMF_SURFACE_FORMAT outputFormat,
+-        int64_t colorProfile = AMF_VIDEO_CONVERTER_COLOR_PROFILE_UNKNOWN
++        int64_t colorProfile = AMF_VIDEO_CONVERTER_COLOR_PROFILE_UNKNOWN,
++        bool plainSdr = false
+     );
+     // VROSTBridge (patch 0018): the stream's colour description, as the encoder is told it
+     // and writes it into the stream. The defaults are those of RGB input converted by the
+@@ -114,11 +119,15 @@ private:
+     bool m_noPreproc = false; // after the encoder refused our converter's output
+     vrost_color::Measured m_colorMeasured;
+     bool m_colorProbed = false;
++    // Patch 0020: which converter settings produced the stream's Y'CbCr ("plain": plainSdr,
++    // "auto": 1.0.0.5's), for the VROST_COLOR line.
++    const char* m_colorVariant = "";
+     // Converts the test image with these settings and reads the result back. False with
+     // `why` when it could not be measured.
+     bool ProbeConverter(
+         amf::AMF_SURFACE_FORMAT outputFormat,
+         int64_t profile,
++        bool plainSdr,
+         vrost_color::Measured& measured,
+         std::string& why
+     );
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index 285df390..6aa6c1b7 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -1,6 +1,7 @@
+ mod graphics;
+ mod vrostbridge_foveation;
+ mod vrostbridge_pose;
++mod vrostbridge_pair;
+ mod props;
+ mod tracking;
+ 
+@@ -17,8 +18,8 @@ mod bindings {
+ use bindings::*;
+ 
+ use alvr_common::{
+-    BUTTON_INFO, HAND_LEFT_ID, HAND_RIGHT_ID, HAND_TRACKER_LEFT_ID, HAND_TRACKER_RIGHT_ID, HEAD_ID,
+-    Pose, ViewParams, error,
++    BUTTON_INFO, DeviceMotion, HAND_LEFT_ID, HAND_RIGHT_ID, HAND_TRACKER_LEFT_ID, HAND_TRACKER_RIGHT_ID,
++    HEAD_ID, Pose, ViewParams, error,
+     parking_lot::{Mutex, RwLock},
+     settings_schema::Switch,
+     warn,
+@@ -50,6 +51,8 @@ static FOVEATION_CENTER_QUEUE: Mutex<VecDeque<(Duration, [[f32; 2]; 2])>> =
+ static EVENT_LOOP_HANDLE: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
+ // VROSTBridge: gaze-driven foveation state (patch 0010).
+ static VROST_FOVEATION: Mutex<Option<vrostbridge_foveation::DynamicFoveation>> = Mutex::new(None);
++// VROSTBridge (patch 0020): the controllers' distance as received and as submitted while held still.
++static VROST_PAIR: Mutex<Option<vrostbridge_pair::PairWindow>> = Mutex::new(None);
+ // VROSTBridge: frames dropped for lack of a head pose (patch 0018).
+ static VROST_POSELESS: Mutex<vrostbridge_pose::PoselessFrames> =
+     Mutex::new(vrostbridge_pose::PoselessFrames::new());
+@@ -268,6 +271,7 @@ fn spawn_event_loop(events_receiver: mpsc::Receiver<ServerCoreEvent>) {
+                     DeinitializeStreaming();
+                     FOVEATION_CENTER_QUEUE.lock().clear();
+                     *VROST_FOVEATION.lock() = None;
++                    *VROST_PAIR.lock() = None;
+                     VROST_POSELESS.lock().reset();
+                 },
+                 ServerCoreEvent::Battery(info) => unsafe {
+@@ -354,6 +358,36 @@ fn spawn_event_loop(events_receiver: mpsc::Receiver<ServerCoreEvent>) {
+                                         tracking::to_ffi_motion(*HAND_RIGHT_ID, motion)
+                                     });
+ 
++                                // VROSTBridge (patch 0020): while both controllers are held still,
++                                // compare their distance as received with the distance submitted
++                                // below (after the prediction and the configured offsets).
++                                if let (Some(left), Some(right)) = (
++                                    context.get_device_motion(*HAND_LEFT_ID, poll_timestamp),
++                                    context.get_device_motion(*HAND_RIGHT_ID, poll_timestamp),
++                                ) {
++                                    let submitted = |id: u64, motion: DeviceMotion| {
++                                        tracking::offset_controller_motion(
++                                            config,
++                                            id,
++                                            motion.predict(poll_timestamp, target_controller_timestamp),
++                                        )
++                                    };
++                                    let pair = [(*HAND_LEFT_ID, left), (*HAND_RIGHT_ID, right)].map(|(id, motion)| {
++                                        let sent = submitted(id, motion);
++                                        vrostbridge_pair::Controller {
++                                            received: (motion.pose.position, motion.pose.orientation, motion.linear_velocity),
++                                            submitted: (sent.pose.position, sent.pose.orientation),
++                                        }
++                                    });
++                                    let summary = VROST_PAIR
++                                        .lock()
++                                        .get_or_insert_with(Default::default)
++                                        .note(pair, Instant::now());
++                                    if let Some(summary) = summary {
++                                        alvr_common::info!("{}", summary.line());
++                                    }
++                                }
++
+                                 (ffi_left_controller_motion, ffi_right_controller_motion)
+                             } else {
+                                 (None, None)
+@@ -673,8 +707,30 @@ extern "C" fn vrostbridge_foveation_shifts(
+     }
+     io.copy_from_slice(&[result[0][0], result[0][1], result[1][0], result[1][1]]);
+     if state.should_log(now) {
++        // Patch 0020: how far the gaze (degrees, head-relative) and the left eye's region
++        // (image 0..1) reached in this window, when the gaze placed any frame.
++        let reach = state.take_reach().map_or_else(String::new, |reach| {
++            format!(
++                " gaze_yaw={:.0},{:.0} gaze_pitch={:.0},{:.0} region_x={:.2},{:.2} region_y={:.2},{:.2}",
++                reach.yaw[0],
++                reach.yaw[1],
++                reach.pitch[0],
++                reach.pitch[1],
++                reach.region_x[0],
++                reach.region_x[1],
++                reach.region_y[0],
++                reach.region_y[1]
++            )
++        });
++        // Patch 0020 (1.0.0.6): the current centres only while the region does not follow the gaze;
++        // while it does they would say where the user looked, which is never logged.
++        let centres = if config.gaze_foveation {
++            String::new()
++        } else {
++            format!(" left={:.3},{:.3} right={:.3},{:.3}", io[0], io[1], io[2], io[3])
++        };
+         alvr_common::info!(
+-            "VROST_GAZE_FOVEATION gaze={} optical_centre={} gaze_frames={} held_frames={} fallback_frames={} moves={} pauses={} longest_pause_ms={} returns={} left={:.3},{:.3} right={:.3},{:.3}",
++            "VROST_GAZE_FOVEATION gaze={} optical_centre={} gaze_frames={} held_frames={} fallback_frames={} moves={} pauses={} longest_pause_ms={} returns={}{}{}",
+             u8::from(config.gaze_foveation),
+             u8::from(config.optical_centre),
+             state.gaze_frames,
+@@ -684,10 +740,8 @@ extern "C" fn vrostbridge_foveation_shifts(
+             state.pauses,
+             state.longest_pause_ms,
+             state.returns,
+-            io[0],
+-            io[1],
+-            io[2],
+-            io[3]
++            centres,
++            reach
+         );
+     }
+     true
+diff --git a/alvr/server_openvr/src/vrostbridge_foveation.rs b/alvr/server_openvr/src/vrostbridge_foveation.rs
+index 546c44c3..59075583 100644
+--- a/alvr/server_openvr/src/vrostbridge_foveation.rs
++++ b/alvr/server_openvr/src/vrostbridge_foveation.rs
+@@ -28,7 +28,11 @@
+ //!   test, and every move was a visible change at the region's border and a cost for the
+ //!   encoder, whose picture shifts wherever the border passes. With the zone the region
+ //!   moves mostly with real changes of gaze (saccades, during which the eye barely sees),
+-//!   and the gaze always keeps a sharp margin of half the region's half-size around it.
++//!   and the gaze always keeps a sharp margin of half the region's half-size around it;
++//! - how far the gaze and the region reached in each logging window (`Reach`, patch 0020,
++//!   VROSTBridge 1.0.0.6): the 1.0.0.5 test found the region following the eyes only near
++//!   the middle of the view, and neither the angles the eye tracker reported nor where the
++//!   region went were visible. Only the window's extremes are kept, never a trace.
+ 
+ use alvr_common::{
+     ViewParams,
+@@ -101,6 +105,55 @@ pub fn movement_threshold(deadband: f32, comfort: f32, center_size: f32) -> f32
+     deadband.max(comfort * center_size.clamp(0.0, 1.0) / 2.0)
+ }
+ 
++/// Head-relative gaze angles in degrees: yaw positive to the right, pitch positive up.
++pub fn gaze_angles(gaze: Quat) -> Option<[f32; 2]> {
++    let direction = gaze * Vec3::NEG_Z;
++    if !direction.is_finite() {
++        return None;
++    }
++    let yaw = direction.x.atan2(-direction.z).to_degrees();
++    let pitch = direction
++        .y
++        .atan2((direction.x * direction.x + direction.z * direction.z).sqrt())
++        .to_degrees();
++    (yaw.is_finite() && pitch.is_finite()).then_some([yaw, pitch])
++}
++
++/// Patch 0020: the extremes one logging window reached, for the diagnostic line only.
++#[derive(Clone, Copy, Debug, Default, PartialEq)]
++pub struct Reach {
++    /// Gaze yaw and pitch in degrees (`gaze_angles`), as [min, max] each.
++    pub yaw: [f32; 2],
++    pub pitch: [f32; 2],
++    /// Middle of the left eye's full-resolution region in its image (0..1, x right, y
++    /// down), as [min, max] each, over the frames the gaze placed it.
++    pub region_x: [f32; 2],
++    pub region_y: [f32; 2],
++    pub gaze_samples: u64,
++}
++
++impl Reach {
++    fn widen(range: &mut [f32; 2], value: f32, first: bool) {
++        if first {
++            *range = [value, value];
++        } else {
++            range[0] = range[0].min(value);
++            range[1] = range[1].max(value);
++        }
++    }
++
++    fn note(&mut self, angles: Option<[f32; 2]>, region: [f32; 2]) {
++        let first = self.gaze_samples == 0;
++        if let Some([yaw, pitch]) = angles {
++            Self::widen(&mut self.yaw, yaw, first);
++            Self::widen(&mut self.pitch, pitch, first);
++        }
++        Self::widen(&mut self.region_x, region[0], first);
++        Self::widen(&mut self.region_y, region[1], first);
++        self.gaze_samples += 1;
++    }
++}
++
+ /// Shifts for both eyes from a gaze direction, or None if it is outside either view.
+ pub fn gaze_shifts(
+     gaze: Quat,
+@@ -139,6 +192,8 @@ pub struct DynamicFoveation {
+     pub returns: u64,
+     pause_since: Option<Instant>,
+     last_log: Option<Instant>,
++    /// Patch 0020: this logging window's extremes (see `take_reach`).
++    reach: Reach,
+ }
+ 
+ pub struct FrameInput<'a> {
+@@ -207,7 +262,22 @@ impl DynamicFoveation {
+             self.moves += 1;
+             self.current = Some(target);
+         }
+-        self.current.unwrap_or(target)
++        let shown = self.current.unwrap_or(target);
++        let angles = fresh_gaze.and_then(|(gaze, _)| gaze_angles(gaze));
++        self.reach.note(
++            angles,
++            [
++                region_middle(shown[0][0], input.geometry.center_size[0]),
++                region_middle(shown[0][1], input.geometry.center_size[1]),
++            ],
++        );
++        shown
++    }
++
++    /// The extremes since the last call (None when the gaze placed no frame), then a new window.
++    pub fn take_reach(&mut self) -> Option<Reach> {
++        let reach = std::mem::take(&mut self.reach);
++        (reach.gaze_samples > 0).then_some(reach)
+     }
+ 
+     /// True at most every five seconds, for a periodic diagnostic line.
+@@ -442,6 +512,58 @@ mod tests {
+         assert!(size / 2.0 - zone >= size / 4.0 - 1e-6);
+     }
+ 
++    #[test]
++    fn gaze_angles_are_head_relative_degrees() {
++        let [yaw, pitch] = gaze_angles(Quat::IDENTITY).unwrap();
++        assert!(yaw.abs() < 1e-4 && pitch.abs() < 1e-4);
++        // Looking 30 degrees right (a negative rotation about Y) and 20 degrees up.
++        let [yaw, _] = gaze_angles(Quat::from_rotation_y((-30f32).to_radians())).unwrap();
++        assert!((yaw - 30.0).abs() < 1e-3, "{yaw}");
++        let [_, pitch] = gaze_angles(Quat::from_rotation_x(20f32.to_radians())).unwrap();
++        assert!((pitch - 20.0).abs() < 1e-3, "{pitch}");
++        assert!(gaze_angles(Quat::from_xyzw(f32::NAN, 0.0, 0.0, 1.0)).is_none());
++    }
++
++    #[test]
++    fn reach_keeps_each_windows_extremes_then_starts_again() {
++        // Patch 0020: how far the gaze and the left region went, never a trace.
++        let views = [view(0.0), view(0.0)];
++        let now = Instant::now();
++        let mut state = DynamicFoveation::default();
++        let mut input = FrameInput {
++            gaze: None,
++            views: &views,
++            geometry: geometry(),
++            defaults: [[0.0, 0.0], [0.0, 0.0]],
++            deadband: 0.025,
++            comfort: 0.0,
++            stale: Duration::from_millis(150),
++            hold: Duration::from_millis(1000),
++            now,
++            optical_centre: true,
++        };
++        // Without gaze nothing is reached.
++        state.update(&input);
++        assert_eq!(state.take_reach(), None);
++        for (yaw, pitch) in [(-25.0f32, 0.0f32), (10.0, 15.0), (0.0, -20.0)] {
++            // gaze_angles: yaw right is a negative rotation about Y; pitch up is positive about X.
++            let gaze = Quat::from_rotation_y((-yaw).to_radians()) * Quat::from_rotation_x(pitch.to_radians());
++            input.gaze = Some((gaze, now));
++            state.update(&input);
++        }
++        let reach = state.take_reach().unwrap();
++        assert_eq!(reach.gaze_samples, 3);
++        assert!((reach.yaw[0] + 25.0).abs() < 0.5 && (reach.yaw[1] - 10.0).abs() < 0.5, "{reach:?}");
++        assert!((reach.pitch[0] + 20.0).abs() < 0.5 && (reach.pitch[1] - 15.0).abs() < 0.5, "{reach:?}");
++        // The region went left of and right of the middle, and up and down (y grows downwards).
++        let [straight_x, straight_y] = eye_image_position(Quat::IDENTITY, &views[0]).unwrap();
++        assert!(reach.region_x[0] < straight_x && reach.region_x[1] > straight_x, "{reach:?}");
++        assert!(reach.region_y[0] < straight_y && reach.region_y[1] > straight_y, "{reach:?}");
++        assert!(reach.region_x.iter().chain(&reach.region_y).all(|v| (0.0..=1.0).contains(v)));
++        // A new window starts empty.
++        assert_eq!(state.take_reach(), None);
++    }
++
+     #[test]
+     fn a_pause_in_the_gaze_holds_the_region_then_returns_it() {
+         // Patch 0017: a blink or an eye-tracker pause keeps the region where the user looked.
+diff --git a/alvr/server_openvr/src/vrostbridge_pair.rs b/alvr/server_openvr/src/vrostbridge_pair.rs
+new file mode 100644
+index 00000000..9a854b3e
+--- /dev/null
++++ b/alvr/server_openvr/src/vrostbridge_pair.rs
+@@ -0,0 +1,178 @@
++//! VROSTBridge (patch 0020, 1.0.0.6): what the host does to the two controllers while they are held still.
++//!
++//! In the 1.0.0.5 test the controller models, held still against each other, overlapped more on the
++//! stream than on the headset's own PC. Before SteamVR sees a controller the host changes its pose in
++//! two ways: the prediction (its velocities times the motion-to-photon latency) and the configured
++//! controller offsets (zero in VROSTBridge's profile). While both controllers are slower than
++//! `STILL_METRES_PER_SECOND` this compares the distance between them as received from the client with
++//! the distance as submitted to SteamVR, and keeps the largest move and turn the host gave either one,
++//! per `WINDOW`. Equal distances and no move mean the poses reach SteamVR as the headset PC tracked
++//! them. Only distances and angles are kept, never a position.
++
++use alvr_common::glam::{Quat, Vec3};
++use std::time::{Duration, Instant};
++
++pub const STILL_METRES_PER_SECOND: f32 = 0.03;
++pub const WINDOW: Duration = Duration::from_secs(5);
++
++/// One controller as received (position, orientation, linear velocity) and as submitted.
++#[derive(Clone, Copy, Debug)]
++pub struct Controller {
++    pub received: (Vec3, Quat, Vec3),
++    pub submitted: (Vec3, Quat),
++}
++
++#[derive(Default, Debug)]
++pub struct PairWindow {
++    still_frames: u64,
++    received_sum_mm: f64,
++    submitted_sum_mm: f64,
++    max_shift_mm: f32,
++    max_turn_deg: f32,
++    started: Option<Instant>,
++}
++
++/// One window's figures (what the diagnostic line carries).
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub struct PairSummary {
++    pub still_frames: u64,
++    pub received_mm: f32,
++    pub submitted_mm: f32,
++    pub max_shift_mm: f32,
++    pub max_turn_deg: f32,
++}
++
++impl PairSummary {
++    pub fn line(&self) -> String {
++        format!(
++            "VROST_CONTROLLER_PAIR still_frames={} received_mm={:.1} submitted_mm={:.1} max_shift_mm={:.1} max_turn_deg={:.2}",
++            self.still_frames, self.received_mm, self.submitted_mm, self.max_shift_mm, self.max_turn_deg
++        )
++    }
++}
++
++fn finite(controller: &Controller) -> bool {
++    let (position, orientation, velocity) = controller.received;
++    position.is_finite()
++        && orientation.is_finite()
++        && velocity.is_finite()
++        && controller.submitted.0.is_finite()
++        && controller.submitted.1.is_finite()
++}
++
++impl PairWindow {
++    /// Notes one tracking frame with both controllers; returns the finished window's figures once
++    /// `WINDOW` has passed (None while it runs, or when neither was held still in it).
++    pub fn note(&mut self, pair: [Controller; 2], now: Instant) -> Option<PairSummary> {
++        let started = *self.started.get_or_insert(now);
++        let still = pair
++            .iter()
++            .all(|controller| finite(controller) && controller.received.2.length() < STILL_METRES_PER_SECOND);
++        if still {
++            self.still_frames += 1;
++            self.received_sum_mm += f64::from(pair[0].received.0.distance(pair[1].received.0)) * 1000.0;
++            self.submitted_sum_mm += f64::from(pair[0].submitted.0.distance(pair[1].submitted.0)) * 1000.0;
++            for controller in &pair {
++                let shift = controller.received.0.distance(controller.submitted.0) * 1000.0;
++                let turn = controller
++                    .received
++                    .1
++                    .normalize()
++                    .angle_between(controller.submitted.1.normalize())
++                    .to_degrees();
++                self.max_shift_mm = self.max_shift_mm.max(shift);
++                if turn.is_finite() {
++                    self.max_turn_deg = self.max_turn_deg.max(turn);
++                }
++            }
++        }
++        if now.saturating_duration_since(started) < WINDOW {
++            return None;
++        }
++        let summary = (self.still_frames > 0).then(|| PairSummary {
++            still_frames: self.still_frames,
++            received_mm: (self.received_sum_mm / self.still_frames as f64) as f32,
++            submitted_mm: (self.submitted_sum_mm / self.still_frames as f64) as f32,
++            max_shift_mm: self.max_shift_mm,
++            max_turn_deg: self.max_turn_deg,
++        });
++        *self = PairWindow {
++            started: Some(now),
++            ..Default::default()
++        };
++        summary
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    fn controller(x: f32, velocity: f32, submitted_x: f32, turn_deg: f32) -> Controller {
++        Controller {
++            received: (Vec3::new(x, 1.0, -0.3), Quat::IDENTITY, Vec3::new(velocity, 0.0, 0.0)),
++            submitted: (
++                Vec3::new(submitted_x, 1.0, -0.3),
++                Quat::from_rotation_y(turn_deg.to_radians()),
++            ),
++        }
++    }
++
++    #[test]
++    fn still_controllers_passed_through_unchanged_keep_their_distance() {
++        let start = Instant::now();
++        let mut window = PairWindow::default();
++        for frame in 0..300u64 {
++            let now = start + Duration::from_millis(frame * 4);
++            assert_eq!(
++                window.note([controller(-0.06, 0.01, -0.06, 0.0), controller(0.06, -0.01, 0.06, 0.0)], now),
++                None
++            );
++        }
++        let summary = window
++            .note(
++                [controller(-0.06, 0.0, -0.06, 0.0), controller(0.06, 0.0, 0.06, 0.0)],
++                start + WINDOW,
++            )
++            .unwrap();
++        assert_eq!(summary.still_frames, 301);
++        assert!((summary.received_mm - 120.0).abs() < 0.01 && (summary.submitted_mm - 120.0).abs() < 0.01);
++        assert!(summary.max_shift_mm < 0.01 && summary.max_turn_deg < 0.01);
++        assert!(summary.line().starts_with("VROST_CONTROLLER_PAIR still_frames=301 received_mm=120.0 submitted_mm=120.0"));
++    }
++
++    #[test]
++    fn an_offset_toward_each_other_shows_as_a_shorter_submitted_distance() {
++        let start = Instant::now();
++        let mut window = PairWindow::default();
++        window.note([controller(-0.06, 0.0, -0.055, 2.0), controller(0.06, 0.0, 0.055, 0.0)], start);
++        let summary = window
++            .note([controller(-0.06, 0.0, -0.055, 2.0), controller(0.06, 0.0, 0.055, 0.0)], start + WINDOW)
++            .unwrap();
++        assert!((summary.received_mm - 120.0).abs() < 0.01);
++        assert!((summary.submitted_mm - 110.0).abs() < 0.01);
++        assert!((summary.max_shift_mm - 5.0).abs() < 0.01);
++        assert!((summary.max_turn_deg - 2.0).abs() < 0.01);
++    }
++
++    #[test]
++    fn moving_controllers_are_left_out_and_a_window_without_stillness_says_nothing() {
++        let start = Instant::now();
++        let mut window = PairWindow::default();
++        window.note([controller(-0.06, 0.5, -0.03, 0.0), controller(0.06, 0.0, 0.06, 0.0)], start);
++        assert_eq!(
++            window.note([controller(-0.06, 0.5, -0.03, 0.0), controller(0.06, 0.0, 0.06, 0.0)], start + WINDOW),
++            None
++        );
++        // A new window starts after each report.
++        window.note([controller(-0.06, 0.0, -0.06, 0.0), controller(0.06, 0.0, 0.06, 0.0)], start + WINDOW);
++        let summary = window
++            .note([controller(-0.06, 0.0, -0.06, 0.0), controller(0.06, 0.0, 0.06, 0.0)], start + WINDOW * 2)
++            .unwrap();
++        assert_eq!(summary.still_frames, 2);
++        let mut broken = controller(-0.06, 0.0, -0.06, 0.0);
++        broken.submitted.0.x = f32::NAN;
++        window.note([broken, controller(0.06, 0.0, 0.06, 0.0)], start + WINDOW * 2);
++        assert_eq!(window.still_frames, 0, "a non-finite pose is not counted");
++    }
++}

@@ -1,0 +1,42 @@
+In file included from /workspace/scratch/647ea6e3ae16/work033/VROSTBridge-0.2.13/packaging/windows-launcher.c:4:
+In file included from /root/.local/lib/python3.12/site-packages/ziglang/lib/libc/include/any-windows-any/windows.h:97:
+In file included from /root/.local/lib/python3.12/site-packages/ziglang/lib/libc/include/any-windows-any/winscard.h:10:
+In file included from /root/.local/lib/python3.12/site-packages/ziglang/lib/libc/include/any-windows-any/wtypes.h:13:
+In file included from /root/.local/lib/python3.12/site-packages/ziglang/lib/libc/include/any-windows-any/ole2.h:17:
+In file included from /root/.local/lib/python3.12/site-packages/ziglang/lib/libc/include/any-windows-any/objbase.h:66:
+/root/.local/lib/python3.12/site-packages/ziglang/lib/libc/include/any-windows-any/objidl.h:9965:5: warning: declaration does not declare anything [-Wmissing-declarations]
+ 9965 |     struct _STGMEDIUM_UNION {
+      |     ^~~~~~~~~~~~~~~~~~~~~~~
+In file included from /workspace/scratch/647ea6e3ae16/work033/VROSTBridge-0.2.13/packaging/windows-launcher.c:6:
+/root/.local/lib/python3.12/site-packages/ziglang/lib/libc/include/any-windows-any/shlobj.h:607:3: warning: typedef requires a name [-Wmissing-declarations]
+  607 |   typedef enum tagGPFIDL_FLAGS {
+      |   ^~~~~~~
+2 warnings generated.
+MakeNSIS v3.09-4 - Copyright 1999-2023 Contributors
+See the file COPYING for license details.
+Credits can be found in the Users Manual.
+
+Command line defined: "PAYLOAD=/workspace/scratch/647ea6e3ae16/package033/windows-package"
+Command line defined: "OUTPUT=/workspace/scratch/647ea6e3ae16/release-0.2.13/VROSTBridge-Host-Setup-0.2.13.exe"
+Processing script file: "/workspace/scratch/647ea6e3ae16/work033/VROSTBridge-0.2.13/packaging/windows-installer.nsi" (UTF8)
+
+Processed 1 file, writing output (x86-unicode):
+
+Output: "/workspace/scratch/647ea6e3ae16/release-0.2.13/VROSTBridge-Host-Setup-0.2.13.exe"
+Install: 4 pages (256 bytes), 3 sections (1 required) (12360 bytes), 1419 instructions (39732 bytes), 795 strings (39402 bytes), 1 language table (306 bytes).
+Uninstall: 2 pages (192 bytes), 1 section (4120 bytes), 87 instructions (2436 bytes), 116 strings (4308 bytes), 1 language table (254 bytes).
+Datablock optimizer saved 2262 KiB (~0.7%).
+
+Using zlib (compress whole) compression.
+
+EXE header size:              139776 / 101376 bytes
+Install code:                          (86376 bytes)
+Install data:                          (291352261 bytes)
+Uninstall code+data:                   (57877 bytes)
+Compressed data:           132969483 / 291496514 bytes
+CRC (0xDBAB7AA6):                  4 / 4 bytes
+
+Total size:                133109263 / 291597894 bytes (45.6%)
+/workspace/scratch/647ea6e3ae16/release-0.2.13/VROSTBridge-Bazzite-Installer-0.2.13.zip
+/workspace/scratch/647ea6e3ae16/release-0.2.13/VROSTBridge-Host-Setup-0.2.13.exe
+/workspace/scratch/647ea6e3ae16/release-0.2.13/VROSTBridge-Host-Portable-0.2.13.zip

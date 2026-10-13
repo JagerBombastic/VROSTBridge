@@ -1,0 +1,44 @@
+{
+  "crate": "quote",
+  "version": "1.0.47",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/dtolnay/quote",
+  "authors": [
+    "David Tolnay <dtolnay@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001",
+    "windows_client": "1fbf4db142a473a8d80c26bbf18454ed458bf8d26c8219c331daecfdbd079001"
+  },
+  "source_url": "https://crates.io/crates/quote/1.0.47",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "723dcb47d3f0ddc896e17287c8a8d3f2ea2317d5"
+    },
+    "path_in_vcs": ""
+  }
+}

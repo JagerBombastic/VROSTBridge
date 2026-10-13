@@ -1,0 +1,42 @@
+{
+  "crate": "anstyle-parse",
+  "version": "1.0.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-cli/anstyle.git",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "52ce7f38b242319f7cabaa6813055467063ecdc9d355bbb4ce0c68908cd8130e",
+    "windows_client": "52ce7f38b242319f7cabaa6813055467063ecdc9d355bbb4ce0c68908cd8130e"
+  },
+  "source_url": "https://crates.io/crates/anstyle-parse/1.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "3048fe7820055a6c995170d822e725c62b3d63e1"
+    },
+    "path_in_vcs": "crates/anstyle-parse"
+  }
+}

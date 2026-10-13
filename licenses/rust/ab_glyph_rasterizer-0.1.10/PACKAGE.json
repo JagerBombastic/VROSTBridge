@@ -1,0 +1,37 @@
+{
+  "crate": "ab_glyph_rasterizer",
+  "version": "0.1.10",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/alexheretic/ab-glyph",
+  "authors": [
+    "Alex Butler <alexheretic@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "bytes": 10173,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618",
+    "windows_client": "366ffbaa4442f4684d91e2cd7c5ea7c4ed8add41959a31447066e279e432b618"
+  },
+  "source_url": "https://crates.io/crates/ab_glyph_rasterizer/0.1.10",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "971e5a9b337fbae3edb1ac3ac44d84351d24e8b8"
+    },
+    "path_in_vcs": "rasterizer"
+  }
+}

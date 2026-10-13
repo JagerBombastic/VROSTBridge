@@ -1,0 +1,48 @@
+{
+  "crate": "wgpu-core-deps-windows-linux-android",
+  "version": "25.0.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/gfx-rs/wgpu",
+  "authors": [
+    "gfx-rs developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE.APACHE",
+    "upstream/LICENSE.MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE.APACHE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "bytes": 10173,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/gfx-rs/wgpu/8c2c2ce2034e1588037755d6c8bd28c360ebcc04/LICENSE.APACHE",
+      "commit": "8c2c2ce2034e1588037755d6c8bd28c360ebcc04"
+    },
+    {
+      "file": "upstream/LICENSE.MIT",
+      "sha256": "c7fea58d1cfe49634cd92e54fc10a9d871f4b275321a4cd8c09e449122caaeb4",
+      "bytes": 1078,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/gfx-rs/wgpu/8c2c2ce2034e1588037755d6c8bd28c360ebcc04/LICENSE.MIT",
+      "commit": "8c2c2ce2034e1588037755d6c8bd28c360ebcc04"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "cba5fb5f7f9c98baa7c889d444f63ace25574833df56f5b817985f641af58e46",
+    "windows_client": "cba5fb5f7f9c98baa7c889d444f63ace25574833df56f5b817985f641af58e46"
+  },
+  "source_url": "https://crates.io/crates/wgpu-core-deps-windows-linux-android/25.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "8c2c2ce2034e1588037755d6c8bd28c360ebcc04"
+    },
+    "path_in_vcs": "wgpu-core/platform-deps/windows-linux-android"
+  }
+}

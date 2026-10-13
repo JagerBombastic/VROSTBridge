@@ -1,0 +1,46 @@
+{
+  "crate": "dirs",
+  "version": "6.0.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/soc/dirs-rs",
+  "authors": [
+    "Simon Ochsenreither <simon@ochsenreither.de>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "d3174ad63e721d4c9dccb8ad4320848992d314369bc46319720b5802c9153fe9",
+      "bytes": 9694,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6a2e0ade09a7d5f816f11566fee2b151b32235a7fad52b41d49cce96f833c1a9",
+      "bytes": 1069,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e",
+    "linux_client": "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e",
+    "windows_client": "c3e8aa94d75141228480295a7d0e7feb620b1a5ad9f12bc40be62411e38cce4e"
+  },
+  "source_url": "https://crates.io/crates/dirs/6.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "00511bdc252f491a72ac89f6d6a2463406266fb2"
+    },
+    "path_in_vcs": ""
+  }
+}

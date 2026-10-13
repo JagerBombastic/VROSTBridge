@@ -1,0 +1,39 @@
+{
+  "crate": "libloading",
+  "version": "0.8.9",
+  "license": "ISC",
+  "repository": "https://github.com/nagisa/rust_libloading/",
+  "authors": [
+    "Simonas Kazlauskas <libloading@kazlauskas.me>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "b29f8b01452350c20dd1af16ef83b598fea3053578ccc1c7a0ef40e57be2620f",
+      "bytes": 736,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55",
+    "linux_client": "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55",
+    "windows_client": "d7c4b02199fee7c5d21a5ae7d8cfa79a6ef5bb2fc834d6e9058e89c825efdc55"
+  },
+  "source_url": "https://crates.io/crates/libloading/0.8.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "f4ec9e702de2d0778bccff8525dc44e4cacac2d1"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "release": "0.2.14",
+  "operational_payload_files_match_installer_smoke_tests": 151,
+  "installer_entrypoints_match": 2,
+  "docs_and_notices_match": true
+}

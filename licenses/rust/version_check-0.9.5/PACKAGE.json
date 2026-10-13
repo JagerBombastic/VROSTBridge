@@ -1,0 +1,42 @@
+{
+  "crate": "version_check",
+  "version": "0.9.5",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/SergioBenitez/version_check",
+  "authors": [
+    "Sergio Benitez <sb@sergio.bz>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "b7e650f3fce5c53249d1cdc608b54df156a97edd636cf9d23498d0cfe7aec63e",
+      "bytes": 1085,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
+  },
+  "source_url": "https://crates.io/crates/version_check/0.9.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d77ef9f27cc336719b2d839d09ee6635dd22f758"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,208 @@
+diff --git a/alvr/server_core/src/vrostbridge_stream.rs b/alvr/server_core/src/vrostbridge_stream.rs
+index d330093d..5cf8c521 100644
+--- a/alvr/server_core/src/vrostbridge_stream.rs
++++ b/alvr/server_core/src/vrostbridge_stream.rs
+@@ -12,6 +12,9 @@
+ //!   lost packet heals within the refresh period instead of needing a keyframe.
+ //! - `gaze_foveation`: move the foveated-encoding centre to where the user looks,
+ //!   using the eye-gaze direction the client sends with tracking.
++//! - `optical_centre`: without (fresh) gaze, centre the full-resolution region on the
++//!   straight-ahead direction of each eye's actual view instead of a fixed setting, so
++//!   fixed foveation fits any headset's lens and field-of-view geometry.
+ 
+ use alvr_common::{info, parking_lot::RwLock};
+ use std::path::Path;
+@@ -27,6 +30,8 @@ pub struct StreamConfig {
+     pub gaze_deadband: f32,
+     /// Gaze samples older than this fall back to the fixed centre.
+     pub gaze_stale_ms: u32,
++    /// Fixed centre on each eye's straight-ahead direction (otherwise the negotiated centre).
++    pub optical_centre: bool,
+ }
+ 
+ impl Default for StreamConfig {
+@@ -37,6 +42,7 @@ impl Default for StreamConfig {
+             gaze_foveation: false,
+             gaze_deadband: 0.025,
+             gaze_stale_ms: 150,
++            optical_centre: false,
+         }
+     }
+ }
+@@ -47,6 +53,7 @@ static CONFIG: RwLock<StreamConfig> = RwLock::new(StreamConfig {
+     gaze_foveation: false,
+     gaze_deadband: 0.025,
+     gaze_stale_ms: 150,
++    optical_centre: false,
+ });
+ 
+ pub fn parse(text: &str) -> StreamConfig {
+@@ -62,6 +69,7 @@ pub fn parse(text: &str) -> StreamConfig {
+     }
+     config.intra_refresh = value.get("intra_refresh").and_then(|v| v.as_bool()).unwrap_or(false);
+     config.gaze_foveation = value.get("gaze_foveation").and_then(|v| v.as_bool()).unwrap_or(false);
++    config.optical_centre = value.get("optical_centre").and_then(|v| v.as_bool()).unwrap_or(false);
+     if let Some(deadband) = value.get("gaze_deadband").and_then(|v| v.as_f64())
+         && deadband.is_finite()
+         && (0.0..=0.2).contains(&deadband)
+@@ -87,13 +95,14 @@ pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16) -> StreamC
+     *CONFIG.write() = config;
+     let paced = alvr_sockets::set_stream_pacing(video_stream, config.pacing_mbps);
+     info!(
+-        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={}",
++        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={} optical_centre={}",
+         config.pacing_mbps,
+         u8::from(paced),
+         u8::from(config.intra_refresh),
+         u8::from(config.gaze_foveation),
+         config.gaze_deadband,
+-        config.gaze_stale_ms
++        config.gaze_stale_ms,
++        u8::from(config.optical_centre)
+     );
+     config
+ }
+@@ -120,11 +129,13 @@ mod tests {
+     fn valid_values_are_used() {
+         let config = parse(
+             r#"{"pacing_mbps": 920, "intra_refresh": true, "gaze_foveation": true,
+-                "gaze_deadband": 0.04, "gaze_stale_ms": 120}"#,
++                "gaze_deadband": 0.04, "gaze_stale_ms": 120, "optical_centre": true}"#,
+         );
+         assert_eq!(config.pacing_mbps, 920);
+         assert!(config.intra_refresh);
+         assert!(config.gaze_foveation);
++        assert!(config.optical_centre);
++        assert!(!parse("{}").optical_centre);
+         assert!((config.gaze_deadband - 0.04).abs() < 1e-6);
+         assert_eq!(config.gaze_stale_ms, 120);
+     }
+diff --git a/alvr/server_openvr/src/vrostbridge_foveation.rs b/alvr/server_openvr/src/vrostbridge_foveation.rs
+index 26f48a92..c0fad5d8 100644
+--- a/alvr/server_openvr/src/vrostbridge_foveation.rs
++++ b/alvr/server_openvr/src/vrostbridge_foveation.rs
+@@ -13,7 +13,9 @@
+ //! - shifts are snapped to the same pixel grid the negotiation uses, so region borders
+ //!   stay on whole compressed pixels and the client's inverse stays well conditioned;
+ //! - small gaze movements inside a dead band keep the previous centre (no shimmer);
+-//! - stale or missing gaze returns to the negotiated fixed centre.
++//! - stale or missing gaze returns to the fixed centre: the negotiated one, or with
++//!   `optical_centre` each eye's straight-ahead direction (which also serves fixed
++//!   foveation without any eye tracker, for any headset's view geometry).
+ 
+ use alvr_common::{
+     ViewParams,
+@@ -118,6 +120,8 @@ pub struct FrameInput<'a> {
+     pub deadband: f32,
+     pub stale: Duration,
+     pub now: Instant,
++    /// Without fresh gaze, centre on each eye's straight-ahead direction.
++    pub optical_centre: bool,
+ }
+ 
+ impl DynamicFoveation {
+@@ -130,7 +134,11 @@ impl DynamicFoveation {
+         let Some(target) = target else {
+             self.fallback_frames += 1;
+             self.current = None;
+-            return input.defaults;
++            return input
++                .optical_centre
++                .then(|| gaze_shifts(Quat::IDENTITY, input.views, &input.geometry))
++                .flatten()
++                .unwrap_or(input.defaults);
+         };
+         self.gaze_frames += 1;
+         let moved = match self.current {
+@@ -255,6 +263,7 @@ mod tests {
+             deadband: 0.03,
+             stale: Duration::from_millis(150),
+             now,
++            optical_centre: false,
+         };
+         let first = state.update(&input);
+         assert_ne!(first, defaults);
+@@ -274,4 +283,35 @@ mod tests {
+         assert_eq!(state.fallback_frames, 2);
+         assert_eq!(state.moves, 2);
+     }
++
++    #[test]
++    fn optical_centre_follows_each_eyes_view() {
++        // Asymmetric fields of view, as on most headsets: straight ahead is off-centre.
++        let views = [view(0.0), view(0.0)];
++        let defaults = [[0.4, 0.1], [0.4, 0.1]];
++        let mut state = DynamicFoveation::default();
++        let input = FrameInput {
++            gaze: None,
++            views: &views,
++            geometry: geometry(),
++            defaults,
++            deadband: 0.03,
++            stale: Duration::from_millis(150),
++            now: Instant::now(),
++            optical_centre: true,
++        };
++        let shifts = state.update(&input);
++        let expected = gaze_shifts(Quat::IDENTITY, &views, &geometry()).unwrap();
++        assert_eq!(shifts, expected);
++        assert_ne!(shifts, defaults);
++        // The left eye's straight-ahead point lies right of its image centre for this
++        // view (more field of view on the left), the mirrored right eye the other way.
++        let [u, _] = eye_image_position(Quat::IDENTITY, &views[0]).unwrap();
++        assert!(u > 0.5 && shifts[0][0] > 0.0 && shifts[1][0] < 0.0);
++        // Invalid views fall back to the negotiated centre.
++        let mut broken = views;
++        broken[0].fov.left = broken[0].fov.right;
++        let input = FrameInput { views: &broken, ..input };
++        assert_eq!(state.update(&input), defaults);
++    }
+ }
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index e406bfe2..8dc67a82 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -615,7 +615,11 @@ extern "C" fn vrostbridge_foveation_shifts(
+     use vrostbridge_foveation::{FoveationGeometry, FrameInput};
+ 
+     let config = alvr_server_core::vrostbridge_stream::current();
+-    if !config.gaze_foveation || center_size.is_null() || edge_ratio.is_null() || shifts.is_null() {
++    if !(config.gaze_foveation || config.optical_centre)
++        || center_size.is_null()
++        || edge_ratio.is_null()
++        || shifts.is_null()
++    {
+         return false;
+     }
+     // SAFETY: the C++ caller passes two-element size/ratio arrays and a four-element shift array.
+@@ -630,7 +634,10 @@ extern "C" fn vrostbridge_foveation_shifts(
+     let views = *LOCAL_VIEW_PARAMS.read();
+     let now = Instant::now();
+     let input = FrameInput {
+-        gaze: alvr_server_core::vrostbridge_gaze::latest()
++        gaze: config
++            .gaze_foveation
++            .then(alvr_server_core::vrostbridge_gaze::latest)
++            .flatten()
+             .map(|sample| (sample.orientation, sample.received)),
+         views: &views,
+         geometry: FoveationGeometry {
+@@ -642,6 +649,7 @@ extern "C" fn vrostbridge_foveation_shifts(
+         deadband: config.gaze_deadband,
+         stale: Duration::from_millis(u64::from(config.gaze_stale_ms)),
+         now,
++        optical_centre: config.optical_centre,
+     };
+     let mut guard = VROST_FOVEATION.lock();
+     let state = guard.get_or_insert_with(Default::default);
+@@ -652,7 +660,9 @@ extern "C" fn vrostbridge_foveation_shifts(
+     io.copy_from_slice(&[result[0][0], result[0][1], result[1][0], result[1][1]]);
+     if state.should_log(now) {
+         alvr_common::info!(
+-            "VROST_GAZE_FOVEATION gaze_frames={} fallback_frames={} moves={} left={:.3},{:.3} right={:.3},{:.3}",
++            "VROST_GAZE_FOVEATION gaze={} optical_centre={} gaze_frames={} fallback_frames={} moves={} left={:.3},{:.3} right={:.3},{:.3}",
++            u8::from(config.gaze_foveation),
++            u8::from(config.optical_centre),
+             state.gaze_frames,
+             state.fallback_frames,
+             state.moves,

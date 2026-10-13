@@ -1,0 +1,27 @@
+test_binocular_matches_center_when_eyes_agree (test_gaze_integration.GazeIntegration.test_binocular_matches_center_when_eyes_agree) ... ok
+test_bundle_and_malformed (test_gaze_integration.GazeIntegration.test_bundle_and_malformed) ... ok
+test_live_datagram_forwarding_and_stop (test_gaze_integration.GazeIntegration.test_live_datagram_forwarding_and_stop) ... skipped 'Execution environment denies Unix datagram sockets'
+test_session_report_does_not_claim_physical_validation (test_gaze_integration.GazeIntegration.test_session_report_does_not_claim_physical_validation) ... ok
+test_backup_before_replace (test_host.HostTests.test_backup_before_replace) ... ok
+test_manual_address_does_not_trust (test_host.HostTests.test_manual_address_does_not_trust) ... ok
+test_profile_preserves_other_fields (test_host.HostTests.test_profile_preserves_other_fields) ... ok
+test_raw_index_pose_profile_removes_inherited_transforms (test_host.HostTests.test_raw_index_pose_profile_removes_inherited_transforms) ... ok
+test_unknown_schema_rejected (test_host.HostTests.test_unknown_schema_rejected) ... ok
+test_neutral (test_launcher.GazeTests.test_neutral) ... ok
+test_quaternion_normalized (test_launcher.GazeTests.test_quaternion_normalized) ... ok
+test_reject_invalid (test_launcher.GazeTests.test_reject_invalid) ... ok
+test_existing_instance_authenticates_before_reopen (test_launcher.LauncherTests.test_existing_instance_authenticates_before_reopen) ... ok
+test_local_token_required (test_launcher.LauncherTests.test_local_token_required) ... ok
+test_logo_route_serves_png (test_launcher.LauncherTests.test_logo_route_serves_png) ... ok
+test_status_requires_authentication (test_launcher.LauncherTests.test_status_requires_authentication) ... ok
+test_metrics_expire_instead_of_claiming_streaming (test_launcher.SessionStateTests.test_metrics_expire_instead_of_claiming_streaming) ... ok
+test_preferences_survive_restart (test_launcher.SessionStateTests.test_preferences_survive_restart) ... ok
+test_stop_does_not_block_status_or_output (test_launcher.SessionStateTests.test_stop_does_not_block_status_or_output) ... ok
+test_bootstrap_records_import_failure (test_launcher.StartupTests.test_bootstrap_records_import_failure) ... ok
+test_browser_failure_has_visible_recovery (test_launcher.StartupTests.test_browser_failure_has_visible_recovery) ... ok
+test_lock_released_when_process_exits (test_launcher.StartupTests.test_lock_released_when_process_exits) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 2.235s
+
+OK (skipped=1)

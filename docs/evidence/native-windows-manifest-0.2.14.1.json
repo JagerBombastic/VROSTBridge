@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "platform": "Windows",
+  "alvr_commit": "f5023f8e78fa14ea57fb1038548d7820289a8524",
+  "native_protocol": "vrostbridge-native-1",
+  "api_version": "21.0.0-dev14",
+  "api_version_source": "ALVR workspace.package.version / CARGO_PKG_VERSION",
+  "alvr_workspace_sha256": "a861a992dc7d34f1533c181d5d10fcdcf868ca8733ddc1dbb92017236738e3d7",
+  "protocol": "21-dev14-vrostbridge-native-1",
+  "build_utc": "2026-09-28T01:30:28.645462+00:00",
+  "compiler": "Rust 1.97.1; Clang 19.1.1 MSVC ABI; LLVM lld 19; MSVC CRT 14.44; Windows SDK 10.0.26100; static CRT and oneVPL 2.15.0; GPL FFmpeg 8.1 ABI",
+  "source_patch_sha256": {
+    "0001-local-microphone-consent.patch": "9377a0d5658bfe67355496ad9fc65a492fc8b1a98a0b64eb8dd40e92ebb7ee7b",
+    "0002-transport-network-resilience.patch": "a4bcacb11156f597d4cb21a02ca464df8dacb46582816f64aae2bf611b0cb68b",
+    "0003-native-controller-fidelity.patch": "dafc4e7d8fef3fd1b2d01726a2bcf9c45d5efdff6bb572a6d9f5b2356e084789",
+    "0004-host-capture-amf.patch": "7ef93be05c90c8a7fcaf91f1d3cbdc79aa78592a334424cdf0ec84a2cec4034a",
+    "0005-native-protocol-and-build.patch": "6534962e2d7eb8ed5930601abbeeea8f165237ef67b793bad8e7b91b9559816d"
+  },
+  "physical_session_tested": false,
+  "files": [
+    {
+      "name": "bin/win64/driver_alvr_server.dll",
+      "sha256": "fdcebf0bac6cb71e64ec79ec756168a38922b057fa0da70ada4be1745e42715a"
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+ "version": "1.0.0-rc4.4",
+ "date": "2026-10-04",
+ "compatible_hosts": [
+  "1.0.0-rc1",
+  "1.0.0-rc2",
+  "1.0.0-rc3",
+  "1.0.0-rc4",
+  "1.0.0-rc4.1",
+  "1.0.0-rc4.2",
+  "1.0.0-rc4.3",
+  "1.0.0-rc4.4"
+ ],
+ "physical_validation": false,
+ "based_on_test": "RC4.3 physical test of 2026-10-04 17:27-17:35 (client report with SteamVR server, compositor and client logs; host report and driver log) and the user's report: what Sharpening is, doubt that foveated streaming worked, no eye-tracked settings or eye view, a sharper picture but jittery head and controller tracking, a pixelated in-headset quality line, no reconnecting card when the connection closed",
+ "findings": {
+  "gpu": "Integrated Radeon graphics at 800 MHz in every performance sample of the RC4.3 session (and both RC4.2 tests), 58-59 % busy, SoC about 15-18 W, mains connected and charging, performance level auto; SteamVR at 37.5 fps for 407 of 412 streaming seconds at 2560 per eye, host pose prediction about 96 ms",
+  "compositor": "vrserver: vrcompositor (pid 45499) disconnected at 17:35:12.88 with nothing in the compositor's own log; the VROSTBridge client exited -13 (SIGPIPE) at 17:35:21.7; vrserver stayed without a compositor until VROSTBridge closed SteamVR at 17:35:26",
+  "foveation": "Eye-tracked chosen with Calibrated eye tracking off: Balanced in use (host encoded 1792 x 1728 per eye instead of 2560 x 2560); RC4.3 hid the eye-tracked settings in that case",
+  "overlay": "the quality pill was drawn at about one image pixel per headset pixel and magnified by the compositor"
+ },
+ "scope": [
+  "Held-back GPU (launcher/graphics_limit.py GpuClocks, launcher/performance_monitor.py max_sclk_mhz): the busiest GPU sampled every 5 s; median of the last 6 samples (3 needed) at >= 40 % busy and <= half the maximum clock marks it held back; the graphics warning names a power limit (TDP) or a fixed GPU clock first with the measured clock, maximum and power; in-headset line \"GPU held at N MHz - raise the TDP limit\"; live readout graphics.gpu on the client page, the Game Mode session card and the headset quality line; a bare maximum clock never creates a GPU row",
+  "SteamVR failure recovery on the client (launcher/app.py): exact vrserver/vrcompositor identities recorded at first video and checked every second (compositor gone with the server running, SteamVR gone, or a replacement compositor while frames are stalled; a replacement is adopted only after 4 s of unstalled frames); 2 checks in a row; nothing judged during a Stop, after a Stop was asked for or after SteamVR asked the client to quit; a non-zero native exit or a FATAL line (after up to 15 s) while SteamVR is lost restarts too; one automatic restart per 10 minutes on both PCs, a second failure stops with the explanation; Stops and Starts by hand win (counted, checked under the action lock); coredumpctl entry and kernel graphics lines logged for the report",
+  "Native client: SIGPIPE ignored (client and runtime probe); compositor frames stopped/advancing lines (also when frame timing is unavailable); stops when its companion command pipe closes",
+  "Game Mode lease helper started from one long-lived thread (launcher/game_mode.py PROCESS_STARTER): its PR_SET_PDEATHSIG follows the starting thread, so started from the Start request's thread (RC4.2, RC4.3) it would have been terminated, with the headset display, when Start returned; abandoned starts are ended",
+  "Fused frame pass (client/platform/linux/fused.comp): Catmull-Rom from 5 bilinear taps (renormalised), texels per output pixel from the analytic slope of the foveation inverse (client/device/conversion.hpp foveationDecompressSlope), sharpening taps only where detail = clamp(2 x texels - 1, 0, 1) > 0",
+  "Eye-tracked settings shown whenever Eye-tracked is chosen; system.foveation.eye_state (off-here, host-off, no-gaze, cpu, following) drives the page note and the Game Mode row",
+  "Headset cards and quality pill at up to 2x pixels per degree within the 2 MiB SetOverlayRaw budget (ui::fittedScale), overlay width divided by the scale, drawn once per change from the last fitting scale of their kind, shadow inset scaled",
+  "Sharpening described as separate from foveated encoding (pages and Game Mode)",
+  "Companion-only host repack over the RC4.3 payload"
+ ],
+ "host_driver": {
+  "reused_from": "1.0.0-rc4.1 (via the RC4.3 payload)",
+  "file": "dist/host/bin/win64/driver_alvr_server.dll",
+  "sha256": "7759dbb71ad266082a173292ee1ba96df29fe653a1b45744e9f36c8ad2cf74f9",
+  "build_manifest_sha256": "50e7a411a688333a659d2f4755d210aee0566c61700d407050f67d0ef2495d07",
+  "source_patch_sha256": {
+   "0001-local-microphone-consent.patch": "9377a0d5658bfe67355496ad9fc65a492fc8b1a98a0b64eb8dd40e92ebb7ee7b",
+   "0002-transport-network-resilience.patch": "a4bcacb11156f597d4cb21a02ca464df8dacb46582816f64aae2bf611b0cb68b",
+   "0003-native-controller-fidelity.patch": "a7f44ad8ff13db4fecac6af1e1a45d58b8b89b136b1167ece7b14db6b616f3ef",
+   "0004-host-capture-amf.patch": "7ef93be05c90c8a7fcaf91f1d3cbdc79aa78592a334424cdf0ec84a2cec4034a",
+   "0005-native-protocol-and-build.patch": "6534962e2d7eb8ed5930601abbeeea8f165237ef67b793bad8e7b91b9559816d",
+   "0006-host-chaperone-idempotence.patch": "c71716c33433d2ca685f3f47f4bf8bf7562d3efabfe3c30b011f99223dc555b3",
+   "0007-host-frame-timing-lock.patch": "9358bbff57fffd2cb6054e6f29258d9cc695dc962bcdb47fbc908c4441d627c6",
+   "0008-client-stream-statistics.patch": "bffd383b2f5624e7c835f51ee268d70cda4db59e9d7eaef2d89a81b908e292c6",
+   "0009-host-stream-config-and-pacing.patch": "d2457808a09aacbf92652aa0fce83eaf96fe16a0037d5fedb5f53803693886b0",
+   "0010-host-gaze-foveated-encoding.patch": "7ebf1effd68f3acb01f8df2bf27b7878852ec33f84ffe6d6e0d091c84bdf44e0",
+   "0011-host-amf-intra-refresh.patch": "c64bfd3e3b99e8fef550fc78eeb0315772c10ab4456165352fb8f65e74b75bdd",
+   "0012-host-foveation-optical-centre.patch": "49855f398d45d457ac80714e76b91a6decc3b4685c7147db03615d67299d1970",
+   "0013-host-amf-output-drain.patch": "c96c308490d520d8eeff10fd12e63263c96f7953a5c18a69515df5f15208adf3",
+   "0014-host-prediction-switch.patch": "bcf6c01936757d11deb4bf5486182fd7851b5699da80698eed606469025fa2a3",
+   "0015-host-init-config.patch": "558cbc2889a90f9e82448e3bd4da6f11f94aaf64543f2a22c99efbc891fd2613"
+  },
+  "gpl_feature": false
+ },
+ "native_rebuilt_sha256": {
+  "VROSTBridgeClient": "63c8a79a573f0492cf641970c8719a1b3d2aee611edfff0cfcf9980f5486ede1",
+  "VROSTBridgeRuntimeProbe": "7c7658f36bf80508cdb07209bc84ac1d827f107b649aca65c17f688e1e6e5e52",
+  "assets/fused.spv": "614d4fb9af1cfb08f246debd48a5ddd235290ffc6237b35783d1c8d4b51d9a4b"
+ },
+ "native_unchanged_since_rc4_3_sha256": {
+  "libvrosttext.so": "c5b4b26d019cdbfa929de95ec04996e103783b7fd47af091290d5f16a791447d",
+  "VROSTBridgeLease": "26e987158f2c9c9b7e7877ca44c532dced06a273f724c6dfb4b075ddf47b6132",
+  "assets/convert.spv": "cf88f83ad9a0d834241ea186ad1ab70a894bc53cbabd62e73ecb45c4a0d055ee",
+  "assets/reaim.spv": "35ad44ada44c6341a776ccdf30fe0e76f091ef636e44e2e145230088523f9d9a",
+  "assets/hud/logo-192.rgba": "0acc94e124dae4e9361391e8cab22ce56925604712d473d7ee64b042b0a73882",
+  "libvrostbridge_transport.so": "64b7223e1ead0659375e959a9bd3252d94f920ce4cd73d8979a87ad405a6c051",
+  "lib/libavcodec.so.60": "6c2c40f2dec6fa88bc8da566daee8d6f6b96a50e94b79b28fc801a4e70b517da",
+  "lib/libavutil.so.58": "ec3845244d61e0baafa0393178022982c75828a8b5cf788aa227e9fa70716f2e",
+  "lib/libswscale.so.7": "e29ea71d7bb7433a76b99dd922c46a75a85cdb47bc45113f37861aeea256bd33",
+  "libopenvr_api.so": "cb68c5788b0ddab32c0402e58820956a489ef6cb99ecf2e1fa997533ead54475",
+  "lib/libSDL2-2.0.so.0": "2507acbbe40afe7d3e2e775dd8af00a1dba93579b9e837563032f3d751a9a45b",
+  "lib/libwayland-server.so.0": "d6cc42aff7539831152735f58958fd3d854c77881b053c771fbe7a819df5392f",
+  "tools/go-bsb-cams": "42288d4d851c1a1b0d1ae496e9823cf72bb3c7ed7d56eeb13f33038dea8702ce"
+ },
+ "source_sha256": {
+  "CMakeLists.txt": "c5f40a16b16bd112cffbb7b11c504607b84c8d7091933d5c8cebe98b23659210",
+  "client/device/conversion.hpp": "c91217d53812016f600a712e6400acbeefa05ff981009b0ed756cab5086d548b",
+  "client/platform/linux/fused.comp": "ad7d1a0381f5b1eeba0812a09161136a8874efea95dbc95396cb5010a59b85db",
+  "client/platform/linux/main.cpp": "3b460cc597d1a2243d8e1ec1d272cc843459c57c0d13f68db06f7548327137dc",
+  "client/platform/linux/runtime_probe.cpp": "b3ed1be8a68e5e9cbd57be874c1e4637279c8572c3f9d4048f05fb877f32df3d",
+  "client/platform/linux/status_overlay.hpp": "c28ce5994105d747a78640c3e86b6cfd0d51c5e2ff937b3b2a3a6b5080b63cce",
+  "client/ui/status_card.cpp": "8d69b4e3f174cf19c276fd70e6d72a991a6bd5f4e25118d0569d42bc46fbdb16",
+  "client/ui/status_card.hpp": "cd5b152ca9f1f5fc1030c16d8a582d92598c8445d6edcacf65e9b7db8f73133d",
+  "core/version.hpp": "ca76d8956e8c9b3d07a027ea4ad3b20ecb8f82cfffa1a9a5398bf18120834291",
+  "host/profile.py": "95a31d89acc3d634623080fc37ab5d6656fefcbc2a0ed32a35b3780353d73768",
+  "launcher/app.py": "855ce7d0c860c35c7e30f0430c57b0b268fb56a73cf09fef5a9f0acab06b09cf",
+  "launcher/desktop.html": "8217ab6a54fe723c561003809a12e0ece4ef09161b9c541dc459de8d8bbfe502",
+  "launcher/game_mode.py": "ec98ad3a8670991f81ef623f410e1cb8021024b405e29d9876170e0265e50199",
+  "launcher/game_ui.py": "48bfdef69429abe12f2d5c5b417a72c9cc07f126c5445e6858bae06c4cc2be24",
+  "launcher/graphics_limit.py": "aa779be398a82c0ae203ebf6369708ea0b2404588523308948098e095fad85f9",
+  "launcher/install_maintenance.py": "f48100832ab0ae2cb78ddf530c0971e912763deb117fcb83da8d220c18538c4e",
+  "launcher/performance_monitor.py": "eec46e11020aa05f51e8e8e7cf6827e51c3b874358970e66fb31031621868eda",
+  "launcher/version.py": "787e3de4b00b087caa68737082a602667572ed793b9a8ef72e968a06d01fd4f1",
+  "packaging/build_distributions.py": "9806f5042238de36faef8e6b9d6fbe0eea7bba7abeae90ebbeade15e468b5c61",
+  "packaging/collect_rust_notices.py": "2eab35115227bc65d11a023adf3bc23384944391edd866f32a2227ed2dc521a3",
+  "packaging/install-bazzite.sh": "7b01a0edbb8e2925bef335ad58d89706e81470d84b2e6423335f1d6414b32d64",
+  "packaging/windows-installer.nsi": "6dc314de37a1f9fd8e337052df81157745ced9da2e76ed329ba918442cc4ad3b",
+  "scripts/package.py": "e77383124162469fba26be0549599cc2516f01df8831667ee8886e93e34dedaa",
+  "scripts/render_spec.py": "d3313c2d481b23c4284752ba8eaf19ed42eaf74c67db3dca9b572d8d053c2a72",
+  "tests/fused_shader_tests.cpp": "ccc7943707d0f4256e656f02cfcb71ac7c4999f327abfe97086b84accd4e3aec",
+  "tests/status_card_tests.cpp": "8e666a684d00458cb00186a30e5a1ad24aa1bd2d1f493a538f5b5987dc0c4528",
+  "tests/test_desktop_ui.js": "3e413e008b5880ad1840c715d145376dcd8aeca52c854b836fe66e9c6d329eb1",
+  "tests/test_rc44.py": "20760875116437cb8d777094081fb0629d887ef2368d781cb776148c7de11e53"
+ },
+ "toolchain": "Ubuntu 24.04, GCC 13.3.0, CMake 3.28.3 + Ninja 1.11.1, glslangValidator 15.1.0, Mesa lavapipe 25.2.8 (shader tests), PyInstaller 6.22.3 on Python 3.12.3, NSIS 3.09, Chromium (Playwright) for page renders",
+ "tests": {
+  "native": "20/20 CTest suites. fused_shader_contracts: re-aimed detailed scene differs from the original by 0.639 levels (RC4.3 nine taps 0.724, RC4.2 two passes 2.212); analytic slope against finite differences within 1e-3 over region sizes 0.3-0.7, edge ratios 2-5 and shifts -0.6..0.6; texel density 1 in the centre and 1/7 at the outer edge (size 0.4, ratio 4). status_card_contracts: pill at 2x, fitted card scale above 1.2 within 2 MiB, softer edges at 2x",
+  "shader_timing_lavapipe": "2048 x 1024, median of 11 interleaved runs: RC4.3 84.4 ms (96.7 with sharpening), RC4.4 65.6 ms (75.3); CPU-emulated, relative only",
+  "python": "705 tests pass (full discover), including test_rc44 (37)",
+  "desktop_ui": "pass (eye_state notes, runtime_restart hint, GPU readout, one-pass and sharpening notes)",
+  "page_renders": "Chromium at 1280 and 390 px: client page with the held-back GPU warning and readout, eye-tracked settings with the eye-tracking-off note, the restart hint; host and client pages without page errors",
+  "game_mode_renders": "offscreen 1280 x 800: session card with the GPU text and readout, the restart text, Stream & headset with the Eye tracking is off row",
+  "parent_death_signal": "a child that sets PR_SET_PDEATHSIG is terminated when a short-lived starting thread exits and survives when started through PROCESS_STARTER (test_rc44)"
+ },
+ "package_checks": [
+  "55 client checks: ZIP CRC and payload SHA256SUMS; managed RC4.4 install over an RC4.3 install keeps settings; old version removed; desktop entries; native client and runtime probe labels 1.0.0-rc4.4; libvrosttext.so, convert.spv, reaim.spv and VROSTBridgeLease byte-identical to RC4.3, fused.spv/client/probe rebuilt; lease helper runs; ldd resolves; installed self-test; companion status (runtime_restart, graphics), page, fonts, artwork, stamped report, send-report outcome, quit; same-version repair; damaged-package refusal; uninstall keeps state",
+  "host payload: verified RC4.3 payload + RC4.4 companion and docs; every .exe/.dll/.pyd byte-identical to RC4.3; setup EXE built with NSIS 3.09 and its extracted payload re-verified against SHA256SUMS and identical to the repacked payload"
+ ],
+ "independent_review": "A separate review agent checked the RC4.4 changes in three rounds and reproduced its findings in a test harness: an automatic restart could override a Stop by hand; nothing ended an orphaned native client once SIGPIPE was ignored; the eye-tracking texts showed in a case they described wrongly; cards were drawn twice; restart messages outlived their session; a Stop just before the trigger, a compositor SteamVR replaced on its own, an unreadable SteamVR registry, a FATAL judged too early, a replacement adopted before its stall could show and an abandoned process start. All were fixed with tests; the shader math, the slope, the overlay scale arithmetic and the GPU sampling were confirmed.",
+ "known_limits": [
+  "Why the integrated GPU stays at 800 MHz is not known from the logs: a TDP limit near 15 W or a fixed GPU clock; the RC4.4 readout and warning give the next test the numbers",
+  "The SteamVR compositor crash itself is not explained by its logs; RC4.4 records coredumpctl and kernel graphics lines when the user may read them",
+  "Nothing can be shown in the headset while SteamVR's compositor is down",
+  "The host driver (unchanged since RC4.1) still writes foveation centres every 5 s to its own log on the host PC; reports and the journal leave them out"
+ ],
+ "remaining_validation": [
+  "All RC4.4 behaviour on hardware (see RELEASE_1.0.0-rc4.4.md, How to test): the GPU readout and warning with a raised TDP limit, crisp headset text, the eye-tracking notes, Game Mode sessions with the Beyond 2e, and the restart if SteamVR fails again",
+  "RC4.3, RC4.2, RC4.1 and RC4 physical checks: host microphone, Game Mode settings and B, live eye view with calibrated eye tracking, Wi-Fi stalls, foveation on Index and Beyond 2e, wake/sleep, quick resume"
+ ]
+}

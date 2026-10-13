@@ -1,0 +1,52 @@
+{
+  "crate": "glow",
+  "version": "0.16.0",
+  "license": "MIT OR Apache-2.0 OR Zlib",
+  "repository": "https://github.com/grovesNL/glow",
+  "authors": [
+    "Joshua Groves <josh@joshgroves.com>",
+    "Dzmitry Malyshau <kvarkus@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "LICENSE-ZLIB"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "b8601fc79bdf8d8088f0938bea861ffc63ed0eebbedf25f44ab2cf2e85bd7edc",
+      "bytes": 11046,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "cdbd06e25b8c9c5d6019949d2de8123f56d29cee4166396423d2ba8c81700845",
+      "bytes": 1044,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-ZLIB",
+      "sha256": "636f644f1e149eb62961657c0e34953681eff64435653912e7bd19992666faa5",
+      "bytes": 834,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "c5e5ea60d70410161c8bf5da3fdfeaa1c72ed2c15f8bbb9d19fe3a4fad085f08",
+    "windows_client": "c5e5ea60d70410161c8bf5da3fdfeaa1c72ed2c15f8bbb9d19fe3a4fad085f08"
+  },
+  "source_url": "https://crates.io/crates/glow/0.16.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "83c7b9b59ec4b26942801b3d0164db6d396a8c74"
+    },
+    "path_in_vcs": ""
+  }
+}

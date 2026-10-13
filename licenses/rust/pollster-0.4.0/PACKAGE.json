@@ -1,0 +1,44 @@
+{
+  "crate": "pollster",
+  "version": "0.4.0",
+  "license": "Apache-2.0/MIT",
+  "repository": "https://github.com/zesterer/pollster",
+  "authors": [
+    "Joshua Barretto <joshua.s.barretto@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "cc02a53316678ca2575cc69d12daa7b1833935d4b7742c31fbab7bd74a481077",
+      "bytes": 1064,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3",
+    "windows_client": "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
+  },
+  "source_url": "https://crates.io/crates/pollster/0.4.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "2864daf5febd81eb33f66cb32b66ca78a9e21db7"
+    },
+    "path_in_vcs": ""
+  }
+}

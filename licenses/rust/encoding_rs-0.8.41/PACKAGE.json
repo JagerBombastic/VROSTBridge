@@ -1,0 +1,58 @@
+{
+  "crate": "encoding_rs",
+  "version": "0.8.41",
+  "license": "(Apache-2.0 OR MIT) AND BSD-3-Clause",
+  "repository": "https://github.com/hsivonen/encoding_rs",
+  "authors": [
+    "Henri Sivonen <hsivonen@hsivonen.fi>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYRIGHT",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "LICENSE-WHATWG"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYRIGHT",
+      "sha256": "11789f45bb180841cd362a5eee6789c68ddb573a11105e30768c308a6add0190",
+      "bytes": 713,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "3fa4ca83dcc9237839b1bdeb2e6d16bdfb5ec0c5ce42b24694d8bbf0dcbef72c",
+      "bytes": 1053,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-WHATWG",
+      "sha256": "838118388fe5c2e7f1dbbaeed13e1c7f3ebf88be91319c7c1d77c18e987d1a50",
+      "bytes": 1501,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "7b5ef0006ac9ab233c38522f5ae99cae3625151de8f706cacee1cba4b8e2832a",
+    "windows_client": "7b5ef0006ac9ab233c38522f5ae99cae3625151de8f706cacee1cba4b8e2832a"
+  },
+  "source_url": "https://crates.io/crates/encoding_rs/0.8.41",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "08604915e6f1a3b7a93398aec0bb92d7a6611a6a"
+    },
+    "path_in_vcs": ""
+  }
+}

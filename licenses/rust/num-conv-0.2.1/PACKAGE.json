@@ -1,0 +1,42 @@
+{
+  "crate": "num-conv",
+  "version": "0.2.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/jhpratt/num-conv",
+  "authors": [
+    "Jacob Pratt <jacob@jhpratt.dev>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-Apache",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-Apache",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "bytes": 10174,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "e2e245f2b566d0bfafb0f6a04c16b82d710c4e6e7d799e39bb4ef6e541b85b98",
+      "bytes": 1050,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "c6673768db2d862beb9b39a78fdcb1a69439615d5794a1be50caa9bc92c81967"
+  },
+  "source_url": "https://crates.io/crates/num-conv/0.2.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b9371fe8891cc474a321a5c2e78c7368abf27cc1"
+    },
+    "path_in_vcs": ""
+  }
+}

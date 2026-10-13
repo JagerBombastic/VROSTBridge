@@ -1,0 +1,44 @@
+{
+  "crate": "hashbrown",
+  "version": "0.15.5",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/hashbrown",
+  "authors": [
+    "Amanieu d'Antras <amanieu@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "ff8f68cb076caf8cefe7a6430d4ac086ce6af2ca8ce2c4e5a2004d4552ef52a2",
+      "bytes": 1060,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1",
+    "windows_client": "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
+  },
+  "source_url": "https://crates.io/crates/hashbrown/0.15.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b751eef8e99ccf3652046ef4a9e1ec47c1bfb78d"
+    },
+    "path_in_vcs": ""
+  }
+}

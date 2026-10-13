@@ -1,0 +1,39 @@
+{
+  "crate": "option-ext",
+  "version": "0.2.0",
+  "license": "MPL-2.0",
+  "repository": "https://github.com/soc/option-ext.git",
+  "authors": [
+    "Simon Ochsenreither <simon@ochsenreither.de>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.txt",
+      "sha256": "66a3107d5ad6a058aab753eaac2047ccb2ed0e39465dd0fe5844da3e300d5172",
+      "bytes": 16727,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+    "linux_client": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d",
+    "windows_client": "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
+  },
+  "source_url": "https://crates.io/crates/option-ext/0.2.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "272f22fc9ea1ac6b08f01704af52c4ac338df4e2"
+    },
+    "path_in_vcs": ""
+  }
+}

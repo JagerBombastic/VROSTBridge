@@ -1,0 +1,42 @@
+{
+  "crate": "is_terminal_polyfill",
+  "version": "1.70.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/polyfill-rs/is_terminal_polyfill",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695",
+    "windows_client": "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
+  },
+  "source_url": "https://crates.io/crates/is_terminal_polyfill/1.70.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "9ed4c24ea4e9202cb38a6564368252ed35197a08"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "crate": "socket-pktinfo",
+  "version": "0.3.2",
+  "license": "MIT",
+  "repository": "https://github.com/pixsper/socket-pktinfo",
+  "authors": [
+    "pixsperdavid <david@pixsper.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "1ea20122ffdda9e68f47eb121b811011757f332d41d97f610ea91c598beff733",
+      "bytes": 1064,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "927136cc2ae6a1b0e66ac6b1210902b75c3f726db004a73bc18686dcd0dcd22f",
+    "linux_client": "927136cc2ae6a1b0e66ac6b1210902b75c3f726db004a73bc18686dcd0dcd22f",
+    "windows_client": "927136cc2ae6a1b0e66ac6b1210902b75c3f726db004a73bc18686dcd0dcd22f"
+  },
+  "source_url": "https://crates.io/crates/socket-pktinfo/0.3.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d70b7e4a0a21c792175b885481fa30a1b29d117b"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "crate": "env_filter",
+  "version": "2.0.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-cli/env_logger",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6efb0476a1cc085077ed49357026d8c173bf33017278ef440f222fb9cbcb66e6",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "900d271a03799a1ee8d1ca9b19893b48ca674a9284fefcfb85f05e74ed314217",
+    "windows_client": "900d271a03799a1ee8d1ca9b19893b48ca674a9284fefcfb85f05e74ed314217"
+  },
+  "source_url": "https://crates.io/crates/env_filter/2.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "cc2b2efcd7454be82ca49f8ac165b3fbc3095ae3"
+    },
+    "path_in_vcs": "crates/env_filter"
+  }
+}

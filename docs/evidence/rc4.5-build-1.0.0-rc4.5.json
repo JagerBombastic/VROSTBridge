@@ -1,0 +1,165 @@
+{
+ "version": "1.0.0-rc4.5",
+ "date": "2026-10-04",
+ "compatible_hosts": [
+  "1.0.0-rc1",
+  "1.0.0-rc2",
+  "1.0.0-rc3",
+  "1.0.0-rc4",
+  "1.0.0-rc4.1",
+  "1.0.0-rc4.2",
+  "1.0.0-rc4.3",
+  "1.0.0-rc4.4",
+  "1.0.0-rc4.5"
+ ],
+ "physical_validation": false,
+ "based_on_request": "After RC4.4: integrate eye tracking (chosen scope: VROSTBridge manages Baballonia; one switch; VROSTBridge downloads, sets up, starts and stops Baballonia and the eye cameras and turns gaze on at the host; calibrate once). Baballonia was not installed on the client.",
+ "baballonia": {
+  "release": {
+   "version": "1.1.1.0rc6",
+   "url": "https://github.com/Project-Babble/Baballonia/releases/download/v1.1.1.0rc6/Baballonia.x64.v1.1.1.0rc6.tar.xz",
+   "size": 517439412,
+   "sha256": "06c9ce7ecca19a0fee3ead40ef0c705ca173916e11a3315b99df63d348ea906a",
+   "extracted_mb": 841,
+   "capture": "IpCameraCapture"
+  },
+  "licence": "Babble Software Distribution License 1.0 (non-commercial)",
+  "licence_url": "https://github.com/Project-Babble/Baballonia/blob/main/LICENSE",
+  "home": "https://github.com/Project-Babble/Baballonia",
+  "release_source_commit": "7339b07",
+  "packaged_by_vrostbridge": false,
+  "download": "only when the user accepts the licence (eye-setup with accept_licence); /usr/bin/curl --proto =https --proto-redir =https --tlsv1.2 under the watcher (urllib fallback); size and SHA-256 checked before unpacking; one streaming tarfile pass (r|xz) with member checks and filter='data'; into ~/.local/share/vrostbridge/baballonia/<version>",
+  "capture_provider": "IpCameraCapture",
+  "observed_in_sandbox": [
+   "its OSC sender stops for good after one refused send (the relay therefore opens first and closes last)",
+   "its MJPEG camera reader never reconnects and spins a CPU core once the stream ends",
+   "it ignores SIGTERM (killed after 3 s)",
+   "it saves its settings 2 s after a change, and a running instance writes them over changes made meanwhile",
+   "one instance at a time; closing its window ends it",
+   "about seven eyelid and expression messages per gaze sample",
+   "about one CPU core: its window about 39 %, garbage collection about 11 %, inference the rest",
+   "its OpenCV capture path waited 13 s for the MJPEG stream and crashed"
+  ]
+ },
+ "scope": [
+  "Baballonia set-up (launcher/baballonia.py BaballoniaManager): pinned release, licence acceptance, download with progress and cancel (nothing kept), verification, unpacking, receipt, free-space check (download + unpacked + 200 MB), leftovers cleaned, other versions removed, Remove, removal at uninstall",
+  "Baballonia's settings, only while it is closed (configure): cameras = the helper's stream with IpCameraCapture, started automatically; OSC 127.0.0.1:9005 with VRChat native tracking; UseOSCQuery and AppSettings_UseOSCQuery off; SteamVR auto-start, update check and GPU off; onboarding off once; eye areas once (a 2:1 frame's halves one pixel short, Baballonia's own choice), kept unless they no longer fit; .before-vrostbridge copy and .unreadable; set-up record in ~/.local/state/VROSTBridge/baballonia-setup.json",
+  "Process ownership: user unit vrostbridge-baballonia (systemd-run --user, KillMode=mixed, TimeoutStopSec=6; without systemd its own session) under WATCH_SCRIPT, a POSIX shell watcher that ends the program when the companion is gone or a zombie and stops it with SIGTERM then SIGKILL after the grace; no \"${\" or \"%\" (systemd-run >= 254 expands ${} in ExecStart); processes matched by resolved path; other instances named and blocking; start and stop serialised",
+  "Eye cameras (launcher/eye_tracking.py EyeCameras): go-bsb-cams under the watcher; states from its own lines; leftovers of an earlier companion ended; camera access through pkexec running one fixed /bin/sh script with the rule as its argument (70-vrostbridge-bigeye.rules, udevadm reload and trigger for 35bd:0202), asked in the background",
+  "Orchestration (EyeTracking): owners session and user; relay, cameras (first picture awaited, frame size from it), settings, Baballonia; recovery after the camera helper ends (Baballonia stopped first), after 25 s without samples (once in 300 s, never during or 15 s after a calibration), a Baballonia closed by hand, one from before this companion, a calibration finishing after Stop (up to 900 s) and a camera reader it left stale; Game Mode never starts an uncalibrated Baballonia",
+  "Gaze relay (launcher/gaze_provider.py): Baballonia's other messages counted as 'other', not invalid; samples without a session target counted unsent",
+  "Sessions (launcher/app.py): session_gaze decided at Start and again only for a headset of another family (the host started early is restarted only for another headset); --gaze-socket for the native client; host_preferences 'gaze' for session-gaze hosts; eye_state off-here, no-cameras, setup, calibrate, restart, starting, cameras, closed, eye-error, host-off (once the host said so), no-gaze, following, cpu; status and reports carry eye tracking (never gaze) and the end of Baballonia's log",
+  "Host: session-link feature session-gaze and session field gaze (ALVR's VRChat eye output for the session); a session-only setting marked in host-session-gaze.json and never read back as the preference; quick resume compares the effective value",
+  "UI: client page Eye tracking card; host switch renamed Eye tracking in VRChat; Game Mode This PC -> Eye tracking page; credits",
+  "Companion-only host repack over the RC4.4 payload; native client and runtime probe rebuilt for the version label only"
+ ],
+ "host_driver": {
+  "reused_from": "1.0.0-rc4.1 (via the RC4.4 payload)",
+  "file": "dist/host/bin/win64/driver_alvr_server.dll",
+  "sha256": "7759dbb71ad266082a173292ee1ba96df29fe653a1b45744e9f36c8ad2cf74f9",
+  "build_manifest_sha256": "50e7a411a688333a659d2f4755d210aee0566c61700d407050f67d0ef2495d07",
+  "source_patch_sha256": {
+   "0001-local-microphone-consent.patch": "9377a0d5658bfe67355496ad9fc65a492fc8b1a98a0b64eb8dd40e92ebb7ee7b",
+   "0002-transport-network-resilience.patch": "a4bcacb11156f597d4cb21a02ca464df8dacb46582816f64aae2bf611b0cb68b",
+   "0003-native-controller-fidelity.patch": "a7f44ad8ff13db4fecac6af1e1a45d58b8b89b136b1167ece7b14db6b616f3ef",
+   "0004-host-capture-amf.patch": "7ef93be05c90c8a7fcaf91f1d3cbdc79aa78592a334424cdf0ec84a2cec4034a",
+   "0005-native-protocol-and-build.patch": "6534962e2d7eb8ed5930601abbeeea8f165237ef67b793bad8e7b91b9559816d",
+   "0006-host-chaperone-idempotence.patch": "c71716c33433d2ca685f3f47f4bf8bf7562d3efabfe3c30b011f99223dc555b3",
+   "0007-host-frame-timing-lock.patch": "9358bbff57fffd2cb6054e6f29258d9cc695dc962bcdb47fbc908c4441d627c6",
+   "0008-client-stream-statistics.patch": "bffd383b2f5624e7c835f51ee268d70cda4db59e9d7eaef2d89a81b908e292c6",
+   "0009-host-stream-config-and-pacing.patch": "d2457808a09aacbf92652aa0fce83eaf96fe16a0037d5fedb5f53803693886b0",
+   "0010-host-gaze-foveated-encoding.patch": "7ebf1effd68f3acb01f8df2bf27b7878852ec33f84ffe6d6e0d091c84bdf44e0",
+   "0011-host-amf-intra-refresh.patch": "c64bfd3e3b99e8fef550fc78eeb0315772c10ab4456165352fb8f65e74b75bdd",
+   "0012-host-foveation-optical-centre.patch": "49855f398d45d457ac80714e76b91a6decc3b4685c7147db03615d67299d1970",
+   "0013-host-amf-output-drain.patch": "c96c308490d520d8eeff10fd12e63263c96f7953a5c18a69515df5f15208adf3",
+   "0014-host-prediction-switch.patch": "bcf6c01936757d11deb4bf5486182fd7851b5699da80698eed606469025fa2a3",
+   "0015-host-init-config.patch": "558cbc2889a90f9e82448e3bd4da6f11f94aaf64543f2a22c99efbc891fd2613"
+  },
+  "gpl_feature": false
+ },
+ "native_rebuilt_sha256": {
+  "VROSTBridgeClient": "f7824879ab2787f1d263e9845c2b4b3d1242c6ca47004a7ea451ac6dbbd01d5b",
+  "VROSTBridgeRuntimeProbe": "195b30b5122039c932fab6f48a186ce2f4d5a3d509848abf0ac6f22022a25151"
+ },
+ "native_unchanged_since_rc4_4_sha256": {
+  "libvrosttext.so": "c5b4b26d019cdbfa929de95ec04996e103783b7fd47af091290d5f16a791447d",
+  "VROSTBridgeLease": "26e987158f2c9c9b7e7877ca44c532dced06a273f724c6dfb4b075ddf47b6132",
+  "assets/convert.spv": "cf88f83ad9a0d834241ea186ad1ab70a894bc53cbabd62e73ecb45c4a0d055ee",
+  "assets/reaim.spv": "35ad44ada44c6341a776ccdf30fe0e76f091ef636e44e2e145230088523f9d9a",
+  "assets/fused.spv": "614d4fb9af1cfb08f246debd48a5ddd235290ffc6237b35783d1c8d4b51d9a4b",
+  "assets/hud/logo-192.rgba": "0acc94e124dae4e9361391e8cab22ce56925604712d473d7ee64b042b0a73882",
+  "libvrostbridge_transport.so": "64b7223e1ead0659375e959a9bd3252d94f920ce4cd73d8979a87ad405a6c051",
+  "lib/libavcodec.so.60": "6c2c40f2dec6fa88bc8da566daee8d6f6b96a50e94b79b28fc801a4e70b517da",
+  "lib/libavutil.so.58": "ec3845244d61e0baafa0393178022982c75828a8b5cf788aa227e9fa70716f2e",
+  "lib/libswscale.so.7": "e29ea71d7bb7433a76b99dd922c46a75a85cdb47bc45113f37861aeea256bd33",
+  "libopenvr_api.so": "cb68c5788b0ddab32c0402e58820956a489ef6cb99ecf2e1fa997533ead54475",
+  "lib/libSDL2-2.0.so.0": "2507acbbe40afe7d3e2e775dd8af00a1dba93579b9e837563032f3d751a9a45b",
+  "lib/libwayland-server.so.0": "d6cc42aff7539831152735f58958fd3d854c77881b053c771fbe7a819df5392f",
+  "tools/go-bsb-cams": "42288d4d851c1a1b0d1ae496e9823cf72bb3c7ed7d56eeb13f33038dea8702ce"
+ },
+ "frozen_companion": {
+  "tool": "PyInstaller 6.22.3 on Python 3.12.3 (onedir)",
+  "contains": [
+   "launcher.baballonia",
+   "launcher.eye_tracking",
+   "launcher.gaze_provider",
+   "lzma",
+   "_internal/python3.12/lib-dynload/_lzma.cpython-312-x86_64-linux-gnu.so"
+  ]
+ },
+ "source_sha256": {
+  "CMakeLists.txt": "3422f386bcde296a1264cd3105cc2a934d0581fdaaef5b02779f433542b381f5",
+  "core/version.hpp": "ab888f7019573a5d915c3d9d29fcf805f4d0bb766783a342c8808523e3bcf7ee",
+  "host/profile.py": "02e08f4b7a0a8d5c7adf311c19e34bbddd201cb9afd6df78a951aa44accfabe5",
+  "launcher/app.py": "de3484ab847356931e935d1c6c2e337138ca039c2854dea806b8440c2c53a8ce",
+  "launcher/baballonia.py": "4598ccfd24bf04f521daab3bf97336760f0107cb01322c686937534f7ca59b2d",
+  "launcher/desktop.html": "b5649199dc9480d1451ee064d0fde301e94f889e2e8be7e11e53101d635d50cb",
+  "launcher/eye_tracking.py": "c0e2c92ed7181445a7df4de7881b5fa3a5d7b9ec03149fc6007e1a432f904a7b",
+  "launcher/game_ui.py": "2390c400252f81868ab2e187a49619aa67709b91e016670cefc8aba223fc417a",
+  "launcher/gaze_provider.py": "656f5c7e08f49e43f007f49271b231bd1c984a35f712ef9178c37810018285ae",
+  "launcher/install_maintenance.py": "b243bf9d398e2473156e9b89e37098e44750005a416704391e44834d01ace7a5",
+  "launcher/session_link.py": "87a7ceb4b31ca1706c9ee464665590d549ac637f5e9df8168abeef010165699e",
+  "launcher/version.py": "fee620c608ec01cd36819a42145078ad0b2f9137330a7ac5ceda879e5920c71e",
+  "packaging/build_distributions.py": "0cb0c91c966d6effd2f415ce2c6abc47945a82f48521854ef697116f630230b2",
+  "packaging/collect_rust_notices.py": "26635c29b84453edd9eb74d91d75241b788a0908c05281c12a8d70579192ad84",
+  "packaging/install-bazzite.sh": "d1b63bdc81857f2d3047052169408c42f46d16a546f1dcca25f07740701370b7",
+  "packaging/windows-installer.nsi": "aec318cfc628852151f084ad366a7d4b65757faaf31161e6aef59bfd1dab76c4",
+  "scripts/package.py": "88fc8fdcb18ae5c93ed282f85dfd93f1d4562507a991b601f0543745bd52cb46",
+  "scripts/render_spec.py": "a8e7f9803703caa3a5805172d4e4d1a25290458b7b6ff4deca60c5a0980b7cfa",
+  "tests/test_desktop_ui.js": "92f99c8ffc8d2471c54889ccdc8d67b2904ce82d14f43ef19fd8dbe949d89f8f",
+  "tests/test_gaze_integration.py": "5cc978b4b323a31a57ea3ef2f0bbb65a5927069ab60f78db9ab2bae261d50583",
+  "tests/test_rc43.py": "f0a9416abfa7b0dc3dc465b4f1e626f93e077e68e2714720b0d6a314312d70b7",
+  "tests/test_rc44.py": "49c48daaa5b0b7703ab22f3d29f5cec39e99d90a28b26d310b39568e961cdb94",
+  "tests/test_rc45.py": "601e01bab76418a1699a294a815d245e7d01fcbe6472dfde744514b3b8ef8740",
+  "tests/test_rc4_integration.py": "c1305ea40b992dfb587461a0b1a8709893febded754707b17eb15c5b97136b73",
+  "tests/test_session_lifecycle.py": "c93f5b86bf73f6d538466394027868aaf35d8e8914cb1bd3e098208b923f8e48"
+ },
+ "toolchain": "Ubuntu 24.04, GCC 13.3.0, CMake 3.28.3 + Ninja 1.11.1, glslangValidator 15.1.0, Mesa lavapipe 25.2.8 (shader tests), PyInstaller 6.22.3 on Python 3.12.3, NSIS 3.09, Chromium (Playwright) for page renders",
+ "tests": {
+  "native": "20/20 CTest suites (version label only changed)",
+  "python": "769 tests pass (full discover), including test_rc45 (64): set-up, verification, unsafe archives, proxies, cancel and disk space; settings, crops and backups; calibration detection; systemd and fallback processes; the watcher (also under systemd's expansion, zombie and killed companions); frame size from the stream; relay counts; camera states, access script and lock order; orchestration and recovery; app sessions, host gaze, quick resume, the session-only marker; Game Mode; uninstall",
+  "desktop_ui": "pass (the Eye tracking card: switch, licence, set-up and progress, cancel, Open/Close, camera access asking/error, relay counts, port in use)",
+  "page_renders": "Chromium at 1280 and 390 px: the Eye tracking card not set up, downloading, running uncalibrated and asking for camera access; no page errors, no horizontal overflow",
+  "game_mode_renders": "offscreen 1280 x 800: This PC -> Eye tracking not set up and running, This PC and Stream & headset with the eye tracking rows",
+  "sandbox_end_to_end": "the real Baballonia 1.1.1.0rc6 (Xvfb, software rendering) with a stand-in eye-camera stream: set up by the manager in about 25 s from a local copy; gaze at the client socket about 4 s after Baballonia started, 28-30 samples a second; a killed camera helper recovered (Baballonia restarted) in about 4 s; with the companion killed (SIGKILL), Baballonia and the helper were gone in about 3.4 s; Stop closed the relay only after Baballonia stopped",
+  "camera_helper_without_headset": "the bundled go-bsb-cams run as an unprivileged user printed \"Could Not Find Device, Please Make Sure It Is On And Plugged In !\" and exited 1 (the no-device state); as root it asks an interactive question instead (the package check ran as root)"
+ },
+ "package_checks": [
+  "60 client checks in a sandbox home: ZIP CRC and payload SHA256SUMS; no Baballonia, models or its release in the package; managed RC4.5 install over an RC4.4 install keeps settings; old version removed; desktop entries; native labels 1.0.0-rc4.5; libvrosttext, shaders, lease helper, transport and camera helper byte-identical to RC4.4; ldd resolves; lzma frozen; installed self-test; companion status with eye tracking (not set up, Baballonia 1.1.1.0rc6, its licence); page with the Eye tracking card; set-up refused without the licence; the switch saved; the installed companion downloaded the pinned release from GitHub, checked and unpacked it in 29 s (841 MB, nothing else kept); Open Baballonia without a headset names the cameras and starts no Baballonia, relay up; Close leaves nothing running; quit leaves nothing running; same-version repair keeps the download; damaged-package refusal; uninstall keeps state and Baballonia's own settings and removes the download",
+  "host payload: verified RC4.4 payload + RC4.5 companion and docs; every .exe/.dll/.pyd byte-identical to RC4.4; no Baballonia; setup EXE built with NSIS 3.09 and its extracted payload re-verified against SHA256SUMS and identical to the repacked payload; the embedded Python 3.13 has every module the new modules import at load time (they are imported, never run, on the host)",
+  "source ZIP: Baballonia is not in it"
+ ],
+ "independent_review": "A separate review agent checked the RC4.5 changes in three rounds and reproduced its findings with stand-in programs and the test harness. Round 1 (22 findings) included a Stop then Start during the teardown leaving the new session without a gaze target, a lock-order deadlock between the camera helper's log and the page refresh, camera access never retried by a new Start, quick resume ignoring the session's eye tracking, a session-only host setting lost on upgrade, eye areas a person tuned overwritten, a calibration cut off when the post-session grace ended, processes matched by unresolved paths, Baballonia and the camera helper outliving a killed companion (now the watcher), a shutdown that could skip eye tracking and a password prompt holding the action lock; round 2 (8) included the pages contradicting the stream after a headset change, the watcher's zombie check broken by systemd-run's own ${} expansion, a stale camera reader after a calibration, proxy variables reaching Baballonia and the test harness ending live camera helpers; round 3 (1): a calibration saved while a session started could make this PC claim the sharp region follows the eyes while the host, started early, kept it fixed. All were fixed with tests.",
+ "known_limits": [
+  "Baballonia's Linux release runs on the CPU, about one core (sandbox); on a handheld the processor and graphics share one power limit",
+  "Calibration needs Baballonia's window, so it is done in Desktop Mode; Game Mode never starts an uncalibrated Baballonia",
+  "While eye tracking runs, the camera stream (127.0.0.1:8880) and the relay (127.0.0.1:9005) are reachable by other programs on the client PC",
+  "Binocular orientations are averaged: no vergence; eyelids and confidence are not forwarded",
+  "The camera helper asks an interactive question when run as root (the companion is not meant to run as root)",
+  "The host driver (unchanged since RC4.1) still writes foveation centres every 5 s to its own log on the host PC; reports and the journal leave them out"
+ ],
+ "remaining_validation": [
+  "All RC4.5 behaviour on hardware (see RELEASE_1.0.0-rc4.5.md, How to test): set-up, camera access, both eye pictures, calibration, the sharp region following the eyes in Desktop Mode and Game Mode, the direction of gaze, the CPU and GPU cost at the user's TDP, recovery after closing Baballonia and reconnecting the headset, VRChat eye output on the host",
+  "RC4.4 checks (TDP and GPU clock, 75 fps at High, crisp headset text, compositor recovery) and the RC4.3-RC4 physical checks"
+ ]
+}

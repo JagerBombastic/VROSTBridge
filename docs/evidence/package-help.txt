@@ -1,0 +1,2 @@
+VROSTBridge 0.2.0 native Linux client
+--software-decode  Explicit CPU compatibility mode (not a performance path)

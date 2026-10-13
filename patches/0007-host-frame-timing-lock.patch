@@ -1,0 +1,567 @@
+diff --git a/alvr/server_core/src/connection.rs b/alvr/server_core/src/connection.rs
+index fe752a69..b40d40b0 100644
+--- a/alvr/server_core/src/connection.rs
++++ b/alvr/server_core/src/connection.rs
+@@ -901,7 +901,7 @@ fn connection_pipeline(
+     let disconnect_notif = Arc::new(Condvar::new());
+     let last_media = Arc::new(Mutex::new(None::<Instant>));
+ 
+-    *ctx.statistics_manager.write() = Some(StatisticsManager::new(
++    let mut statistics = StatisticsManager::new(
+         initial_settings.connection.statistics_history_size,
+         Duration::from_secs_f32(1.0 / fps),
+         if let Switch::Enabled(config) = &initial_settings.headset.controllers {
+@@ -909,7 +909,26 @@ fn connection_pipeline(
+         } else {
+             0.0
+         },
+-    ));
++    );
++    // VROSTBridge: the host companion writes this per-session flag next to session.json.
++    // Absent or unreadable means off, so other ALVR use is unchanged.
++    let timing = crate::FILESYSTEM_LAYOUT
++        .get()
++        .map(|layout| layout.session().with_file_name(crate::vrostbridge_vsync::CONFIG_FILE))
++        .and_then(|path| std::fs::read_to_string(path).ok())
++        .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok());
++    let lock_enabled = timing
++        .as_ref()
++        .and_then(|value| value.get("vsync_lock"))
++        .and_then(|value| value.as_bool())
++        .unwrap_or(false);
++    let lock_margin_ms = timing
++        .as_ref()
++        .and_then(|value| value.get("margin_ms"))
++        .and_then(|value| value.as_f64())
++        .unwrap_or(crate::vrostbridge_vsync::DEFAULT_MARGIN_MS);
++    statistics.configure_vsync_lock(lock_enabled, lock_margin_ms);
++    *ctx.statistics_manager.write() = Some(statistics);
+     *ctx.bitrate_manager.lock() =
+         BitrateManager::new(initial_settings.video.bitrate.history_size, fps);
+     *ctx.tracking_manager.write() =
+diff --git a/alvr/server_core/src/vrostbridge_vsync.rs b/alvr/server_core/src/vrostbridge_vsync.rs
+new file mode 100644
+index 00000000..fcb34287
+--- /dev/null
++++ b/alvr/server_core/src/vrostbridge_vsync.rs
+@@ -0,0 +1,413 @@
++//! VROSTBridge frame-timing lock for the virtual display vsync.
++//!
++//! The pinned virtual vsync (`StatisticsManager::duration_until_next_vsync`) free-runs from
++//! `Instant::now()` when a client connects. Its phase relative to the client's physical display
++//! is therefore random for every session and drifts with the two PCs' clock difference. Host
++//! frames then land at an arbitrary point in the headset's frame: up to one refresh interval of
++//! avoidable waiting, or, near the boundary, alternating hit/miss that repeats and skips frames.
++//!
++//! The client already reports, for every presented frame, `ClientStatistics::rendering`: the time
++//! from its decoded frame entering the client compositor path until that frame is submitted at the
++//! headset's frame pickup. Modulo the refresh interval this is where host frames land in the
++//! headset's frame. The controller below steers the virtual vsync so the circular mean of that
++//! phase sits a small margin (plus a multiple of the measured spread) before pickup: frames arrive
++//! just in time, every time.
++//!
++//! Dependency-free so it can be unit tested without the rest of the server.
++use std::f64::consts::TAU;
++use std::time::Duration;
++
++/// Session flag file written by the VROSTBridge host companion next to `session.json`.
++pub const CONFIG_FILE: &str = "vrostbridge-timing.json";
++pub const DEFAULT_MARGIN_MS: f64 = 2.5;
++const SPREAD_FACTOR: f64 = 2.0;
++/// Presented frames per correction (about 0.5 to 0.7 seconds).
++const WINDOW: usize = 48;
++/// Frames ignored after a correction while the shifted frames travel through the pipeline.
++const SETTLE: usize = 12;
++const KP: f64 = 0.5;
++const KI: f64 = 0.05;
++/// After acquisition, never move the virtual vsync by more than this per correction.
++const MAX_TRACKING_STEP_NS: f64 = 500_000.0;
++/// Bound on the integral (frequency) term per correction: 2% of an interval.
++const MAX_INTEGRAL_FRACTION: f64 = 0.02;
++/// Mean resultant length below which the phase is too scattered to steer.
++const MIN_CONCENTRATION: f64 = 0.35;
++
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub struct VsyncLockReport {
++    /// Circular mean of decoded-frame to headset-pickup wait, in milliseconds.
++    pub phase_ms: f64,
++    pub spread_ms: f64,
++    pub target_ms: f64,
++    pub error_ms: f64,
++    /// Applied correction; positive delays the virtual vsync.
++    pub correction_ms: f64,
++    pub integral_ms: f64,
++    pub concentration: f64,
++    pub acquired: bool,
++    pub steering: bool,
++    pub updates: u64,
++}
++
++pub struct VsyncLock {
++    enabled: bool,
++    interval_ns: f64,
++    margin_ns: f64,
++    sum_cos: f64,
++    sum_sin: f64,
++    count: usize,
++    settle: usize,
++    acquired: bool,
++    integral_ns: f64,
++    pending_ns: f64,
++    updates: u64,
++}
++
++fn wrap(value: f64, period: f64) -> f64 {
++    let v = value.rem_euclid(period);
++    if v > period / 2.0 { v - period } else { v }
++}
++
++impl VsyncLock {
++    pub fn new(interval: Duration, enabled: bool, margin_ms: f64) -> Self {
++        let margin_ms = if margin_ms.is_finite() { margin_ms.clamp(0.5, 6.0) } else { DEFAULT_MARGIN_MS };
++        Self {
++            enabled,
++            interval_ns: interval.as_nanos() as f64,
++            margin_ns: margin_ms * 1e6,
++            sum_cos: 0.0,
++            sum_sin: 0.0,
++            count: 0,
++            settle: 0,
++            acquired: false,
++            integral_ns: 0.0,
++            pending_ns: 0.0,
++            updates: 0,
++        }
++    }
++
++    pub fn margin_ms(&self) -> f64 {
++        self.margin_ns / 1e6
++    }
++
++    /// Feed one presented frame's client `rendering` interval. Returns a report whenever a
++    /// window completes (whether or not it was steered).
++    pub fn observe(&mut self, rendering: Duration) -> Option<VsyncLockReport> {
++        if !self.enabled || !(self.interval_ns > 0.0) {
++            return None;
++        }
++        let r = rendering.as_nanos() as f64;
++        // Zero means the client could not match the frame; very long means a stall/reconnect.
++        if r <= 0.0 || r > 4.0 * self.interval_ns {
++            return None;
++        }
++        if self.settle > 0 {
++            self.settle -= 1;
++            return None;
++        }
++        let angle = TAU * r.rem_euclid(self.interval_ns) / self.interval_ns;
++        self.sum_cos += angle.cos();
++        self.sum_sin += angle.sin();
++        self.count += 1;
++        if self.count < WINDOW {
++            return None;
++        }
++        let n = self.count as f64;
++        let (c, s) = (self.sum_cos / n, self.sum_sin / n);
++        self.sum_cos = 0.0;
++        self.sum_sin = 0.0;
++        self.count = 0;
++
++        let concentration = (c * c + s * s).sqrt().min(1.0);
++        let mean = s.atan2(c).rem_euclid(TAU) * self.interval_ns / TAU;
++        let spread = if concentration > 1e-6 {
++            (-2.0 * concentration.ln()).max(0.0).sqrt() * self.interval_ns / TAU
++        } else {
++            self.interval_ns
++        };
++        let target = (self.margin_ns + SPREAD_FACTOR * spread).min(self.interval_ns * 0.5);
++        let error = wrap(mean - target, self.interval_ns);
++        let steering = concentration >= MIN_CONCENTRATION;
++        let mut correction = 0.0;
++        if steering {
++            if !self.acquired {
++                // One step to the target at session start (a single, longer host frame).
++                correction = error;
++                self.acquired = true;
++                self.integral_ns = 0.0;
++            } else {
++                let bound = self.interval_ns * MAX_INTEGRAL_FRACTION;
++                self.integral_ns = (self.integral_ns + KI * error).clamp(-bound, bound);
++                correction = (KP * error + self.integral_ns).clamp(-MAX_TRACKING_STEP_NS, MAX_TRACKING_STEP_NS);
++            }
++            self.pending_ns += correction;
++            self.settle = SETTLE;
++        }
++        self.updates += 1;
++        Some(VsyncLockReport {
++            phase_ms: mean / 1e6,
++            spread_ms: spread / 1e6,
++            target_ms: target / 1e6,
++            error_ms: error / 1e6,
++            correction_ms: correction / 1e6,
++            integral_ms: self.integral_ns / 1e6,
++            concentration,
++            acquired: self.acquired,
++            steering,
++            updates: self.updates,
++        })
++    }
++
++    /// Nanoseconds to move the virtual vsync now; positive delays it. Fractions carry over.
++    pub fn take_shift_ns(&mut self) -> i64 {
++        let whole = self.pending_ns.trunc();
++        self.pending_ns -= whole;
++        whole as i64
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    const T75: Duration = Duration::from_nanos(13_333_333);
++
++    #[test]
++    fn wrap_is_centred() {
++        assert_eq!(wrap(1.0, 10.0), 1.0);
++        assert_eq!(wrap(9.0, 10.0), -1.0);
++        assert_eq!(wrap(-1.0, 10.0), -1.0);
++        assert_eq!(wrap(5.0, 10.0), 5.0);
++    }
++
++    #[test]
++    fn disabled_and_invalid_samples_do_nothing() {
++        let mut off = VsyncLock::new(T75, false, DEFAULT_MARGIN_MS);
++        for _ in 0..500 {
++            assert!(off.observe(Duration::from_millis(9)).is_none());
++        }
++        assert_eq!(off.take_shift_ns(), 0);
++        let mut on = VsyncLock::new(T75, true, DEFAULT_MARGIN_MS);
++        for _ in 0..500 {
++            assert!(on.observe(Duration::ZERO).is_none());
++            assert!(on.observe(Duration::from_millis(80)).is_none());
++        }
++        assert_eq!(on.take_shift_ns(), 0);
++    }
++
++    #[test]
++    fn margin_is_bounded() {
++        assert_eq!(VsyncLock::new(T75, true, 0.0).margin_ms(), 0.5);
++        assert_eq!(VsyncLock::new(T75, true, 50.0).margin_ms(), 6.0);
++        assert_eq!(VsyncLock::new(T75, true, f64::NAN).margin_ms(), DEFAULT_MARGIN_MS);
++    }
++
++    #[test]
++    fn acquisition_steps_once_toward_target_then_tracks_gently() {
++        let mut lock = VsyncLock::new(T75, true, 2.5);
++        let mut report = None;
++        for _ in 0..WINDOW {
++            report = lock.observe(Duration::from_micros(6_000)).or(report);
++        }
++        let first = report.expect("window report");
++        assert!(first.acquired && first.steering);
++        // Waiting 6 ms against a 2.5 ms target: delay the host by ~3.5 ms in one step.
++        assert!((first.correction_ms - 3.5).abs() < 0.1, "{first:?}");
++        assert!((lock.take_shift_ns() as f64 / 1e6 - 3.5).abs() < 0.1);
++        // Afterwards, steps are bounded.
++        for _ in 0..SETTLE {
++            assert!(lock.observe(Duration::from_micros(6_000)).is_none());
++        }
++        let mut second = None;
++        for _ in 0..WINDOW {
++            second = lock.observe(Duration::from_micros(6_000)).or(second);
++        }
++        assert!(second.unwrap().correction_ms.abs() <= 0.5 + 1e-9);
++        // Beyond half a frame, the shorter way round is earlier: 10 ms wait on a 13.3 ms frame
++        // becomes a 2.5 ms wait one headset frame sooner.
++        let mut far = VsyncLock::new(T75, true, 2.5);
++        let mut report = None;
++        for _ in 0..WINDOW {
++            report = far.observe(Duration::from_micros(10_000)).or(report);
++        }
++        assert!((report.unwrap().correction_ms + 5.8333).abs() < 0.01, "{report:?}");
++    }
++
++    #[test]
++    fn frames_just_missing_pickup_are_moved_earlier_not_a_full_frame_later() {
++        // Mixture straddling pickup: some frames wait 0.3 ms, others just missed (13.0 ms).
++        let mut lock = VsyncLock::new(T75, true, 2.5);
++        let mut report = None;
++        for i in 0..WINDOW {
++            let r = if i % 2 == 0 { 300 } else { 13_000 };
++            report = lock.observe(Duration::from_micros(r)).or(report);
++        }
++        let report = report.unwrap();
++        assert!(report.phase_ms < 0.5 || report.phase_ms > 12.8, "{report:?}");
++        assert!(report.correction_ms < 0.0 && report.correction_ms > -6.0, "{report:?}");
++    }
++
++    #[test]
++    fn scattered_phase_is_reported_but_not_steered() {
++        let mut lock = VsyncLock::new(T75, true, 2.5);
++        let mut report = None;
++        for i in 0..WINDOW {
++            let r = (i as u64 * 13_333_333 / WINDOW as u64).max(1);
++            report = lock.observe(Duration::from_nanos(r)).or(report);
++        }
++        let report = report.unwrap();
++        assert!(!report.steering && report.correction_ms == 0.0, "{report:?}");
++        assert_eq!(lock.take_shift_ns(), 0);
++    }
++
++    // ----- closed-loop simulation of host virtual vsync, network and client pickup -----
++
++    struct Rng(u64);
++    impl Rng {
++        fn next(&mut self) -> f64 {
++            self.0 ^= self.0 << 13;
++            self.0 ^= self.0 >> 7;
++            self.0 ^= self.0 << 17;
++            (self.0 >> 11) as f64 / (1u64 << 53) as f64
++        }
++        fn gauss(&mut self) -> f64 {
++            let (u, v) = (self.next().max(1e-12), self.next());
++            (-2.0 * u.ln()).sqrt() * (TAU * v).cos()
++        }
++    }
++
++    struct Outcome {
++        repeats: usize,
++        drops: usize,
++        mean_wait_ms: f64,
++        presented: usize,
++        max_tracking_step_ms: f64,
++    }
++
++    /// Host vsync identical to `StatisticsManager::duration_until_next_vsync` with the shift
++    /// applied first. Returns presentation statistics for the last `measure_s` seconds.
++    fn simulate(lock_on: bool, initial_phase: f64, drift_ppm: f64, jitter_ms: f64, seed: u64) -> Outcome {
++        let host_t = 13_333_333i64;
++        let client_t = host_t as f64 * (1.0 + drift_ppm * 1e-6);
++        let latency = 31_000_000.0; // render + encode + network + decode, ns
++        let conversion = 800_000.0;
++        let catchup = 1_500_000.0; // client late-frame catch window
++        let total_s = 60.0;
++        let measure_s = 20.0;
++        let mut rng = Rng(seed);
++        let mut lock = VsyncLock::new(Duration::from_nanos(host_t as u64), lock_on, DEFAULT_MARGIN_MS);
++
++        // Host frames: generate presentation times.
++        let mut last_vsync: i64 = 0;
++        let mut now: i64 = 1;
++        let mut arrivals: Vec<f64> = Vec::new();
++        let mut shifts: Vec<(f64, f64)> = Vec::new(); // (time, step ms)
++        let mut pickup = initial_phase * client_t;
++        let mut next_frame = 0usize; // index into arrivals not yet considered
++        let mut shown: Option<usize> = None;
++        let (mut repeats, mut drops, mut presented) = (0usize, 0usize, 0usize);
++        let mut waits = Vec::new();
++        let end = (total_s * 1e9) as f64;
++        let measure_from = end - measure_s * 1e9;
++        loop {
++            // Produce host frames until they are ahead of the client pickup we will process.
++            while arrivals.last().map_or(true, |&a| a < pickup + 3.0 * client_t) {
++                let shift = lock.take_shift_ns();
++                if shift != 0 {
++                    shifts.push((now as f64, shift as f64 / 1e6));
++                }
++                last_vsync += shift;
++                while last_vsync + host_t < now {
++                    last_vsync += host_t;
++                }
++                let next = last_vsync + host_t;
++                now = next + 1_000;
++                last_vsync = next;
++                let jitter = (rng.gauss() * jitter_ms * 1e6).clamp(-4.0 * jitter_ms * 1e6, 4.0 * jitter_ms * 1e6);
++                arrivals.push(next as f64 + latency + jitter);
++            }
++            if pickup > end {
++                break;
++            }
++            // Client pickup: newest frame ready by pickup (+ bounded catch-up wait).
++            let mut selected: Option<(usize, f64)> = None;
++            for (i, &a) in arrivals.iter().enumerate().skip(next_frame) {
++                if a + conversion <= pickup {
++                    selected = Some((i, pickup));
++                } else if selected.is_none() && a + conversion <= pickup + catchup {
++                    selected = Some((i, a + conversion));
++                    break;
++                } else {
++                    break;
++                }
++            }
++            match selected {
++                Some((i, submit)) => {
++                    if pickup >= measure_from {
++                        drops += i - next_frame;
++                        presented += 1;
++                        waits.push((submit - arrivals[i]) / 1e6);
++                    }
++                    if let Some(report) = lock.observe(Duration::from_nanos((submit - arrivals[i]).max(1.0) as u64)) {
++                        let _ = report;
++                    }
++                    shown = Some(i);
++                    next_frame = i + 1;
++                }
++                None => {
++                    if shown.is_some() && pickup >= measure_from {
++                        repeats += 1;
++                    }
++                }
++            }
++            pickup += client_t;
++        }
++        let tracking_steps: Vec<f64> = shifts.iter().skip(1).map(|&(_, s)| s.abs()).collect();
++        Outcome {
++            repeats,
++            drops,
++            mean_wait_ms: waits.iter().sum::<f64>() / waits.len().max(1) as f64,
++            presented,
++            max_tracking_step_ms: tracking_steps.iter().cloned().fold(0.0, f64::max),
++        }
++    }
++
++    #[test]
++    fn closed_loop_locks_every_initial_phase_with_clock_drift() {
++        for (k, phase) in [0.0, 0.1, 0.25, 0.4, 0.5, 0.6, 0.75, 0.9, 0.97].iter().enumerate() {
++            for drift in [-300.0, 0.0, 250.0] {
++                let out = simulate(true, *phase, drift, 0.6, 0x9E3779B97F4A7C15 ^ (k as u64 + 1));
++                let total = out.presented + out.repeats;
++                let glitch = (out.repeats + out.drops) as f64 / total as f64;
++                assert!(glitch < 0.01, "phase {phase} drift {drift}: repeats {} drops {} of {total}", out.repeats, out.drops);
++                assert!(out.mean_wait_ms > 1.0 && out.mean_wait_ms < 6.0,
++                        "phase {phase} drift {drift}: mean wait {:.2} ms", out.mean_wait_ms);
++                assert!(out.max_tracking_step_ms <= 0.5 + 1e-6, "step {:.3}", out.max_tracking_step_ms);
++            }
++        }
++    }
++
++    #[test]
++    fn free_running_baseline_wastes_time_or_glitches() {
++        // The same conditions without the lock: average wait is phase-dependent (up to a frame)
++        // and drift makes the boundary crossing periodic.
++        let mut worst_wait: f64 = 0.0;
++        for (k, phase) in [0.1, 0.4, 0.7].iter().enumerate() {
++            let out = simulate(false, *phase, 0.0, 0.6, 0xD1B54A32D192ED03 ^ (k as u64 + 7));
++            worst_wait = worst_wait.max(out.mean_wait_ms);
++        }
++        assert!(worst_wait > 6.0, "baseline worst mean wait {worst_wait:.2} ms");
++        let locked = simulate(true, 0.4, 0.0, 0.6, 0xD1B54A32D192ED03 ^ 8);
++        assert!(locked.mean_wait_ms < worst_wait - 3.0);
++    }
++
++    #[test]
++    fn higher_jitter_keeps_a_larger_margin_and_still_avoids_glitches() {
++        let out = simulate(true, 0.3, 120.0, 1.5, 0xA0761D6478BD642F);
++        let total = out.presented + out.repeats;
++        assert!(((out.repeats + out.drops) as f64 / total as f64) < 0.03,
++                "repeats {} drops {} of {total}", out.repeats, out.drops);
++        assert!(out.mean_wait_ms > 2.5, "mean wait {:.2}", out.mean_wait_ms);
++    }
++}
+diff --git a/alvr/server_core/src/lib.rs b/alvr/server_core/src/lib.rs
+index 498fd657..95438807 100644
+--- a/alvr/server_core/src/lib.rs
++++ b/alvr/server_core/src/lib.rs
+@@ -2,6 +2,7 @@ mod bitrate;
+ mod c_api;
+ mod connection;
+ mod hand_gestures;
++mod vrostbridge_vsync;
+ mod haptics;
+ mod input_mapping;
+ mod logging_backend;
+diff --git a/alvr/server_core/src/statistics.rs b/alvr/server_core/src/statistics.rs
+index 6adaa01f..fc2b1798 100644
+--- a/alvr/server_core/src/statistics.rs
++++ b/alvr/server_core/src/statistics.rs
+@@ -1,4 +1,5 @@
+-use alvr_common::{HEAD_ID, SlidingWindowAverage};
++use crate::vrostbridge_vsync::{DEFAULT_MARGIN_MS, VsyncLock};
++use alvr_common::{HEAD_ID, SlidingWindowAverage, info};
+ use alvr_events::{BitrateDirectives, EventType, GraphStatistics, StatisticsSummary};
+ use alvr_packets::ClientStatistics;
+ use std::{
+@@ -56,6 +57,9 @@ pub struct StatisticsManager {
+     last_vsync_time: Instant,
+     frame_interval: Duration,
+     last_throughput_directives: BitrateDirectives,
++    // VROSTBridge: phase-lock the virtual vsync to the client's display (see vrostbridge_vsync).
++    vsync_lock: VsyncLock,
++    last_vsync_lock_log: Option<Instant>,
+ }
+ 
+ impl StatisticsManager {
+@@ -86,6 +90,21 @@ impl StatisticsManager {
+             last_vsync_time: Instant::now(),
+             frame_interval: nominal_server_frame_interval,
+             last_throughput_directives: BitrateDirectives::default(),
++            vsync_lock: VsyncLock::new(nominal_server_frame_interval, false, DEFAULT_MARGIN_MS),
++            last_vsync_lock_log: None,
++        }
++    }
++
++    /// VROSTBridge: enable the frame-timing lock for this connection (off by default).
++    pub fn configure_vsync_lock(&mut self, enabled: bool, margin_ms: f64) {
++        self.vsync_lock = VsyncLock::new(self.frame_interval, enabled, margin_ms);
++        self.last_vsync_lock_log = None;
++        if enabled {
++            info!(
++                "VROST_VSYNC_LOCK enabled=1 interval_us={} margin_ms={:.2}",
++                self.frame_interval.as_micros(),
++                self.vsync_lock.margin_ms()
++            );
+         }
+     }
+ 
+@@ -185,6 +204,31 @@ impl StatisticsManager {
+         {
+             frame.total_pipeline_latency = client_stats.total_pipeline_latency;
+ 
++            if let Some(report) = self.vsync_lock.observe(client_stats.rendering) {
++                let now = Instant::now();
++                // Acquisition, every unsteered window and at most one tracking line per 5 s.
++                if report.updates == 1
++                    || !report.steering
++                    || self
++                        .last_vsync_lock_log
++                        .is_none_or(|last| now.saturating_duration_since(last) >= Duration::from_secs(5))
++                {
++                    self.last_vsync_lock_log = Some(now);
++                    info!(
++                        "VROST_VSYNC_LOCK phase_ms={:.3} spread_ms={:.3} target_ms={:.3} error_ms={:.3} correction_ms={:.3} integral_ms={:.4} concentration={:.3} steering={} updates={}",
++                        report.phase_ms,
++                        report.spread_ms,
++                        report.target_ms,
++                        report.error_ms,
++                        report.correction_ms,
++                        report.integral_ms,
++                        report.concentration,
++                        report.steering as u8,
++                        report.updates
++                    );
++                }
++            }
++
+             let game_time_latency = frame
+                 .frame_present
+                 .saturating_duration_since(frame.tracking_received);
+@@ -300,6 +344,19 @@ impl StatisticsManager {
+     pub fn duration_until_next_vsync(&mut self) -> Duration {
+         let now = Instant::now();
+ 
++        // VROSTBridge frame-timing lock: positive shifts delay the virtual vsync.
++        let shift = self.vsync_lock.take_shift_ns();
++        if shift > 0 {
++            self.last_vsync_time += Duration::from_nanos(shift as u64);
++        } else if shift < 0 {
++            if let Some(earlier) = self
++                .last_vsync_time
++                .checked_sub(Duration::from_nanos(shift.unsigned_abs()))
++            {
++                self.last_vsync_time = earlier;
++            }
++        }
++
+         // update the last vsync if it's too old
+         while self.last_vsync_time + self.frame_interval < now {
+             self.last_vsync_time += self.frame_interval;

@@ -1,0 +1,951 @@
+diff --git a/alvr/audio/Cargo.toml b/alvr/audio/Cargo.toml
+index 3324727f..f34cb8e9 100644
+--- a/alvr/audio/Cargo.toml
++++ b/alvr/audio/Cargo.toml
+@@ -24,6 +24,7 @@ windows = { version = "0.62", features = [
+     "Win32_System_Com_StructuredStorage",
+     "Win32_System_Variant",
+     "Win32_UI_Shell_PropertiesSystem",
++    "Win32_System_Threading",
+ ] }
+ 
+ [target.'cfg(target_os = "linux")'.dependencies]
+diff --git a/alvr/audio/src/lib.rs b/alvr/audio/src/lib.rs
+index cff224f6..cb4cb112 100644
+--- a/alvr/audio/src/lib.rs
++++ b/alvr/audio/src/lib.rs
+@@ -7,6 +7,12 @@ pub mod linux;
+ #[cfg(windows)]
+ pub use crate::windows::*;
+ 
++// VROSTBridge (patch 0022): game-audio playback for the desktop clients.
++mod vrostbridge_playback;
++#[cfg(not(target_os = "android"))]
++pub use vrostbridge_playback::play_game_audio_loop;
++pub use vrostbridge_playback::{JitterPlayer, PlaybackSnapshot, playback_snapshot};
++
+ use alvr_common::{
+     ConnectionError, ToAny,
+     anyhow::{self, Context, Result, bail},
+diff --git a/alvr/audio/src/vrostbridge_playback.rs b/alvr/audio/src/vrostbridge_playback.rs
+new file mode 100644
+index 00000000..50c30fac
+--- /dev/null
++++ b/alvr/audio/src/vrostbridge_playback.rs
+@@ -0,0 +1,862 @@
++//! VROSTBridge: game-audio playback for the desktop clients (Linux and Windows).
++//!
++//! The pinned playback had three weaknesses that showed up as audio that "lags, breaks up and
++//! crackles":
++//! - It opened the output with cpal's default configuration. Through PipeWire's ALSA plugin that
++//!   is 44.1 kHz, while the host sends 48 kHz (its own device's rate), and rodio converted the rate
++//!   by dropping samples without filtering, which folds high frequencies back as grit.
++//! - Its jitter handling cleared the buffer on every lost packet, faded to silence whenever the
++//!   buffer ran dry and then waited for it to refill, and let the buffer grow to twice its target
++//!   before skipping back. The host's and client's sound clocks never run at exactly the same
++//!   speed, so the buffer drifted between those two edges: a growing delay, then a skip.
++//! - The output buffer was cpal's default (100 ms through ALSA), on top of the jitter buffer.
++//!
++//! This player opens the device at the stream's own rate when the device allows it (PipeWire
++//! does; then nothing is resampled here) with a 40 ms device buffer, and otherwise converts the
++//! rate with a windowed-sinc filter. A small, continuous speed correction (at most ±0.5 %, too
++//! small to hear) keeps the buffer at its target, so clock drift never reaches an edge. A lost
++//! packet is bridged with a short cross-fade instead of emptying the buffer. When the buffer does
++//! run dry, the sound fades out, the target grows by 10 ms (up to 150 ms) and shrinks back after
++//! a quiet minute. What happens is counted for the client's logs and reports.
++
++use alvr_common::parking_lot::Mutex;
++use std::{
++    collections::VecDeque,
++    sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering},
++    time::{Duration, Instant},
++};
++
++/// Filter taps on each side of the interpolation point, and phases in the kernel table.
++const HALF_TAPS: usize = 24;
++const PHASES: usize = 256;
++/// Fades: when the buffer runs dry, when it starts again, and across a lost packet.
++const FADE_OUT_MS: f64 = 3.0;
++const FADE_IN_MS: f64 = 5.0;
++const CROSSFADE_MS: f64 = 2.5;
++/// The target grows by this much after each underrun, up to MAX_TARGET_MS, and shrinks by
++/// TARGET_STEP_DOWN_MS after every TARGET_RELAX_S without one, down to the configured target.
++const TARGET_STEP_UP_MS: f64 = 10.0;
++const TARGET_STEP_DOWN_MS: f64 = 5.0;
++const TARGET_RELAX_S: f64 = 60.0;
++const MAX_TARGET_MS: f64 = 150.0;
++/// A silence this long between packets is the host pausing its sound, not a late packet.
++const PAUSE_GAP: Duration = Duration::from_millis(300);
++/// Speed correction: proportional to the (smoothed) distance from the target, at most this much.
++const MAX_CORRECTION: f64 = 0.005;
++/// Seconds of buffer error per unit of correction (10 ms off target → 0.33 %).
++const CORRECTION_GAIN: f64 = 1.0 / 3.0;
++const DEADBAND_MS: f64 = 1.5;
++const SMOOTHING_S: f64 = 1.0;
++/// Beyond the target by more than this (or the target itself, whichever is larger), skip back.
++const TRIM_EXCESS_MS: f64 = 100.0;
++/// Never queue more than this much.
++const MAX_QUEUE_MS: f64 = 1000.0;
++/// Device buffer asked for: short enough to add little delay, long enough for a busy desktop.
++pub const DEVICE_BUFFER_MS: u32 = 40;
++
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++enum State {
++    Buffering,
++    Playing,
++}
++
++/// Interleaved stereo in, any channel count out, any output rate.
++pub struct JitterPlayer {
++    in_rate: f64,
++    out_rate: f64,
++    base_ratio: f64,
++    kernel: Vec<f32>,
++    /// Interleaved stereo; the first HALF_TAPS frames before `pos` are history for the filter.
++    queue: VecDeque<f32>,
++    pos: f64,
++    state: State,
++    gain: f64,
++    gain_step: f64,
++    fade_out: Vec<f32>,
++    fade_out_left: usize,
++    fade_out_len: usize,
++    base_target_ms: f64,
++    target_ms: f64,
++    smoothed_ms: Option<f64>,
++    correction: f64,
++    last_push: Option<Instant>,
++    last_underrun: Option<Instant>,
++    relaxed_at: Option<Instant>,
++    pending_underrun: bool,
++    pub stats: Counters,
++}
++
++#[derive(Clone, Copy, Debug, Default, PartialEq)]
++pub struct Counters {
++    pub packets: u64,
++    pub losses: u64,
++    pub underruns: u64,
++    pub pauses: u64,
++    pub trims: u64,
++}
++
++fn kernel(cutoff: f64) -> Vec<f32> {
++    // Blackman-Harris windowed sinc, `cutoff` relative to the input Nyquist frequency.
++    let taps = 2 * HALF_TAPS;
++    let mut table = vec![0.0; (PHASES + 1) * taps];
++    for phase in 0..=PHASES {
++        let frac = phase as f64 / PHASES as f64;
++        let mut sum = 0.0;
++        for tap in 0..taps {
++            // Distance from the interpolation point to input frame (floor - HALF_TAPS + 1 + tap).
++            let x = tap as f64 - (HALF_TAPS as f64 - 1.0) - frac;
++            let t = (x + HALF_TAPS as f64) / (2.0 * HALF_TAPS as f64);
++            let window = if (0.0..=1.0).contains(&t) {
++                let a = 2.0 * std::f64::consts::PI * t;
++                0.35875 - 0.48829 * a.cos() + 0.14128 * (2.0 * a).cos() - 0.01168 * (3.0 * a).cos()
++            } else {
++                0.0
++            };
++            let arg = std::f64::consts::PI * cutoff * x;
++            let sinc = if arg.abs() < 1e-9 { 1.0 } else { arg.sin() / arg };
++            let value = cutoff * sinc * window;
++            table[phase * taps + tap] = value as f32;
++            sum += value;
++        }
++        // Unity gain at DC for every phase.
++        for tap in 0..taps {
++            table[phase * taps + tap] /= sum as f32;
++        }
++    }
++    table
++}
++
++impl JitterPlayer {
++    pub fn new(in_rate: u32, out_rate: u32, target_ms: u32) -> Self {
++        let in_rate = f64::from(in_rate.max(8000));
++        let out_rate = f64::from(out_rate.max(8000));
++        // Below the output's Nyquist frequency when the rate goes down; a little headroom always.
++        let cutoff = (out_rate / in_rate).min(1.0) * 0.97;
++        let base_target_ms = f64::from(target_ms.clamp(20, MAX_TARGET_MS as u32));
++        let mut player = Self {
++            in_rate,
++            out_rate,
++            base_ratio: in_rate / out_rate,
++            kernel: kernel(cutoff),
++            queue: VecDeque::new(),
++            pos: HALF_TAPS as f64,
++            state: State::Buffering,
++            gain: 0.0,
++            gain_step: 0.0,
++            fade_out: vec![0.0; 2],
++            fade_out_left: 0,
++            fade_out_len: 1,
++            base_target_ms,
++            target_ms: base_target_ms,
++            smoothed_ms: None,
++            correction: 0.0,
++            last_push: None,
++            last_underrun: None,
++            relaxed_at: None,
++            pending_underrun: false,
++            stats: Counters::default(),
++        };
++        player.queue.extend(std::iter::repeat_n(0.0, HALF_TAPS * 2));
++        player
++    }
++
++    fn frames(&self) -> usize {
++        self.queue.len() / 2
++    }
++
++    /// Frames not yet played, at the input rate.
++    fn buffered_frames(&self) -> f64 {
++        (self.frames() as f64 - self.pos).max(0.0)
++    }
++
++    pub fn buffered_ms(&self) -> f64 {
++        self.buffered_frames() * 1000.0 / self.in_rate
++    }
++
++    pub fn target_ms(&self) -> f64 {
++        self.target_ms
++    }
++
++    pub fn correction(&self) -> f64 {
++        self.correction
++    }
++
++    pub fn playing(&self) -> bool {
++        self.state == State::Playing
++    }
++
++    /// A packet of interleaved stereo samples. `lost_before`: packets went missing before it.
++    pub fn push(&mut self, samples: &[f32], lost_before: bool, now: Instant) {
++        let frames = samples.len() / 2;
++        if frames == 0 {
++            return;
++        }
++        self.stats.packets += 1;
++
++        if let Some(last) = self.last_push {
++            let gap = now.saturating_duration_since(last);
++            if self.pending_underrun {
++                // The buffer ran dry before this packet: a pause of the host's sound, or late packets.
++                self.pending_underrun = false;
++                if gap >= PAUSE_GAP {
++                    self.stats.pauses += 1;
++                } else {
++                    self.stats.underruns += 1;
++                    self.last_underrun = Some(now);
++                    self.relaxed_at = Some(now);
++                    self.target_ms = (self.target_ms + TARGET_STEP_UP_MS).min(MAX_TARGET_MS);
++                }
++            }
++        }
++        self.last_push = Some(now);
++
++        let crossfade = ((CROSSFADE_MS * self.in_rate / 1000.0) as usize).max(1);
++        let unplayed = self.frames().saturating_sub(self.pos.ceil() as usize + HALF_TAPS);
++        if lost_before {
++            self.stats.losses += 1;
++        }
++        if lost_before && self.state == State::Playing && unplayed > 0 {
++            // Bridge the missing piece: the queued end fades out while the new start fades in.
++            let overlap = crossfade.min(unplayed).min(frames);
++            let start = self.frames() - overlap;
++            for f in 0..overlap {
++                let w = (f as f64 + 0.5) / overlap as f64;
++                for c in 0..2 {
++                    let index = (start + f) * 2 + c;
++                    self.queue[index] = (f64::from(self.queue[index]) * (1.0 - w)
++                        + f64::from(samples[f * 2 + c]) * w) as f32;
++                }
++            }
++            self.queue.extend(&samples[overlap * 2..frames * 2]);
++        } else {
++            self.queue.extend(&samples[..frames * 2]);
++        }
++
++        // Far too much queued (a burst after a stall): keep the newest second.
++        let max_frames = (MAX_QUEUE_MS * self.in_rate / 1000.0) as usize;
++        if self.buffered_frames() as usize > max_frames {
++            let drop = self.buffered_frames() as usize - max_frames;
++            self.skip(drop);
++            self.stats.trims += 1;
++        }
++    }
++
++    /// Drops `frames` unplayed frames after the current position, cross-fading over the cut.
++    fn skip(&mut self, frames: usize) {
++        let base = self.pos.floor() as usize;
++        let available = self.frames().saturating_sub(base + HALF_TAPS);
++        let frames = frames.min(available);
++        if frames == 0 {
++            return;
++        }
++        let crossfade = ((CROSSFADE_MS * self.in_rate / 1000.0) as usize)
++            .max(1)
++            .min(available - frames);
++        for f in 0..crossfade {
++            let w = (f as f64 + 0.5) / crossfade as f64;
++            for c in 0..2 {
++                let old = f64::from(self.queue[(base + f) * 2 + c]);
++                let new_index = (base + frames + f) * 2 + c;
++                self.queue[new_index] = (old * (1.0 - w) + f64::from(self.queue[new_index]) * w) as f32;
++            }
++        }
++        self.queue.drain(base * 2..(base + frames) * 2);
++    }
++
++    fn interpolate(&self, at: f64) -> [f32; 2] {
++        let base = at.floor();
++        let frac = at - base;
++        let index = base as usize;
++        let phase = frac * PHASES as f64;
++        let p0 = (phase.floor() as usize).min(PHASES - 1);
++        let w = (phase - p0 as f64) as f32;
++        let taps = 2 * HALF_TAPS;
++        let k0 = &self.kernel[p0 * taps..][..taps];
++        let k1 = &self.kernel[(p0 + 1) * taps..][..taps];
++        let first = index + 1 - HALF_TAPS;
++        let (mut left, mut right) = (0.0f32, 0.0f32);
++        for tap in 0..taps {
++            let k = k0[tap] + (k1[tap] - k0[tap]) * w;
++            let frame = (first + tap) * 2;
++            left += k * self.queue[frame];
++            right += k * self.queue[frame + 1];
++        }
++        [left, right]
++    }
++
++    fn update_target(&mut self, now: Instant) {
++        if self.target_ms > self.base_target_ms
++            && let Some(at) = self.relaxed_at
++            && now.saturating_duration_since(at).as_secs_f64() >= TARGET_RELAX_S
++        {
++            self.target_ms = (self.target_ms - TARGET_STEP_DOWN_MS).max(self.base_target_ms);
++            self.relaxed_at = Some(now);
++        }
++    }
++
++    /// Fills `out` (interleaved, `channels` per frame) with the next sound, at the output rate.
++    pub fn fill(&mut self, out: &mut [f32], channels: usize, now: Instant) {
++        let channels = channels.max(1);
++        let frames = out.len() / channels;
++        self.update_target(now);
++
++        // Smoothed buffer level and the speed correction that pulls it to the target.
++        let period_s = frames as f64 / self.out_rate;
++        let level = self.buffered_ms();
++        let alpha = (period_s / SMOOTHING_S).min(1.0);
++        let smoothed = match self.smoothed_ms {
++            Some(previous) => previous + alpha * (level - previous),
++            None => level,
++        };
++        self.smoothed_ms = Some(smoothed);
++
++        if self.state == State::Buffering && level >= self.target_ms {
++            self.state = State::Playing;
++            self.gain = 0.0;
++            self.gain_step = 1.0 / (FADE_IN_MS * self.out_rate / 1000.0).max(1.0);
++            self.smoothed_ms = Some(level);
++            self.correction = 0.0;
++        }
++
++        if self.state == State::Playing {
++            let excess = smoothed - self.target_ms;
++            if level - self.target_ms > TRIM_EXCESS_MS.max(self.target_ms) {
++                // A burst far beyond the target: skip to it at once rather than speed up for long.
++                let drop = ((level - self.target_ms) * self.in_rate / 1000.0) as usize;
++                self.skip(drop);
++                self.stats.trims += 1;
++                self.smoothed_ms = Some(self.buffered_ms());
++                self.correction = 0.0;
++            } else if excess.abs() <= DEADBAND_MS {
++                self.correction *= 0.98;
++            } else {
++                self.correction = (excess / 1000.0 * CORRECTION_GAIN).clamp(-MAX_CORRECTION, MAX_CORRECTION);
++            }
++        }
++
++        let step = self.base_ratio * (1.0 + self.correction);
++        for frame in 0..frames {
++            let out_frame = &mut out[frame * channels..][..channels];
++            let mut sample = [0.0f32; 2];
++            if self.state == State::Playing {
++                if self.pos + HALF_TAPS as f64 + 1.0 <= self.frames() as f64 {
++                    sample = self.interpolate(self.pos);
++                    self.pos += step;
++                    if self.gain < 1.0 {
++                        self.gain = (self.gain + self.gain_step).min(1.0);
++                        sample[0] *= self.gain as f32;
++                        sample[1] *= self.gain as f32;
++                    }
++                    self.fade_out.copy_from_slice(&sample);
++                } else {
++                    // Ran dry: fade the last sound out and wait for the buffer to fill again.
++                    self.state = State::Buffering;
++                    self.pending_underrun = true;
++                    self.fade_out_len = ((FADE_OUT_MS * self.out_rate / 1000.0) as usize).max(1);
++                    self.fade_out_left = self.fade_out_len;
++                }
++            }
++            if self.state == State::Buffering && self.fade_out_left > 0 {
++                let w = self.fade_out_left as f32 / self.fade_out_len as f32;
++                sample = [self.fade_out[0] * w, self.fade_out[1] * w];
++                self.fade_out_left -= 1;
++            }
++            match channels {
++                1 => out_frame[0] = 0.5 * (sample[0] + sample[1]),
++                _ => {
++                    out_frame[0] = sample[0];
++                    out_frame[1] = sample[1];
++                    for extra in &mut out_frame[2..] {
++                        *extra = 0.0;
++                    }
++                }
++            }
++        }
++        for extra in &mut out[frames * channels..] {
++            *extra = 0.0;
++        }
++
++        // Keep only the filter's history before the play position.
++        let consumed = (self.pos.floor() as usize).saturating_sub(HALF_TAPS);
++        if consumed > 0 {
++            self.queue.drain(..consumed * 2);
++            self.pos -= consumed as f64;
++        }
++    }
++}
++
++/// What the current (or last) playback reports, shared with the client's logs.
++#[derive(Clone, Copy, Debug, Default, PartialEq)]
++pub struct PlaybackSnapshot {
++    pub packets: u64,
++    pub losses: u64,
++    pub underruns: u64,
++    pub pauses: u64,
++    pub trims: u64,
++    pub active: u32,
++    pub stream_rate: u32,
++    pub device_rate: u32,
++    pub device_channels: u32,
++    pub device_buffer_frames: u32,
++    pub buffer_ms: f32,
++    pub target_ms: f32,
++    pub correction_ppm: f32,
++}
++
++struct Shared {
++    packets: AtomicU64,
++    losses: AtomicU64,
++    underruns: AtomicU64,
++    pauses: AtomicU64,
++    trims: AtomicU64,
++    active: AtomicBool,
++    stream_rate: AtomicU32,
++    device_rate: AtomicU32,
++    device_channels: AtomicU32,
++    device_buffer_frames: AtomicU32,
++    buffer_ms: AtomicU32,
++    target_ms: AtomicU32,
++    correction_ppm: AtomicU32,
++}
++
++static SHARED: Shared = Shared {
++    packets: AtomicU64::new(0),
++    losses: AtomicU64::new(0),
++    underruns: AtomicU64::new(0),
++    pauses: AtomicU64::new(0),
++    trims: AtomicU64::new(0),
++    active: AtomicBool::new(false),
++    stream_rate: AtomicU32::new(0),
++    device_rate: AtomicU32::new(0),
++    device_channels: AtomicU32::new(0),
++    device_buffer_frames: AtomicU32::new(0),
++    buffer_ms: AtomicU32::new(0),
++    target_ms: AtomicU32::new(0),
++    correction_ppm: AtomicU32::new(0),
++};
++
++/// Totals since the client started (counters) and the current state (the rest).
++pub fn playback_snapshot() -> PlaybackSnapshot {
++    let s = &SHARED;
++    PlaybackSnapshot {
++        packets: s.packets.load(Ordering::Relaxed),
++        losses: s.losses.load(Ordering::Relaxed),
++        underruns: s.underruns.load(Ordering::Relaxed),
++        pauses: s.pauses.load(Ordering::Relaxed),
++        trims: s.trims.load(Ordering::Relaxed),
++        active: u32::from(s.active.load(Ordering::Relaxed)),
++        stream_rate: s.stream_rate.load(Ordering::Relaxed),
++        device_rate: s.device_rate.load(Ordering::Relaxed),
++        device_channels: s.device_channels.load(Ordering::Relaxed),
++        device_buffer_frames: s.device_buffer_frames.load(Ordering::Relaxed),
++        buffer_ms: f32::from_bits(s.buffer_ms.load(Ordering::Relaxed)),
++        target_ms: f32::from_bits(s.target_ms.load(Ordering::Relaxed)),
++        correction_ppm: f32::from_bits(s.correction_ppm.load(Ordering::Relaxed)),
++    }
++}
++
++/// Publishes what changed since `reported` (counters add up across playback restarts).
++fn publish(player: &JitterPlayer, reported: &mut Counters) {
++    let s = &SHARED;
++    let now = player.stats;
++    s.packets.fetch_add(now.packets - reported.packets, Ordering::Relaxed);
++    s.losses.fetch_add(now.losses - reported.losses, Ordering::Relaxed);
++    s.underruns.fetch_add(now.underruns - reported.underruns, Ordering::Relaxed);
++    s.pauses.fetch_add(now.pauses - reported.pauses, Ordering::Relaxed);
++    s.trims.fetch_add(now.trims - reported.trims, Ordering::Relaxed);
++    *reported = now;
++    s.buffer_ms.store((player.buffered_ms() as f32).to_bits(), Ordering::Relaxed);
++    s.target_ms.store((player.target_ms() as f32).to_bits(), Ordering::Relaxed);
++    s.correction_ppm.store(((player.correction() * 1e6) as f32).to_bits(), Ordering::Relaxed);
++}
++
++fn publish_device(active: bool, stream_rate: u32, device_rate: u32, channels: u32, buffer_frames: u32) {
++    let s = &SHARED;
++    s.active.store(active, Ordering::Relaxed);
++    s.stream_rate.store(stream_rate, Ordering::Relaxed);
++    s.device_rate.store(device_rate, Ordering::Relaxed);
++    s.device_channels.store(channels, Ordering::Relaxed);
++    s.device_buffer_frames.store(buffer_frames, Ordering::Relaxed);
++}
++
++#[cfg(not(target_os = "android"))]
++mod device {
++    use super::*;
++    use alvr_common::{
++        ConnectionError, info,
++        anyhow::{Context, Result, bail},
++    };
++    use alvr_session::AudioBufferingConfig;
++    use alvr_sockets::StreamReceiver;
++    use cpal::{
++        BufferSize, Device, FromSample, Sample, SampleFormat, SizedSample, StreamConfig,
++        SupportedBufferSize,
++        traits::{DeviceTrait, StreamTrait},
++    };
++    use std::sync::Arc;
++
++    struct Choice {
++        config: StreamConfig,
++        format: SampleFormat,
++    }
++
++    /// The stream's own rate in stereo when the device offers it (PipeWire, PulseAudio), else the
++    /// device's default (Windows' shared mix format), always with a short fixed buffer if possible.
++    fn choose(device: &Device, stream_rate: u32) -> Result<Choice> {
++        let wanted = cpal::SampleRate(stream_rate);
++        let ranges: Vec<_> = device.supported_output_configs().map(|r| r.collect()).unwrap_or_default();
++        let matching = |format: Option<SampleFormat>| {
++            ranges.iter().find(|r| {
++                r.channels() == 2
++                    && r.min_sample_rate() <= wanted
++                    && wanted <= r.max_sample_rate()
++                    && format.is_none_or(|f| r.sample_format() == f)
++            })
++        };
++        let supported = match matching(Some(SampleFormat::F32)).or_else(|| matching(None)) {
++            Some(range) => range.clone().with_sample_rate(wanted),
++            None => device.default_output_config().context("No output configuration")?,
++        };
++        let rate = supported.sample_rate().0;
++        let frames = rate * DEVICE_BUFFER_MS / 1000;
++        let buffer_size = match supported.buffer_size() {
++            SupportedBufferSize::Range { min, max } => BufferSize::Fixed(frames.clamp(*min, (*max).max(*min))),
++            SupportedBufferSize::Unknown => BufferSize::Fixed(frames),
++        };
++        Ok(Choice {
++            config: StreamConfig { channels: supported.channels(), sample_rate: supported.sample_rate(), buffer_size },
++            format: supported.sample_format(),
++        })
++    }
++
++    #[cfg(windows)]
++    fn raise_priority() {
++        // Multimedia class scheduling for the audio callback, as Windows' own audio clients use.
++        let mut task = 0u32;
++        unsafe {
++            windows::Win32::System::Threading::AvSetMmThreadCharacteristicsW(
++                windows::core::w!("Pro Audio"),
++                &mut task,
++            )
++            .ok();
++        }
++    }
++
++    #[cfg(not(windows))]
++    fn raise_priority() {}
++
++    fn build<T>(
++        device: &Device,
++        config: &StreamConfig,
++        player: Arc<Mutex<JitterPlayer>>,
++        failed: Arc<AtomicBool>,
++    ) -> Result<cpal::Stream>
++    where
++        T: SizedSample + FromSample<f32>,
++    {
++        let channels = usize::from(config.channels);
++        let mut scratch = Vec::<f32>::new();
++        let mut first = true;
++        let stream = device.build_output_stream::<T, _, _>(
++            config,
++            move |data: &mut [T], _| {
++                if first {
++                    first = false;
++                    raise_priority();
++                }
++                scratch.resize(data.len(), 0.0);
++                player.lock().fill(&mut scratch, channels, Instant::now());
++                for (target, value) in data.iter_mut().zip(&scratch) {
++                    *target = T::from_sample(*value);
++                }
++            },
++            move |e| {
++                info!("Audio output error: {e}");
++                failed.store(true, Ordering::Relaxed);
++            },
++            None,
++        )?;
++        Ok(stream)
++    }
++
++    fn open(
++        device: &Device,
++        choice: &Choice,
++        player: &Arc<Mutex<JitterPlayer>>,
++        failed: &Arc<AtomicBool>,
++    ) -> Result<cpal::Stream> {
++        let (p, f) = (Arc::clone(player), Arc::clone(failed));
++        Ok(match choice.format {
++            SampleFormat::F32 => build::<f32>(device, &choice.config, p, f)?,
++            SampleFormat::I16 => build::<i16>(device, &choice.config, p, f)?,
++            SampleFormat::I32 => build::<i32>(device, &choice.config, p, f)?,
++            SampleFormat::U16 => build::<u16>(device, &choice.config, p, f)?,
++            SampleFormat::F64 => build::<f64>(device, &choice.config, p, f)?,
++            SampleFormat::I8 => build::<i8>(device, &choice.config, p, f)?,
++            SampleFormat::U8 => build::<u8>(device, &choice.config, p, f)?,
++            other => bail!("Unsupported output sample format {other:?}"),
++        })
++    }
++
++    pub fn play_game_audio_loop(
++        is_running: impl Fn() -> bool,
++        device: &Device,
++        channels_count: u16,
++        sample_rate: u32,
++        config: AudioBufferingConfig,
++        receiver: &mut StreamReceiver<()>,
++    ) -> Result<()> {
++        if channels_count != 2 || sample_rate < 8000 {
++            bail!("Unsupported game audio format: {channels_count} channels at {sample_rate} Hz");
++        }
++        let mut choice = choose(device, sample_rate)?;
++        let device_rate = choice.config.sample_rate.0;
++        let player = Arc::new(Mutex::new(JitterPlayer::new(
++            sample_rate,
++            device_rate,
++            config.average_buffering_ms as u32,
++        )));
++        let failed = Arc::new(AtomicBool::new(false));
++        let stream = match open(device, &choice, &player, &failed) {
++            Ok(stream) => stream,
++            Err(e) => {
++                info!("Audio output with a {DEVICE_BUFFER_MS} ms buffer failed ({e}); using the device's default");
++                choice.config.buffer_size = BufferSize::Default;
++                open(device, &choice, &player, &failed)?
++            }
++        };
++        stream.play()?;
++        let buffer_frames = match choice.config.buffer_size {
++            BufferSize::Fixed(frames) => frames,
++            BufferSize::Default => 0,
++        };
++        info!(
++            "VROST_AUDIO_OUTPUT device=\"{}\" stream_hz={sample_rate} device_hz={device_rate} channels={} format={:?} buffer_frames={buffer_frames} target_ms={}",
++            device.name().unwrap_or_default(),
++            choice.config.channels,
++            choice.format,
++            config.average_buffering_ms,
++        );
++        publish_device(true, sample_rate, device_rate, u32::from(choice.config.channels), buffer_frames);
++
++        let mut reported = Counters::default();
++        let mut samples = Vec::<f32>::new();
++        let result = loop {
++            if !is_running() || failed.load(Ordering::Relaxed) {
++                break Ok(());
++            }
++            match receiver.recv(Duration::from_millis(100)) {
++                Ok(data) => {
++                    let lost = data.had_packet_loss();
++                    let (_, packet) = match data.get() {
++                        Ok(value) => value,
++                        Err(e) => break Err(e),
++                    };
++                    samples.clear();
++                    samples.extend(
++                        packet
++                            .chunks_exact(2)
++                            .map(|c| i16::from_ne_bytes([c[0], c[1]]).to_sample::<f32>()),
++                    );
++                    let mut locked = player.lock();
++                    locked.push(&samples, lost, Instant::now());
++                    publish(&locked, &mut reported);
++                }
++                Err(ConnectionError::TryAgain(_)) => publish(&player.lock(), &mut reported),
++                Err(ConnectionError::Other(e)) => break Err(e),
++            }
++        };
++        publish_device(false, sample_rate, device_rate, u32::from(choice.config.channels), buffer_frames);
++        drop(stream);
++        if failed.load(Ordering::Relaxed) {
++            bail!("The audio output stopped (device lost or changed)");
++        }
++        result
++    }
++}
++
++#[cfg(not(target_os = "android"))]
++pub use device::play_game_audio_loop;
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    const RATE: u32 = 48_000;
++
++    fn sine(freq: f64, rate: u32, start: usize, frames: usize) -> Vec<f32> {
++        (start..start + frames)
++            .flat_map(|i| {
++                let v = (2.0 * std::f64::consts::PI * freq * i as f64 / f64::from(rate)).sin() as f32 * 0.5;
++                [v, v]
++            })
++            .collect()
++    }
++
++    /// Simulates `seconds` of a host sending 10 ms packets (`arrival_delay_ms` gives each packet's
++    /// arrival delay, None for a packet never sent) and a device pulling 10 ms periods at
++    /// `device_rate` × `device_speed`. Returns the output and the correction at every period.
++    fn run_with_corrections(
++        player: &mut JitterPlayer,
++        seconds: f64,
++        device_rate: u32,
++        device_speed: f64,
++        arrival_delay_ms: impl Fn(usize) -> Option<f64>,
++    ) -> (Vec<f32>, Vec<f64>) {
++        let start = Instant::now();
++        let packet = (RATE / 100) as usize;
++        let period = (device_rate / 100) as usize;
++        let mut events: Vec<(f64, bool, usize)> = vec![]; // (time ms, is_packet, index)
++        let packets = (seconds * 100.0) as usize;
++        for i in 0..packets {
++            if let Some(delay) = arrival_delay_ms(i) {
++                events.push((i as f64 * 10.0 + delay, true, i));
++            }
++        }
++        let periods = (seconds * 100.0 * device_speed) as usize;
++        for j in 0..periods {
++            events.push((j as f64 * 10.0 / device_speed, false, j));
++        }
++        events.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap().then(b.1.cmp(&a.1)));
++        let (mut out, mut corrections) = (vec![], vec![]);
++        let mut last_index = None;
++        for (time, is_packet, index) in events {
++            let now = start + Duration::from_secs_f64(time / 1000.0);
++            if is_packet {
++                let lost = last_index.is_some_and(|last: usize| index > last + 1);
++                last_index = Some(index);
++                player.push(&sine(440.0, RATE, index * packet, packet), lost, now);
++            } else {
++                let mut buffer = vec![0.0; period * 2];
++                player.fill(&mut buffer, 2, now);
++                out.extend(buffer);
++                corrections.push(player.correction());
++            }
++        }
++        (out, corrections)
++    }
++
++    fn run(
++        player: &mut JitterPlayer,
++        seconds: f64,
++        device_rate: u32,
++        device_speed: f64,
++        arrival_delay_ms: impl Fn(usize) -> Option<f64>,
++    ) -> Vec<f32> {
++        run_with_corrections(player, seconds, device_rate, device_speed, arrival_delay_ms).0
++    }
++
++    #[test]
++    fn drifting_clocks_settle_at_the_target_without_dropouts() {
++        // 0.3 % is far more than two real sound clocks differ by (usually below 0.01 %).
++        for speed in [0.997, 1.0, 1.003] {
++            let mut player = JitterPlayer::new(RATE, RATE, 50);
++            let (_, corrections) = run_with_corrections(&mut player, 150.0, RATE, speed, |_| Some(1.0));
++            let s = player.stats;
++            assert_eq!((s.underruns, s.trims, s.losses), (0, 0, 0), "speed {speed}");
++            // The buffer stays near its target: a slower device leaves a little more queued.
++            assert!((player.buffered_ms() - 50.0).abs() < 15.0, "speed {speed}: {}", player.buffered_ms());
++            // Over the last 30 s the playback speed matched the device's exactly, on average.
++            let last = &corrections[corrections.len() - 3000..];
++            let average = last.iter().sum::<f64>() / last.len() as f64;
++            assert!((average - (1.0 / speed - 1.0)).abs() < 0.0002, "speed {speed}: {average}");
++        }
++    }
++
++    #[test]
++    fn bursty_arrival_within_the_target_plays_smoothly() {
++        let mut player = JitterPlayer::new(RATE, RATE, 50);
++        // Packets arrive in bursts of four, up to 30 ms late.
++        run(&mut player, 30.0, RATE, 1.0, |i| Some(30.0 - (i % 4) as f64 * 10.0));
++        assert_eq!(player.stats.underruns, 0);
++        assert_eq!(player.stats.trims, 0);
++    }
++
++    #[test]
++    fn a_stall_counts_as_an_underrun_and_raises_the_target_and_a_pause_does_not() {
++        let mut player = JitterPlayer::new(RATE, RATE, 50);
++        // Packets 500..510 arrive 110 ms late: the buffer runs dry once.
++        run(&mut player, 10.0, RATE, 1.0, |i| Some(if (500..510).contains(&i) { 110.0 } else { 1.0 }));
++        assert_eq!(player.stats.underruns, 1);
++        assert_eq!(player.stats.pauses, 0);
++        assert_eq!(player.target_ms(), 60.0);
++
++        let mut player = JitterPlayer::new(RATE, RATE, 50);
++        // The host sends nothing for a second (its sound stopped): a pause, the target stays.
++        run(&mut player, 10.0, RATE, 1.0, |i| (!(300..400).contains(&i)).then_some(1.0));
++        assert_eq!(player.stats.underruns, 0);
++        assert_eq!(player.stats.pauses, 1);
++        assert_eq!(player.target_ms(), 50.0);
++    }
++
++    #[test]
++    fn a_lost_packet_is_bridged_without_emptying_the_buffer() {
++        let mut player = JitterPlayer::new(RATE, RATE, 50);
++        let out = run(&mut player, 10.0, RATE, 1.0, |i| (i != 400).then_some(1.0));
++        assert_eq!(player.stats.losses, 1);
++        assert_eq!(player.stats.underruns, 0);
++        // No sample jumps more than a 440 Hz sine at half scale ever does, apart from the bridge.
++        let max_step = out.chunks_exact(2).collect::<Vec<_>>().windows(2)
++            .map(|w| (w[1][0] - w[0][0]).abs()).fold(0.0f32, f32::max);
++        assert!(max_step < 0.2, "{max_step}");
++    }
++
++    #[test]
++    fn a_long_burst_is_trimmed_back_to_the_target() {
++        let mut player = JitterPlayer::new(RATE, RATE, 50);
++        // Everything from 3 s to 3.5 s arrives at 3.5 s together with what follows.
++        run(&mut player, 10.0, RATE, 1.0, |i| Some(if (300..350).contains(&i) { 500.0 - (i - 300) as f64 * 10.0 } else { 1.0 }));
++        assert!(player.stats.trims <= 1);
++        assert!((player.buffered_ms() - 50.0).abs() < 15.0, "{}", player.buffered_ms());
++    }
++
++    fn rms(signal: &[f32]) -> f64 {
++        (signal.iter().map(|v| f64::from(*v) * f64::from(*v)).sum::<f64>() / signal.len() as f64).sqrt()
++    }
++
++    /// RMS of the settled output for a sine of `freq` at half scale (0.354 when it passes).
++    fn converted_rms(freq: f64, out_rate: u32) -> f64 {
++        let mut player = JitterPlayer::new(RATE, out_rate, 50);
++        let start = Instant::now();
++        let period = (out_rate / 100) as usize;
++        let mut out = vec![];
++        for i in 0..300 {
++            let now = start + Duration::from_millis(i * 10);
++            player.push(&sine(freq, RATE, i as usize * 480, 480), false, now);
++            let mut buffer = vec![0.0; period * 2];
++            player.fill(&mut buffer, 2, now);
++            out.extend(buffer);
++        }
++        rms(&out[out.len() / 2..])
++    }
++
++    #[test]
++    fn rate_conversion_keeps_tones_and_removes_what_would_alias() {
++        let full = 0.5 / 2f64.sqrt();
++        // 48 kHz in, 44.1 kHz out (what PipeWire's ALSA plugin defaulted to): a 1 kHz tone keeps
++        // its level. A 23 kHz tone cannot exist at 44.1 kHz; dropping samples, as the pinned
++        // playback did, folds it back to an audible 21.1 kHz at full level. Here it is filtered.
++        assert!((converted_rms(1000.0, 44_100) / full - 1.0).abs() < 0.02);
++        assert!((converted_rms(15000.0, 44_100) / full - 1.0).abs() < 0.05);
++        assert!(converted_rms(23000.0, 44_100) / full < 0.1, "{}", converted_rms(23000.0, 44_100) / full);
++        // Same rate: the whole audible band passes.
++        assert!((converted_rms(1000.0, RATE) / full - 1.0).abs() < 0.02);
++        assert!(converted_rms(18000.0, RATE) / full > 0.9, "{}", converted_rms(18000.0, RATE) / full);
++    }
++
++    #[test]
++    fn mono_and_multichannel_outputs() {
++        let mut player = JitterPlayer::new(RATE, RATE, 20);
++        let now = Instant::now();
++        let stereo: Vec<f32> = (0..4800).flat_map(|_| [0.5f32, -0.5]).collect();
++        player.push(&stereo, false, now);
++        let mut mono = vec![1.0; 480];
++        player.fill(&mut mono, 1, now);
++        assert!(mono.iter().all(|v| v.abs() < 1e-3));
++        // Left and right on the first two channels, silence on the rest (after the fade-in).
++        let mut six = vec![1.0; 480 * 6];
++        player.fill(&mut six, 6, now);
++        assert!(six.chunks_exact(6).all(|f| (f[0] - 0.5).abs() < 0.01 && (f[1] + 0.5).abs() < 0.01 && f[2..].iter().all(|v| *v == 0.0)));
++    }
++}
++
+diff --git a/alvr/client_core/src/connection.rs b/alvr/client_core/src/connection.rs
+index cfafe3b5..3b46c2f7 100644
+--- a/alvr/client_core/src/connection.rs
++++ b/alvr/client_core/src/connection.rs
+@@ -371,14 +371,31 @@ fn connection_pipeline(
+             let ctx = Arc::clone(&ctx);
+             move || {
+                 while is_streaming(&ctx) {
+-                    alvr_common::show_err(audio::play_audio_loop(
++                    // VROSTBridge (patch 0022): the desktop clients use their own player (stream
++                    // rate kept, drift corrected, losses bridged); Android keeps AAudio's.
++                    #[cfg(not(target_os = "android"))]
++                    let result = alvr_audio::play_game_audio_loop(
+                         || is_streaming(&ctx),
+                         &device,
+                         2,
+                         negotiated_config.game_audio_sample_rate,
+                         config.buffering.clone(),
+                         &mut game_audio_receiver,
+-                    ));
++                    );
++                    #[cfg(target_os = "android")]
++                    let result = audio::play_audio_loop(
++                        || is_streaming(&ctx),
++                        &device,
++                        2,
++                        negotiated_config.game_audio_sample_rate,
++                        config.buffering.clone(),
++                        &mut game_audio_receiver,
++                    );
++                    if result.is_err() {
++                        alvr_common::show_err(result);
++                        // A device that cannot open is not retried in a tight loop.
++                        thread::sleep(Duration::from_millis(500));
++                    }
+                 }
+             }
+         })
+diff --git a/alvr/client_core/src/lib.rs b/alvr/client_core/src/lib.rs
+index d506c570..4e112ad1 100644
+--- a/alvr/client_core/src/lib.rs
++++ b/alvr/client_core/src/lib.rs
+@@ -249,6 +249,11 @@ impl ClientCoreContext {
+         self.connection_context.vrost_counters.snapshot()
+     }
+ 
++    /// VROSTBridge (patch 0022): game-audio playback counters and state.
++    pub fn vrostbridge_audio_stats(&self) -> alvr_audio::PlaybackSnapshot {
++        alvr_audio::playback_snapshot()
++    }
++
+     /// VROSTBridge: gradual loss recovery for hosts that refresh the picture with intra stripes.
+     pub fn set_vrostbridge_gradual_recovery(&self, enabled: bool) {
+         self.connection_context.vrost_loss_policy.set_gradual(enabled);

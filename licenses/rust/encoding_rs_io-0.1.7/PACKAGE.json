@@ -1,0 +1,48 @@
+{
+  "crate": "encoding_rs_io",
+  "version": "0.1.7",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/BurntSushi/encoding_rs_io",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "13361f93b3db60ddb43f8fdc97ba469461019bbf7589f6bde833eb3d995d2497",
+      "bytes": 260,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "1cc3c5651fb62ab8aa3103998dade57efdd028544bd300516baa31840c252a83"
+  },
+  "source_url": "https://crates.io/crates/encoding_rs_io/0.1.7",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ad0a122d5c42dd2375917d32ad50fbbc7be3213d"
+    }
+  }
+}

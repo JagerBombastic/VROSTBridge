@@ -1,0 +1,277 @@
+diff --git a/alvr/server_core/src/vrostbridge_stream.rs b/alvr/server_core/src/vrostbridge_stream.rs
+index fc18bc13..79b8a604 100644
+--- a/alvr/server_core/src/vrostbridge_stream.rs
++++ b/alvr/server_core/src/vrostbridge_stream.rs
+@@ -18,6 +18,11 @@
+ //! - `host_prediction`: extrapolate head and controller poses by the measured
+ //!   motion-to-photon latency (ALVR's normal behaviour, and the default when the key is
+ //!   absent). `false` renders the poses exactly as sampled, for comparison only.
++//! - `gaze_hold_ms` (VROSTBridge 1.0.0.4, patch 0017): once the gaze stops arriving (a
++//!   blink, or the eye tracker pausing), keep the full-resolution region where the user
++//!   last looked for this long before returning it to the fixed centre. Without it the
++//!   region jumped back to the middle 150 ms into every pause, so the area the user was
++//!   looking at turned coarse.
+ 
+ use alvr_common::{info, parking_lot::RwLock};
+ use std::path::Path;
+@@ -37,6 +42,8 @@ pub struct StreamConfig {
+     pub optical_centre: bool,
+     /// Predict poses by the measured motion-to-photon latency (default on).
+     pub host_prediction: bool,
++    /// After the gaze goes stale, keep the last gaze-driven centre this long (patch 0017).
++    pub gaze_hold_ms: u32,
+ }
+ 
+ impl Default for StreamConfig {
+@@ -49,10 +56,14 @@ impl Default for StreamConfig {
+             gaze_stale_ms: 150,
+             optical_centre: false,
+             host_prediction: true,
++            gaze_hold_ms: DEFAULT_GAZE_HOLD_MS,
+         }
+     }
+ }
+ 
++/// Patch 0017: the hold when the companion does not say (older companions).
++pub const DEFAULT_GAZE_HOLD_MS: u32 = 1000;
++
+ static CONFIG: RwLock<StreamConfig> = RwLock::new(StreamConfig {
+     pacing_mbps: 0,
+     intra_refresh: false,
+@@ -61,6 +72,7 @@ static CONFIG: RwLock<StreamConfig> = RwLock::new(StreamConfig {
+     gaze_stale_ms: 150,
+     optical_centre: false,
+     host_prediction: true,
++    gaze_hold_ms: DEFAULT_GAZE_HOLD_MS,
+ });
+ 
+ pub fn parse(text: &str) -> StreamConfig {
+@@ -89,6 +101,11 @@ pub fn parse(text: &str) -> StreamConfig {
+     {
+         config.gaze_stale_ms = stale as u32;
+     }
++    if let Some(hold) = value.get("gaze_hold_ms").and_then(|v| v.as_u64())
++        && hold <= 5000
++    {
++        config.gaze_hold_ms = hold as u32;
++    }
+     config
+ }
+ 
+@@ -103,13 +120,14 @@ pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16) -> StreamC
+     *CONFIG.write() = config;
+     let paced = alvr_sockets::set_stream_pacing(video_stream, config.pacing_mbps);
+     info!(
+-        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={} optical_centre={} host_prediction={}",
++        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={} gaze_hold_ms={} optical_centre={} host_prediction={}",
+         config.pacing_mbps,
+         u8::from(paced),
+         u8::from(config.intra_refresh),
+         u8::from(config.gaze_foveation),
+         config.gaze_deadband,
+         config.gaze_stale_ms,
++        config.gaze_hold_ms,
+         u8::from(config.optical_centre),
+         u8::from(config.host_prediction)
+     );
+@@ -153,4 +171,15 @@ mod tests {
+         assert!((config.gaze_deadband - 0.04).abs() < 1e-6);
+         assert_eq!(config.gaze_stale_ms, 120);
+     }
++
++    #[test]
++    fn gaze_hold_defaults_and_bounds() {
++        // Patch 0017: a companion that does not write it gets the one-second hold.
++        assert_eq!(parse("{}").gaze_hold_ms, DEFAULT_GAZE_HOLD_MS);
++        assert_eq!(parse("not json").gaze_hold_ms, DEFAULT_GAZE_HOLD_MS);
++        assert_eq!(parse(r#"{"gaze_hold_ms": 0}"#).gaze_hold_ms, 0);
++        assert_eq!(parse(r#"{"gaze_hold_ms": 1500}"#).gaze_hold_ms, 1500);
++        assert_eq!(parse(r#"{"gaze_hold_ms": 60000}"#).gaze_hold_ms, DEFAULT_GAZE_HOLD_MS);
++        assert_eq!(parse(r#"{"gaze_hold_ms": -5}"#).gaze_hold_ms, DEFAULT_GAZE_HOLD_MS);
++    }
+ }
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index 7c2ba40b..393c19ea 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -654,6 +654,7 @@ extern "C" fn vrostbridge_foveation_shifts(
+         defaults,
+         deadband: config.gaze_deadband,
+         stale: Duration::from_millis(u64::from(config.gaze_stale_ms)),
++        hold: Duration::from_millis(u64::from(config.gaze_hold_ms)),
+         now,
+         optical_centre: config.optical_centre,
+     };
+@@ -666,12 +667,16 @@ extern "C" fn vrostbridge_foveation_shifts(
+     io.copy_from_slice(&[result[0][0], result[0][1], result[1][0], result[1][1]]);
+     if state.should_log(now) {
+         alvr_common::info!(
+-            "VROST_GAZE_FOVEATION gaze={} optical_centre={} gaze_frames={} fallback_frames={} moves={} left={:.3},{:.3} right={:.3},{:.3}",
++            "VROST_GAZE_FOVEATION gaze={} optical_centre={} gaze_frames={} held_frames={} fallback_frames={} moves={} pauses={} longest_pause_ms={} returns={} left={:.3},{:.3} right={:.3},{:.3}",
+             u8::from(config.gaze_foveation),
+             u8::from(config.optical_centre),
+             state.gaze_frames,
++            state.held_frames,
+             state.fallback_frames,
+             state.moves,
++            state.pauses,
++            state.longest_pause_ms,
++            state.returns,
+             io[0],
+             io[1],
+             io[2],
+diff --git a/alvr/server_openvr/src/vrostbridge_foveation.rs b/alvr/server_openvr/src/vrostbridge_foveation.rs
+index c0fad5d8..080e8f91 100644
+--- a/alvr/server_openvr/src/vrostbridge_foveation.rs
++++ b/alvr/server_openvr/src/vrostbridge_foveation.rs
+@@ -13,7 +13,12 @@
+ //! - shifts are snapped to the same pixel grid the negotiation uses, so region borders
+ //!   stay on whole compressed pixels and the client's inverse stays well conditioned;
+ //! - small gaze movements inside a dead band keep the previous centre (no shimmer);
+-//! - stale or missing gaze returns to the fixed centre: the negotiated one, or with
++//! - a pause in the gaze (a blink, the eye tracker skipping pictures) keeps the centre
++//!   where the user last looked for `hold` after the gaze went stale (patch 0017,
++//!   VROSTBridge 1.0.0.4): until then the region jumped back to the fixed centre 150 ms
++//!   into every pause, and in the 1.0.0.3 test that was 39 % of all frames, so the user
++//!   could look straight at the coarse area;
++//! - gaze missing for longer returns to the fixed centre: the negotiated one, or with
+ //!   `optical_centre` each eye's straight-ahead direction (which also serves fixed
+ //!   foveation without any eye tracker, for any headset's view geometry).
+ 
+@@ -107,8 +112,16 @@ pub fn gaze_shifts(
+ pub struct DynamicFoveation {
+     current: Option<[[f32; 2]; 2]>,
+     pub gaze_frames: u64,
++    /// Frames that kept the last gaze-driven centre while the gaze paused (patch 0017).
++    pub held_frames: u64,
+     pub fallback_frames: u64,
+     pub moves: u64,
++    /// Pauses in the gaze that ended with fresh gaze, and the longest of them (patch 0017).
++    pub pauses: u64,
++    pub longest_pause_ms: u64,
++    /// Holds that ran out, returning the region to the fixed centre (patch 0017).
++    pub returns: u64,
++    pause_since: Option<Instant>,
+     last_log: Option<Instant>,
+ }
+ 
+@@ -119,6 +132,8 @@ pub struct FrameInput<'a> {
+     pub defaults: [[f32; 2]; 2],
+     pub deadband: f32,
+     pub stale: Duration,
++    /// After the gaze goes stale, keep the last gaze-driven centre this long (patch 0017).
++    pub hold: Duration,
+     pub now: Instant,
+     /// Without fresh gaze, centre on each eye's straight-ahead direction.
+     pub optical_centre: bool,
+@@ -132,6 +147,18 @@ impl DynamicFoveation {
+             .filter(|(_, received)| input.now.saturating_duration_since(*received) <= input.stale);
+         let target = fresh_gaze.and_then(|(gaze, _)| gaze_shifts(gaze, input.views, &input.geometry));
+         let Some(target) = target else {
++            if input.gaze.is_some() && self.pause_since.is_none() {
++                self.pause_since = Some(input.now);
++            }
++            // Patch 0017: hold the region where the user last looked while the latest gaze is
++            // younger than stale + hold (it is the gaze the region was moved to).
++            if let (Some(current), Some((_, received))) = (self.current, input.gaze) {
++                if input.now.saturating_duration_since(received) <= input.stale + input.hold {
++                    self.held_frames += 1;
++                    return current;
++                }
++                self.returns += 1;
++            }
+             self.fallback_frames += 1;
+             self.current = None;
+             return input
+@@ -140,6 +167,11 @@ impl DynamicFoveation {
+                 .flatten()
+                 .unwrap_or(input.defaults);
+         };
++        if let Some(since) = self.pause_since.take() {
++            self.pauses += 1;
++            let length = input.now.saturating_duration_since(since).as_millis();
++            self.longest_pause_ms = self.longest_pause_ms.max(u64::try_from(length).unwrap_or(u64::MAX));
++        }
+         self.gaze_frames += 1;
+         let moved = match self.current {
+             None => true,
+@@ -262,6 +294,7 @@ mod tests {
+             defaults,
+             deadband: 0.03,
+             stale: Duration::from_millis(150),
++            hold: Duration::ZERO,
+             now,
+             optical_centre: false,
+         };
+@@ -297,6 +330,7 @@ mod tests {
+             defaults,
+             deadband: 0.03,
+             stale: Duration::from_millis(150),
++            hold: Duration::from_millis(1000),
+             now: Instant::now(),
+             optical_centre: true,
+         };
+@@ -314,4 +348,63 @@ mod tests {
+         let input = FrameInput { views: &broken, ..input };
+         assert_eq!(state.update(&input), defaults);
+     }
++
++    #[test]
++    fn a_pause_in_the_gaze_holds_the_region_then_returns_it() {
++        // Patch 0017: a blink or an eye-tracker pause keeps the region where the user looked.
++        let views = [view(0.0), view(0.0)];
++        let defaults = [[0.0, 0.0], [0.0, 0.0]];
++        let start = Instant::now();
++        let looked = Quat::from_rotation_y((-20f32).to_radians());
++        let mut state = DynamicFoveation::default();
++        let mut input = FrameInput {
++            gaze: Some((looked, start)),
++            views: &views,
++            geometry: geometry(),
++            defaults,
++            deadband: 0.025,
++            stale: Duration::from_millis(150),
++            hold: Duration::from_millis(1000),
++            now: start,
++            optical_centre: false,
++        };
++        let following = state.update(&input);
++        assert_ne!(following, defaults);
++        // 400 ms without a new sample (stale after 150 ms): the region stays where it was.
++        input.now = start + Duration::from_millis(400);
++        assert_eq!(state.update(&input), following);
++        input.now = start + Duration::from_millis(1100);
++        assert_eq!(state.update(&input), following);
++        assert_eq!(state.held_frames, 2);
++        assert_eq!(state.fallback_frames, 0);
++        // Fresh gaze again ends the pause (one pause, measured from its first stale frame).
++        input.gaze = Some((looked, start + Duration::from_millis(1200)));
++        input.now = start + Duration::from_millis(1200);
++        assert_eq!(state.update(&input), following);
++        assert_eq!((state.pauses, state.longest_pause_ms), (1, 800));
++        // A pause longer than stale + hold returns the region to the fixed centre, once.
++        input.now = start + Duration::from_millis(1200 + 1151);
++        assert_eq!(state.update(&input), defaults);
++        input.now = start + Duration::from_millis(1200 + 1300);
++        assert_eq!(state.update(&input), defaults);
++        assert_eq!((state.returns, state.fallback_frames), (1, 2));
++        // The next fresh gaze moves the region again (a move from the fixed centre).
++        let moves = state.moves;
++        input.gaze = Some((looked, input.now));
++        assert_eq!(state.update(&input), following);
++        assert_eq!(state.moves, moves + 1);
++        // Without hold the region returns as soon as the gaze is stale (the 1.0.0.3 behaviour).
++        let mut old = DynamicFoveation::default();
++        input.hold = Duration::ZERO;
++        input.gaze = Some((looked, start));
++        input.now = start;
++        assert_eq!(old.update(&input), following);
++        input.now = start + Duration::from_millis(151);
++        assert_eq!(old.update(&input), defaults);
++        // No gaze at all this connection: the fixed centre, and no pause is counted.
++        let mut never = DynamicFoveation::default();
++        input.gaze = None;
++        assert_eq!(never.update(&input), defaults);
++        assert_eq!((never.pauses, never.held_frames, never.returns), (0, 0, 0));
++    }
+ }

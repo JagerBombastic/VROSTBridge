@@ -1,0 +1,38 @@
+{
+  "crate": "gl_generator",
+  "version": "0.14.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/brendanzab/gl-rs/",
+  "authors": [
+    "Brendan Zabarauskas <bjzaba@yahoo.com.au>",
+    "Corey Richardson",
+    "Arseny Kapoulkine"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/brendanzab/gl-rs/ea503e8d5fb6d73c6030e6191ce738cd3bf3433e/LICENSE",
+      "commit": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_client": "1a95dfc23a2b4a9a2f5ab41d194f8bfda3cabec42af4e39f08c339eb2a0c124d"
+  },
+  "source_url": "https://crates.io/crates/gl_generator/0.14.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ea503e8d5fb6d73c6030e6191ce738cd3bf3433e"
+    }
+  }
+}

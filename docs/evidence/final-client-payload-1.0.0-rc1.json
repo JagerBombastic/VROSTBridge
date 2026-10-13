@@ -1,0 +1,6 @@
+{
+  "release": "1.0.0-rc1",
+  "runtime_files_matching_passed_install_smoke": 151,
+  "installer_files_matching": 2,
+  "docs_and_notices_copied_separately": true
+}

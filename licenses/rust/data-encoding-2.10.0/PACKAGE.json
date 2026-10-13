@@ -1,0 +1,35 @@
+{
+  "crate": "data-encoding",
+  "version": "2.10.0",
+  "license": "MIT",
+  "repository": "https://github.com/ia0/data-encoding",
+  "authors": [
+    "Julien Cretin <git@ia0.eu>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "b68ad1a3367b825447089e1f8d6829b97f47a89eb78d2f4ebaef4672f5606186",
+      "bytes": 1121,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "d7a1e2f27636f116493b8b860f5546edb47c8d8f8ea73e1d2a20be88e28d1fea"
+  },
+  "source_url": "https://crates.io/crates/data-encoding/2.10.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "73e45bed622e89e388f8090a84de5a9a78185c71"
+    },
+    "path_in_vcs": "lib"
+  }
+}

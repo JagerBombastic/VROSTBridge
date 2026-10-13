@@ -1,0 +1,37 @@
+{
+  "crate": "foldhash",
+  "version": "0.1.5",
+  "license": "Zlib",
+  "repository": "https://github.com/orlp/foldhash",
+  "authors": [
+    "Orson Peters <orsonpeters@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "b1181a40b2a7b25cf66fd01481713bc1005df082c53ef73e851e55071b102744",
+      "bytes": 856,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2",
+    "windows_client": "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
+  },
+  "source_url": "https://crates.io/crates/foldhash/0.1.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "42461756c3760f9165c90d9626a49e36980a1e47"
+    },
+    "path_in_vcs": ""
+  }
+}

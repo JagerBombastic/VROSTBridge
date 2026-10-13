@@ -1,0 +1,159 @@
+{
+  "reports": {
+    "0.2.10": {
+      "filename": "VROSTBridge-session-report (7).json",
+      "sha256": "cbc994b1cdeb5e40ca161fd9bec1db9cffb31dd5597304eeacf9b8cad9dcdbc7",
+      "settings": {
+        "codec": "H264",
+        "bitrate_mbps": 80,
+        "refresh_hz": 90,
+        "per_eye": [
+          1440,
+          1568
+        ]
+      },
+      "session_source_frame_age_p95_ms": 27,
+      "client_windows": 101,
+      "client_ms": {
+        "arrival_to_submit_mean_ms": {
+          "n": 101,
+          "median": 11.234,
+          "p95_nearest_rank": 12.903,
+          "maximum": 13.215
+        },
+        "packet_interval_max_ms": {
+          "n": 101,
+          "median": 13.753,
+          "p95_nearest_rank": 20.728,
+          "maximum": 32.205
+        },
+        "new_frame_interval_max_ms": {
+          "n": 101,
+          "median": 11.565,
+          "p95_nearest_rank": 33.613,
+          "maximum": 55.585
+        },
+        "map_sync_import_mean_ms": null,
+        "convert_cpu_mean_ms": null
+      },
+      "host_ms": {
+        "total_pipeline_latency_s": {
+          "n": 233,
+          "median": 37.539854999999996,
+          "p95_nearest_rank": 41.81579,
+          "maximum": 104.23734
+        },
+        "network_s": {
+          "n": 233,
+          "median": 3.383717,
+          "p95_nearest_rank": 4.994149,
+          "maximum": 12.079365
+        },
+        "game_time_s": {
+          "n": 233,
+          "median": 4.0138,
+          "p95_nearest_rank": 7.5167,
+          "maximum": 69.6292
+        },
+        "encoder_s": {
+          "n": 233,
+          "median": 4.211,
+          "p95_nearest_rank": 5.356,
+          "maximum": 5.6175
+        },
+        "client_compositor_s": {
+          "n": 233,
+          "median": 10.395094,
+          "p95_nearest_rank": 14.13728,
+          "maximum": 15.853079999999999
+        }
+      }
+    },
+    "0.2.11": {
+      "filename": "VROSTBridge-session-report(1).json",
+      "sha256": "dda7dc36538d5f972241489082e8fa003bb6c902f62b0fffa23a2629f673ecf4",
+      "settings": {
+        "codec": "H264",
+        "bitrate_mbps": 80,
+        "refresh_hz": 90,
+        "per_eye": [
+          1440,
+          1568
+        ]
+      },
+      "session_source_frame_age_p95_ms": 50,
+      "client_windows": 82,
+      "client_ms": {
+        "arrival_to_submit_mean_ms": {
+          "n": 82,
+          "median": 10.68,
+          "p95_nearest_rank": 11.997,
+          "maximum": 15.77
+        },
+        "packet_interval_max_ms": {
+          "n": 82,
+          "median": 15.133,
+          "p95_nearest_rank": 74.52,
+          "maximum": 197.722
+        },
+        "new_frame_interval_max_ms": {
+          "n": 82,
+          "median": 11.604,
+          "p95_nearest_rank": 122.458,
+          "maximum": 266.853
+        },
+        "map_sync_import_mean_ms": {
+          "n": 82,
+          "median": 3.6635,
+          "p95_nearest_rank": 3.827,
+          "maximum": 3.869
+        },
+        "convert_cpu_mean_ms": {
+          "n": 82,
+          "median": 0.2415,
+          "p95_nearest_rank": 0.536,
+          "maximum": 0.615
+        }
+      },
+      "host_ms": {
+        "total_pipeline_latency_s": {
+          "n": 233,
+          "median": 35.97595,
+          "p95_nearest_rank": 79.60448000000001,
+          "maximum": 203.30897000000002
+        },
+        "network_s": {
+          "n": 233,
+          "median": 3.583224,
+          "p95_nearest_rank": 46.858914,
+          "maximum": 175.51172
+        },
+        "game_time_s": {
+          "n": 233,
+          "median": 3.4108,
+          "p95_nearest_rank": 7.0259,
+          "maximum": 20.5531
+        },
+        "encoder_s": {
+          "n": 233,
+          "median": 3.5975,
+          "p95_nearest_rank": 4.1677,
+          "maximum": 5.0446
+        },
+        "client_compositor_s": {
+          "n": 233,
+          "median": 9.104167,
+          "p95_nearest_rank": 14.821807,
+          "maximum": 15.946189
+        }
+      }
+    }
+  },
+  "limits": [
+    "Different retained windows and scenes; not controlled A/B",
+    "Network component includes transport/scheduling effects",
+    "Not motion-to-photon latency",
+    "Client timings selected by packets > 0, including slow streaming windows",
+    "Latest report was saved after stopping; use retained streaming events"
+  ]
+}

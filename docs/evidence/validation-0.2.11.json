@@ -1,0 +1,35 @@
+{
+  "release": "0.2.11",
+  "python": {
+    "total": 186,
+    "passed": 184,
+    "skipped": 2,
+    "evidence": "python-tests-0.2.11.txt"
+  },
+  "cpp": {
+    "groups": 7,
+    "passed": 7,
+    "evidence": "cpp-tests-0.2.11.txt"
+  },
+  "desktop_javascript": "passed",
+  "native_linux_build": "passed",
+  "native_runtime_loader_without_LD_LIBRARY_PATH": "passed",
+  "frozen_install_checks_passed": 12,
+  "upgrade_from": "0.2.10",
+  "windows_packages": "NSIS CRC, payload hashes, AMD64 PE imports and icon validated; not executed",
+  "regressions": [
+    "shared queue serialization under concurrent conversion/presentation",
+    "one explicit timing marker before frame queue work",
+    "retirement after handoff",
+    "exception-safe unlock",
+    "immediate ready-frame selection",
+    "bounded late selection and timeout",
+    "late-frame setting persistence and launch flag",
+    "native Index passthrough paths and preservation of custom mappings"
+  ],
+  "limits": [
+    "No Windows host execution",
+    "No physical headset end-to-end 0.2.11 test",
+    "No measured 0.2.11 latency improvement or artifact elimination"
+  ]
+}

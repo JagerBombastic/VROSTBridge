@@ -1,0 +1,35 @@
+{
+  "crate": "tokio",
+  "version": "1.52.0",
+  "license": "MIT",
+  "repository": "https://github.com/tokio-rs/tokio",
+  "authors": [
+    "Tokio Contributors <team@tokio.rs>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "253cd04c6714889df2d32f3f64d669179a1c95c76ac43c40882c52eb06bc3552",
+      "bytes": 1070,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "a91135f59b1cbf38c91e73cf3386fca9bb77915c45ce2771460c9d92f0f3d776"
+  },
+  "source_url": "https://crates.io/crates/tokio/1.52.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5f7be0ac42cb3e1b739da1562f98a797cd55a606"
+    },
+    "path_in_vcs": "tokio"
+  }
+}

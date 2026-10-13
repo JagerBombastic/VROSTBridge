@@ -1,0 +1,49 @@
+{
+  "crate": "dasp_sample",
+  "version": "0.11.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rustaudio/sample.git",
+  "authors": [
+    "mitchmindtree <mitchell.nordine@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE-APACHE",
+    "upstream/LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE-MIT",
+      "sha256": "b1d6df41ed3aa96806e74c729444d7c121d90e6660a6aed01d298e03fde475a0",
+      "bytes": 1087,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/rustaudio/sample/97c3bb9b2363c0b46ac1633858bf1054fd02a980/LICENSE-MIT",
+      "commit": "97c3bb9b2363c0b46ac1633858bf1054fd02a980"
+    },
+    {
+      "file": "upstream/LICENSE-APACHE",
+      "sha256": "756c8d2ab2dc24f256e1455b5f03937f4933d83d7bc9f2d55009fc962377d512",
+      "bytes": 561,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/rustaudio/sample/97c3bb9b2363c0b46ac1633858bf1054fd02a980/LICENSE-APACHE",
+      "commit": "97c3bb9b2363c0b46ac1633858bf1054fd02a980"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "0c87e182de0887fd5361989c677c4e8f5000cd9491d6d563161a8f3a5519fc7f",
+    "linux_client": "0c87e182de0887fd5361989c677c4e8f5000cd9491d6d563161a8f3a5519fc7f",
+    "windows_client": "0c87e182de0887fd5361989c677c4e8f5000cd9491d6d563161a8f3a5519fc7f"
+  },
+  "source_url": "https://crates.io/crates/dasp_sample/0.11.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "97c3bb9b2363c0b46ac1633858bf1054fd02a980"
+    }
+  }
+}

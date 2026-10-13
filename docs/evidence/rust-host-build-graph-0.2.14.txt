@@ -1,0 +1,600 @@
+alvr_server_openvr v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/server_openvr)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common)
+anyhow v1.0.103
+backtrace v0.3.76
+cfg-if v1.0.4
+rustc-demangle v0.1.27
+windows-link v0.2.1
+glam v0.32.1
+serde_core v1.0.228
+log v0.4.33
+parking_lot v0.12.5
+lock_api v0.4.14
+scopeguard v1.2.0
+parking_lot_core v0.9.12
+cfg-if v1.0.4
+smallvec v1.15.2
+windows-link v0.2.1
+pastey v0.2.1 (proc-macro)
+semver v1.0.28
+serde_core v1.0.228
+serde v1.0.228
+serde_core v1.0.228
+serde_derive v1.0.228 (proc-macro)
+proc-macro2 v1.0.106
+unicode-ident v1.0.24
+quote v1.0.46
+proc-macro2 v1.0.106 (*)
+syn v2.0.118
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+unicode-ident v1.0.24
+settings-schema v0.2.0 (https://github.com/alvr-org/settings-schema-rs?rev=676185f#676185f3)
+serde v1.0.228 (*)
+serde_json v1.0.150
+itoa v1.0.18
+memchr v2.8.2
+serde_core v1.0.228
+zmij v1.0.21
+settings-schema-derive v0.2.0 (proc-macro) (https://github.com/alvr-org/settings-schema-rs?rev=676185f#676185f3)
+darling v0.20.11
+darling_core v0.20.11
+fnv v1.0.7
+ident_case v1.0.1
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+strsim v0.11.1
+syn v2.0.118 (*)
+darling_macro v0.20.11 (proc-macro)
+darling_core v0.20.11 (*)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+alvr_filesystem v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/filesystem)
+dirs v6.0.0
+dirs-sys v0.5.0
+option-ext v0.2.0
+windows-sys v0.61.2
+windows-link v0.2.1
+alvr_packets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/packets)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_system_info v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/system_info)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+jni v0.22.4
+cfg-if v1.0.4
+combine v4.6.7
+bytes v1.11.1
+memchr v2.8.2
+jni-macros v0.22.4 (proc-macro)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+simd_cesu8 v1.1.1
+simdutf8 v0.1.5
+rustc_version v0.4.1
+semver v1.0.28
+syn v2.0.118 (*)
+rustc_version v0.4.1 (*)
+jni-sys v0.4.1
+jni-sys-macros v0.4.1 (proc-macro)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+log v0.4.33
+simd_cesu8 v1.1.1
+simdutf8 v0.1.5
+rustc_version v0.4.1 (*)
+thiserror v2.0.18
+thiserror-impl v2.0.18 (proc-macro)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+windows-link v0.2.1
+walkdir v2.5.0
+same-file v1.0.6
+local-ip-address v0.6.11
+windows-sys v0.61.2 (*)
+serde v1.0.228 (*)
+settings-schema v0.2.0 (https://github.com/alvr-org/settings-schema-rs?rev=676185f#676185f3) (*)
+bytemuck v1.25.0
+bytemuck_derive v1.10.2 (proc-macro)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+serde v1.0.228 (*)
+serde_json v1.0.150 (*)
+settings-schema v0.2.0 (https://github.com/alvr-org/settings-schema-rs?rev=676185f#676185f3) (*)
+alvr_filesystem v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/filesystem)
+dirs v6.0.0
+dirs-sys v0.5.0
+libc v0.2.186
+option-ext v0.2.0
+regex v1.12.3
+aho-corasick v1.1.4
+memchr v2.8.2
+memchr v2.8.2
+regex-automata v0.4.14
+aho-corasick v1.1.4 (*)
+memchr v2.8.2
+regex-syntax v0.8.11
+regex-syntax v0.8.11
+regex v1.12.3
+regex-automata v0.4.14
+regex-syntax v0.8.11
+regex-syntax v0.8.11
+serde v1.0.228 (*)
+serde_json v1.0.150 (*)
+alvr_server_core v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/server_core)
+alvr_adb v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/adb)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_filesystem v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/filesystem) (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session) (*)
+alvr_system_info v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/system_info) (*)
+anyhow v1.0.103
+ureq v3.3.0
+base64 v0.22.1
+flate2 v1.1.9
+crc32fast v1.5.0
+cfg-if v1.0.4
+miniz_oxide v0.8.9
+adler2 v2.0.1
+simd-adler32 v0.3.9
+zlib-rs v0.6.3
+log v0.4.33
+percent-encoding v2.3.2
+rustls v0.23.38
+log v0.4.33
+once_cell v1.21.4
+ring v0.17.14
+cfg-if v1.0.4
+getrandom v0.2.17
+cfg-if v1.0.4
+untrusted v0.9.0
+cc v1.2.65
+find-msvc-tools v0.1.9
+jobserver v0.1.34
+libc v0.2.186
+libc v0.2.186
+shlex v2.0.1
+rustls-pki-types v1.14.0
+zeroize v1.8.2
+rustls-webpki v0.103.12
+ring v0.17.14 (*)
+rustls-pki-types v1.14.0 (*)
+untrusted v0.9.0
+subtle v2.6.1
+zeroize v1.8.2
+rustls-pki-types v1.14.0 (*)
+ureq-proto v0.6.0
+base64 v0.22.1
+http v1.4.0
+bytes v1.11.1
+itoa v1.0.18
+httparse v1.10.1
+log v0.4.33
+utf8-zero v0.8.1
+webpki-roots v1.0.6
+rustls-pki-types v1.14.0 (*)
+zip v8.5.1
+aes v0.8.4
+cfg-if v1.0.4
+cipher v0.4.4
+crypto-common v0.1.7
+generic-array v0.14.7
+typenum v1.19.0
+version_check v0.9.5
+typenum v1.19.0
+inout v0.1.4
+generic-array v0.14.7 (*)
+cpufeatures v0.2.17
+bzip2 v0.6.1
+libbz2-rs-sys v0.2.2
+constant_time_eq v0.4.2
+crc32fast v1.5.0 (*)
+deflate64 v0.1.12
+flate2 v1.1.9 (*)
+getrandom v0.4.2
+cfg-if v1.0.4
+hmac v0.12.1
+digest v0.10.7
+block-buffer v0.10.4
+generic-array v0.14.7 (*)
+crypto-common v0.1.7 (*)
+subtle v2.6.1
+indexmap v2.14.0
+equivalent v1.0.2
+hashbrown v0.17.1
+lzma-rust2 v0.16.2
+sha2 v0.10.9
+cfg-if v1.0.4
+cpufeatures v0.2.17
+digest v0.10.7 (*)
+memchr v2.8.2
+pbkdf2 v0.12.2
+digest v0.10.7 (*)
+hmac v0.12.1 (*)
+ppmd-rust v1.4.0
+sha1 v0.10.6
+cfg-if v1.0.4
+cpufeatures v0.2.17
+digest v0.10.7 (*)
+time v0.3.47
+deranged v0.5.8
+powerfmt v0.2.0
+itoa v1.0.18
+num-conv v0.2.1
+powerfmt v0.2.0
+time-core v0.1.8
+typed-path v0.12.3
+zeroize v1.8.2
+zopfli v0.8.3
+bumpalo v3.20.3
+crc32fast v1.5.0 (*)
+log v0.4.33
+simd-adler32 v0.3.9
+zstd v0.13.3
+zstd-safe v7.2.4
+zstd-sys v2.0.16+zstd.1.5.7
+cc v1.2.65 (*)
+pkg-config v0.3.33
+alvr_audio v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/audio)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session) (*)
+alvr_sockets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/sockets)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_packets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/packets) (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session) (*)
+bincode v2.0.1
+bincode_derive v2.0.1 (proc-macro)
+virtue v0.0.18
+serde v1.0.228 (*)
+unty v0.0.4
+serde v1.0.228 (*)
+serde_json v1.0.150 (*)
+socket2 v0.6.3
+windows-sys v0.61.2 (*)
+cpal v0.16.0
+dasp_sample v0.11.0
+windows v0.54.0
+windows-core v0.54.0
+windows-result v0.1.2
+windows-targets v0.52.6
+windows_x86_64_msvc v0.52.6
+windows-targets v0.52.6 (*)
+windows-targets v0.52.6 (*)
+rodio v0.21.1
+cpal v0.16.0 (*)
+dasp_sample v0.11.0
+num-rational v0.4.2
+num-bigint v0.4.6
+num-integer v0.1.46
+num-traits v0.2.19
+autocfg v1.5.1
+num-traits v0.2.19 (*)
+num-integer v0.1.46 (*)
+num-traits v0.2.19 (*)
+symphonia v0.5.5
+lazy_static v1.5.0
+symphonia-bundle-flac v0.5.5
+log v0.4.33
+symphonia-core v0.5.5
+arrayvec v0.7.8
+bitflags v1.3.2
+bytemuck v1.25.0 (*)
+lazy_static v1.5.0
+log v0.4.33
+symphonia-metadata v0.5.5
+encoding_rs v0.8.35
+cfg-if v1.0.4
+lazy_static v1.5.0
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-utils-xiph v0.5.5
+symphonia-core v0.5.5 (*)
+symphonia-metadata v0.5.5 (*)
+symphonia-bundle-mp3 v0.5.5
+lazy_static v1.5.0
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-metadata v0.5.5 (*)
+symphonia-codec-aac v0.5.5
+lazy_static v1.5.0
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-codec-pcm v0.5.5
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-codec-vorbis v0.5.5
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-utils-xiph v0.5.5 (*)
+symphonia-core v0.5.5 (*)
+symphonia-format-isomp4 v0.5.5
+encoding_rs v0.8.35 (*)
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-metadata v0.5.5 (*)
+symphonia-utils-xiph v0.5.5 (*)
+symphonia-format-ogg v0.5.5
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-metadata v0.5.5 (*)
+symphonia-utils-xiph v0.5.5 (*)
+symphonia-format-riff v0.5.5
+extended v0.1.0
+log v0.4.33
+symphonia-core v0.5.5 (*)
+symphonia-metadata v0.5.5 (*)
+symphonia-metadata v0.5.5 (*)
+serde v1.0.228 (*)
+widestring v1.2.1
+windows v0.62.2
+windows-collections v0.3.2
+windows-core v0.62.2
+windows-implement v0.60.2 (proc-macro)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+windows-interface v0.59.3 (proc-macro)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+windows-link v0.2.1
+windows-result v0.4.1
+windows-link v0.2.1
+windows-strings v0.5.1
+windows-link v0.2.1
+windows-core v0.62.2 (*)
+windows-future v0.3.2
+windows-core v0.62.2 (*)
+windows-link v0.2.1
+windows-threading v0.2.1
+windows-link v0.2.1
+windows-numerics v0.3.1
+windows-core v0.62.2 (*)
+windows-link v0.2.1
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_events v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/events)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_packets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/packets) (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session) (*)
+serde v1.0.228 (*)
+serde_json v1.0.150 (*)
+alvr_filesystem v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/filesystem) (*)
+alvr_packets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/packets) (*)
+alvr_server_io v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/server_io)
+alvr_common v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/common) (*)
+alvr_events v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/events) (*)
+alvr_filesystem v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/filesystem) (*)
+alvr_packets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/packets) (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session) (*)
+dirs v6.0.0 (*)
+encoding_rs_io v0.1.7
+encoding_rs v0.8.35 (*)
+runas v1.2.0
+which v4.4.2
+either v1.15.0
+home v0.5.12
+windows-sys v0.61.2 (*)
+once_cell v1.21.4
+rustix v0.38.44
+bitflags v2.13.0
+errno v0.3.14
+windows-sys v0.61.2 (*)
+windows-sys v0.59.0
+windows-targets v0.52.6 (*)
+windows-sys v0.48.0
+windows-targets v0.48.5
+windows_x86_64_msvc v0.48.5
+serde_json v1.0.150 (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session) (*)
+alvr_sockets v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/sockets) (*)
+ash v0.38.0+1.3.281
+libloading v0.8.9
+windows-link v0.2.1
+axum v0.8.9
+axum-core v0.5.6
+bytes v1.11.1
+futures-core v0.3.32
+http v1.4.0 (*)
+http-body v1.0.1
+bytes v1.11.1
+http v1.4.0 (*)
+http-body-util v0.1.3
+bytes v1.11.1
+futures-core v0.3.32
+http v1.4.0 (*)
+http-body v1.0.1 (*)
+pin-project-lite v0.2.17
+mime v0.3.17
+pin-project-lite v0.2.17
+sync_wrapper v1.0.2
+tower-layer v0.3.3
+tower-service v0.3.3
+tracing v0.1.44
+log v0.4.33
+pin-project-lite v0.2.17
+tracing-core v0.1.36
+once_cell v1.21.4
+base64 v0.22.1
+bytes v1.11.1
+form_urlencoded v1.2.2
+percent-encoding v2.3.2
+futures-util v0.3.32
+futures-core v0.3.32
+futures-sink v0.3.32
+futures-task v0.3.32
+pin-project-lite v0.2.17
+slab v0.4.12
+http v1.4.0 (*)
+http-body v1.0.1 (*)
+http-body-util v0.1.3 (*)
+hyper v1.9.0
+atomic-waker v1.1.2
+bytes v1.11.1
+futures-channel v0.3.32
+futures-core v0.3.32
+futures-core v0.3.32
+http v1.4.0 (*)
+http-body v1.0.1 (*)
+httparse v1.10.1
+httpdate v1.0.3
+itoa v1.0.18
+pin-project-lite v0.2.17
+smallvec v1.15.2
+tokio v1.52.0
+bytes v1.11.1
+mio v1.2.0
+log v0.4.33
+windows-sys v0.61.2 (*)
+pin-project-lite v0.2.17
+socket2 v0.6.3 (*)
+tokio-macros v2.7.0 (proc-macro)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+syn v2.0.118 (*)
+windows-sys v0.61.2 (*)
+hyper-util v0.1.20
+bytes v1.11.1
+http v1.4.0 (*)
+http-body v1.0.1 (*)
+hyper v1.9.0 (*)
+pin-project-lite v0.2.17
+tokio v1.52.0 (*)
+tower-service v0.3.3
+itoa v1.0.18
+matchit v0.8.4
+memchr v2.8.2
+mime v0.3.17
+percent-encoding v2.3.2
+pin-project-lite v0.2.17
+serde_core v1.0.228
+serde_json v1.0.150 (*)
+serde_path_to_error v0.1.20
+itoa v1.0.18
+serde_core v1.0.228
+serde_urlencoded v0.7.1
+form_urlencoded v1.2.2 (*)
+itoa v1.0.18
+ryu v1.0.23
+serde v1.0.228 (*)
+sha1 v0.10.6 (*)
+sync_wrapper v1.0.2
+tokio v1.52.0 (*)
+tokio-tungstenite v0.29.0
+futures-util v0.3.32 (*)
+log v0.4.33
+tokio v1.52.0 (*)
+tungstenite v0.29.0
+bytes v1.11.1
+data-encoding v2.10.0
+http v1.4.0 (*)
+httparse v1.10.1
+log v0.4.33
+rand v0.9.4
+rand_chacha v0.9.0
+ppv-lite86 v0.2.21
+zerocopy v0.8.52
+rand_core v0.9.5
+getrandom v0.3.4
+cfg-if v1.0.4
+rand_core v0.9.5 (*)
+sha1 v0.10.6 (*)
+thiserror v2.0.18 (*)
+tower v0.5.3
+futures-core v0.3.32
+futures-util v0.3.32 (*)
+pin-project-lite v0.2.17
+sync_wrapper v1.0.2
+tokio v1.52.0 (*)
+tower-layer v0.3.3
+tower-service v0.3.3
+tracing v0.1.44 (*)
+tower-layer v0.3.3
+tower-service v0.3.3
+tracing v0.1.44 (*)
+chrono v0.4.44
+num-traits v0.2.19 (*)
+windows-link v0.2.1
+fern v0.7.1
+log v0.4.33
+flume v0.11.1
+futures-core v0.3.32
+futures-sink v0.3.32
+nanorand v0.7.0
+getrandom v0.2.17 (*)
+spin v0.9.8
+lock_api v0.4.14 (*)
+mdns-sd v0.19.0
+fastrand v2.4.1
+flume v0.11.1 (*)
+if-addrs v0.15.0
+windows-sys v0.61.2 (*)
+log v0.4.33
+mio v1.2.0 (*)
+socket-pktinfo v0.3.2
+socket2 v0.6.3 (*)
+windows-sys v0.60.2
+windows-targets v0.53.5
+windows_x86_64_msvc v0.53.1
+socket2 v0.6.3 (*)
+rfd v0.17.2
+log v0.4.33
+raw-window-handle v0.6.2
+windows-sys v0.61.2 (*)
+rosc v0.11.4
+byteorder v1.5.0
+nom v7.1.3
+memchr v2.8.2
+minimal-lexical v0.2.1
+time v0.3.47 (*)
+serde v1.0.228 (*)
+serde_json v1.0.150 (*)
+sysinfo v0.38.4
+libc v0.2.186
+memchr v2.8.2
+ntapi v0.4.3
+winapi v0.3.9
+windows v0.62.2 (*)
+tokio v1.52.0 (*)
+tower-http v0.6.8
+bitflags v2.13.0
+bytes v1.11.1
+http v1.4.0 (*)
+pin-project-lite v0.2.17
+tower-layer v0.3.3
+tower-service v0.3.3
+alvr_server_io v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/server_io) (*)
+alvr_session v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/session) (*)
+serde_json v1.0.150 (*)
+sysinfo v0.38.4 (*)
+alvr_filesystem v21.0.0-dev14 (/workspace/scratch/647ea6e3ae16/native034/ALVR/alvr/filesystem) (*)
+bindgen v0.72.1
+bitflags v2.13.0
+cexpr v0.6.0
+nom v7.1.3
+memchr v2.8.2
+minimal-lexical v0.2.1
+clang-sys v1.8.1
+glob v0.3.3
+libc v0.2.186
+libloading v0.8.9
+cfg-if v1.0.4
+glob v0.3.3
+itertools v0.13.0
+either v1.15.0
+log v0.4.33
+prettyplease v0.2.37
+proc-macro2 v1.0.106 (*)
+syn v2.0.118 (*)
+proc-macro2 v1.0.106 (*)
+quote v1.0.46 (*)
+regex v1.12.3 (*)
+rustc-hash v2.1.2
+shlex v1.3.0
+syn v2.0.118 (*)
+cc v1.2.65 (*)
+pkg-config v0.3.33
+walkdir v2.5.0 (*)

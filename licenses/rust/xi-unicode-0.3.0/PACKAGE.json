@@ -1,0 +1,38 @@
+{
+  "crate": "xi-unicode",
+  "version": "0.3.0",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/google/xi-editor",
+  "authors": [
+    "Raph Levien <raph.levien@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/google/xi-editor/2bc11ab9dd49b4ab71244f5fa2916f13976b35d8/LICENSE",
+      "commit": "2bc11ab9dd49b4ab71244f5fa2916f13976b35d8"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "a67300977d3dc3f8034dae89778f502b6ba20b269527b3223ba59c0cf393bb8a",
+    "windows_client": "a67300977d3dc3f8034dae89778f502b6ba20b269527b3223ba59c0cf393bb8a"
+  },
+  "source_url": "https://crates.io/crates/xi-unicode/0.3.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "2bc11ab9dd49b4ab71244f5fa2916f13976b35d8"
+    }
+  }
+}

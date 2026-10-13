@@ -1,0 +1,9 @@
+{
+  "release": "0.2.4",
+  "compiler": "GCC 13, C++17",
+  "native_client_sha256": "7cf27225162bcdc9732981f79abaa71a632f0fb5670f49ba516771260a7f9f89",
+  "transport": "Unchanged pinned compiled ALVR adapter from verified 0.2.3 payload",
+  "frame_continuity_contracts": "pass",
+  "linux_native_cli_and_missing_runtime_probe": "pass",
+  "physical_streaming": "User confirmed previous build; new revision untested"
+}

@@ -1,0 +1,12 @@
+NVIDIA Video Codec SDK sample code in the Windows host SteamVR driver
+
+The Windows host SteamVR driver (dist/host/bin/win64/driver_alvr_server.dll), built from ALVR,
+contains, in object code only, NVIDIA's NvEncoder, NvEncoderD3D11 and NvCodecUtils sample code
+that ALVR incorporates for NVIDIA GPUs (copyright 2017-2022 NVIDIA Corporation).
+
+This software contains source code provided by NVIDIA Corporation.
+
+That code is licensed by NVIDIA under the terms of its Video Codec SDK licence agreement, not under
+the MIT licence of VROSTBridge or of ALVR. It is distributed only as part of the driver and may not
+be extracted, used or redistributed separately. Its source is not part of VROSTBridge's repository.
+The interface header nvEncodeAPI.h is MIT-licensed by NVIDIA: see NVIDIA-nvEncodeAPI-MIT.txt.

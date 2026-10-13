@@ -1,0 +1,36 @@
+{
+  "crate": "generic-array",
+  "version": "0.14.7",
+  "license": "MIT",
+  "repository": "https://github.com/fizyk20/generic-array.git",
+  "authors": [
+    "Bart\u0142omiej Kami\u0144ski <fizyk20@gmail.com>",
+    "Aaron Trent <novacrazy@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "c09aae9d3c77b531f56351a9947bc7446511d6b025b3255312d3e3442a9a7583",
+      "bytes": 1107,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "85649ca51fd72272d7821adaf274ad91c288277713d9c18820d8499a7ff69e9a"
+  },
+  "source_url": "https://crates.io/crates/generic-array/0.14.7",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "1397d2bb40c406901b7827161b73b34b056cbe3a"
+    },
+    "path_in_vcs": ""
+  }
+}

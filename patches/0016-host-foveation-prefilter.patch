@@ -1,0 +1,153 @@
+diff --git a/alvr/server_openvr/cpp/platform/win32/FFR.cpp b/alvr/server_openvr/cpp/platform/win32/FFR.cpp
+index a3b3dbcb..aa91c617 100644
+--- a/alvr/server_openvr/cpp/platform/win32/FFR.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/FFR.cpp
+@@ -94,6 +94,23 @@ void FFR::Initialize(ID3D11Texture2D* compositionTexture) {
+         );
+ 
+         mPipelines.push_back(compressAxisAlignedPipeline);
++
++        // VROSTBridge (patch 0016): the compression pass samples its input (which has a mip
++        // chain, see FrameRender::Startup) anisotropically and clamped to the picture. Until
++        // now it used whatever sampler the layer pass left bound (anisotropic but wrapping, on
++        // a texture without mips: no filtering across the reduced edges' footprint).
++        D3D11_SAMPLER_DESC sampler = {};
++        sampler.Filter = D3D11_FILTER_ANISOTROPIC;
++        sampler.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
++        sampler.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
++        sampler.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
++        sampler.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
++        sampler.ComparisonFunc = D3D11_COMPARISON_NEVER;
++        sampler.MinLOD = 0;
++        sampler.MaxLOD = D3D11_FLOAT32_MAX;
++        if (FAILED(mDevice->CreateSamplerState(&sampler, &mCompressSampler))) {
++            mCompressSampler.Reset();
++        }
+     } else {
+         mOptimizedTexture = compositionTexture;
+     }
+@@ -128,9 +145,20 @@ void FFR::Render(uint64_t targetTimestampNs) {
+         fovVars.centerShiftRightY
+     );
+ 
++    // VROSTBridge (patch 0016): the compression pass's own sampler; the one bound before is
++    // put back for the passes after it.
++    ComPtr<ID3D11SamplerState> previousSampler;
++    if (mCompressSampler) {
++        mImmediateContext->PSGetSamplers(0, 1, previousSampler.ReleaseAndGetAddressOf());
++        mImmediateContext->PSSetSamplers(0, 1, mCompressSampler.GetAddressOf());
++    }
+     for (auto& p : mPipelines) {
+         p.Render();
+     }
++    if (mCompressSampler) {
++        ID3D11SamplerState* restore = previousSampler.Get();
++        mImmediateContext->PSSetSamplers(0, 1, &restore);
++    }
+ }
+ 
+ ID3D11Texture2D* FFR::GetOutputTexture() { return mOptimizedTexture.Get(); }
+diff --git a/alvr/server_openvr/cpp/platform/win32/FFR.h b/alvr/server_openvr/cpp/platform/win32/FFR.h
+index 899fe608..d22eb2de 100644
+--- a/alvr/server_openvr/cpp/platform/win32/FFR.h
++++ b/alvr/server_openvr/cpp/platform/win32/FFR.h
+@@ -16,6 +16,8 @@ private:
+     Microsoft::WRL::ComPtr<ID3D11Buffer> mFoveatedRenderingBuffer;
+     Microsoft::WRL::ComPtr<ID3D11Texture2D> mOptimizedTexture;
+     Microsoft::WRL::ComPtr<ID3D11VertexShader> mQuadVertexShader;
++    // VROSTBridge (patch 0016): anisotropic, clamped sampling for the compression pass.
++    Microsoft::WRL::ComPtr<ID3D11SamplerState> mCompressSampler;
+ 
+     std::vector<d3d_render_utils::RenderPipeline> mPipelines;
+ };
+diff --git a/alvr/server_openvr/cpp/platform/win32/FrameRender.cpp b/alvr/server_openvr/cpp/platform/win32/FrameRender.cpp
+index 218aeba3..997552c7 100644
+--- a/alvr/server_openvr/cpp/platform/win32/FrameRender.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/FrameRender.cpp
+@@ -115,14 +115,41 @@ bool FrameRender::Startup() {
+     compositionTextureDesc.Usage = D3D11_USAGE_DEFAULT;
+     compositionTextureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+ 
++    // VROSTBridge (patch 0016): with foveated encoding the composition gets a full mip chain,
++    // regenerated each frame, so the compression pass filters the reduced edges over the
++    // area each encoded pixel covers (mip-mapped, anisotropic) instead of picking one bilinear
++    // sample from up to five source pixels: that aliasing made the periphery shimmer. With
++    // colour correction on, that pass's output carries the mip chain instead.
++    m_compositionMips = Settings_Instance()->m_enableFoveatedEncoding
++        && !Settings_Instance()->m_enableColorCorrection;
++    if (m_compositionMips) {
++        compositionTextureDesc.MipLevels = 0;
++        compositionTextureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
++    }
++
+     ComPtr<ID3D11Texture2D> compositionTexture;
+ 
+     if (FAILED(m_pD3DRender->GetDevice()->CreateTexture2D(
+             &compositionTextureDesc, NULL, &compositionTexture
+         ))) {
+-        Error("Failed to create staging texture!\n");
+-        return false;
++        // Without a mip chain the compression pass samples as upstream ALVR does.
++        compositionTextureDesc.MipLevels = 1;
++        compositionTextureDesc.MiscFlags = 0;
++        m_compositionMips = false;
++        if (FAILED(m_pD3DRender->GetDevice()->CreateTexture2D(
++                &compositionTextureDesc, NULL, &compositionTexture
++            ))) {
++            Error("Failed to create staging texture!\n");
++            return false;
++        }
+     }
++    if (m_compositionMips
++        && FAILED(m_pD3DRender->GetDevice()->CreateShaderResourceView(
++            compositionTexture.Get(), NULL, &m_compositionResourceView
++        ))) {
++        m_compositionMips = false;
++    }
++    Info("VROST_FOVEATION_PREFILTER composition_mips=%d", m_compositionMips ? 1 : 0);
+ 
+     HRESULT hr = m_pD3DRender->GetDevice()->CreateRenderTargetView(
+         compositionTexture.Get(), NULL, &m_pRenderTargetView
+@@ -398,12 +425,15 @@ bool FrameRender::Startup() {
+             COLOR_CORRECTION_CSO_PTR, COLOR_CORRECTION_CSO_PTR + COLOR_CORRECTION_CSO_LEN
+         );
+ 
++        // VROSTBridge (patch 0016): the compression pass reads this one; its pipeline regenerates
++        // the mip chain after each pass.
+         ComPtr<ID3D11Texture2D> colorCorrectedTexture = CreateTexture(
+             m_pD3DRender->GetDevice(),
+             Settings_Instance()->m_renderWidth,
+             Settings_Instance()->m_renderHeight,
+             Settings_Instance()->m_enableHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT
+-                                             : DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
++                                             : DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
++            Settings_Instance()->m_enableFoveatedEncoding
+         );
+ 
+         struct ColorCorrection {
+@@ -865,6 +895,11 @@ bool FrameRender::RenderFrame(
+     m_pD3DRender->GetContext()->RSSetViewports(1, &m_viewport);
+     m_pD3DRender->GetContext()->RSSetScissorRects(1, &m_scissor);
+ 
++    if (m_compositionMips) {
++        // VROSTBridge (patch 0016): the mip chain of this frame's composition.
++        m_pD3DRender->GetContext()->GenerateMips(m_compositionResourceView.Get());
++    }
++
+     if (enableColorCorrection) {
+         m_colorCorrectionPipeline->Render();
+     }
+diff --git a/alvr/server_openvr/cpp/platform/win32/FrameRender.h b/alvr/server_openvr/cpp/platform/win32/FrameRender.h
+index b3f5ab46..33f2b09a 100644
+--- a/alvr/server_openvr/cpp/platform/win32/FrameRender.h
++++ b/alvr/server_openvr/cpp/platform/win32/FrameRender.h
+@@ -80,6 +80,9 @@ private:
+     ComPtr<ID3D11SamplerState> m_pSamplerLinear;
+ 
+     ComPtr<ID3D11RenderTargetView> m_pRenderTargetView;
++    // VROSTBridge (patch 0016): the composition's mip chain for the foveated compression pass.
++    ComPtr<ID3D11ShaderResourceView> m_compositionResourceView;
++    bool m_compositionMips = false;
+     ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+ 
+     D3D11_VIEWPORT m_viewportL, m_viewportR, m_viewport;

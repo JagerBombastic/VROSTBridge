@@ -1,0 +1,33 @@
+{
+  "version": "0.2.12",
+  "python_full_suite": {
+    "run": 194,
+    "passed": 192,
+    "skipped": 2
+  },
+  "supplemental_headset_suite": {
+    "run": 7,
+    "passed": 7,
+    "overlap_with_full_suite": 6
+  },
+  "cpp_groups_passed": 7,
+  "desktop_javascript": "pass",
+  "native_build_and_loader": "pass",
+  "frozen_install_upgrade_checks_passed": 12,
+  "documentation_repack": "Same frozen companion and native client as install-smoke evidence; documentation updated after local left-eye reproduction was confirmed. Final archive verification is generated after repack and included in source archive.",
+  "limits": [
+    "No Windows execution",
+    "No physical Index/Beyond validation",
+    "No measured 0.2.12 performance or artifact improvement"
+  ],
+  "final_client_binary_equivalence": {
+    "VROSTBridge-Client": {
+      "sha256": "7f8eb72de8dfe15527ba8a291b6f168ad77f087bb6150fb4003a7216431ecea8",
+      "same_as_tested_binary": true
+    },
+    "VROSTBridgeClient": {
+      "sha256": "2d62169f6c3dc57607e5317462f3fa027a90397771f09bb6b3f5fd8f74b3d8b0",
+      "same_as_tested_binary": true
+    }
+  }
+}

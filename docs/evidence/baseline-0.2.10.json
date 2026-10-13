@@ -1,0 +1,112 @@
+{
+  "source": "VROSTBridge-session-report (7).json",
+  "source_sha256": "cbc994b1cdeb5e40ca161fd9bec1db9cffb31dd5597304eeacf9b8cad9dcdbc7",
+  "version": "0.2.10",
+  "settings": {
+    "codec": "H264",
+    "bitrate_mbps": 80,
+    "per_eye": [
+      1440,
+      1568
+    ],
+    "refresh_hz": 90
+  },
+  "client_evidence": {
+    "elapsed_seconds": 411.1,
+    "streaming_samples": 380,
+    "recovery_samples": 24,
+    "source_frame_age_p95_ms": 27,
+    "measurement": "Once-per-second client samples; source frame age is not motion-to-photon latency",
+    "physical_checks": "Not automatically verified: image correctness, tracking, inputs, haptics, audio, calibrated gaze"
+  },
+  "host_graph_sample_statistics": {
+    "total_pipeline_latency_s": {
+      "samples": 233,
+      "median": 0.037539855,
+      "p95": 0.04175861,
+      "maximum": 0.10423734
+    },
+    "encoder_s": {
+      "samples": 233,
+      "median": 0.004211,
+      "p95": 0.0053446,
+      "maximum": 0.0056175
+    },
+    "network_s": {
+      "samples": 233,
+      "median": 0.003383717,
+      "p95": 0.00497574,
+      "maximum": 0.012079365
+    },
+    "decoder_s": {
+      "samples": 233,
+      "median": 0.000300076,
+      "p95": 0.000552719,
+      "maximum": 0.003085707
+    },
+    "client_compositor_s": {
+      "samples": 233,
+      "median": 0.010395094,
+      "p95": 0.014019885,
+      "maximum": 0.01585308
+    },
+    "vsync_queue_s": {
+      "samples": 233,
+      "median": 0.013652659,
+      "p95": 0.01375896,
+      "maximum": 0.013788355
+    }
+  },
+  "client_active_windows": {
+    "unique_fps": {
+      "samples": 97,
+      "median": 89.992,
+      "p95": 90.008,
+      "maximum": 90.021
+    },
+    "packet_interval_max_ms": {
+      "samples": 97,
+      "median": 13.767,
+      "p95": 20.728,
+      "maximum": 32.205
+    },
+    "decode_output_mean_ms": {
+      "samples": 97,
+      "median": 0.367,
+      "p95": 0.414,
+      "maximum": 0.482
+    },
+    "convert_enqueue_mean_ms": {
+      "samples": 97,
+      "median": 4.036,
+      "p95": 4.168,
+      "maximum": 4.235
+    },
+    "ready_observed_mean_ms": {
+      "samples": 97,
+      "median": 6.576,
+      "p95": 8.356,
+      "maximum": 8.589
+    },
+    "arrival_to_submit_mean_ms": {
+      "samples": 97,
+      "median": 11.293,
+      "p95": 12.903,
+      "maximum": 13.215
+    },
+    "new_frame_interval_max_ms": {
+      "samples": 97,
+      "median": 11.565,
+      "p95": 33.472,
+      "maximum": 55.585
+    }
+  },
+  "limits": [
+    "Retained, sampled diagnostics; not a full-frame trace",
+    "Host statistics sampled at about 1 Hz",
+    "Active client windows selected by unique_fps > 80 to separate streaming from start/stop outages",
+    "Decoder output timing excludes VA-API completion wait in FFmpeg mapping",
+    "Source frame age and ALVR pipeline estimate are not measured motion-to-photon latency",
+    "Both uploads contain the same session data; do not count them as separate runs"
+  ]
+}

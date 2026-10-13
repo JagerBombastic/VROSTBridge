@@ -1,0 +1,66 @@
+65 INFO: PyInstaller: 6.22.3, contrib hooks: 2026.7
+65 INFO: Python: 3.12.14
+66 INFO: Platform: Linux-6.18.44-x86_64-with-glibc2.39
+66 INFO: Python environment: /opt/codex/runtimes/codex-primary-runtime/dependencies/python
+66 INFO: wrote /workspace/scratch/647ea6e3ae16/freeze-work036/VROSTBridge-Client.spec
+68 INFO: Module search paths (PYTHONPATH):
+['/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1',
+ '/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python312.zip',
+ '/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12',
+ '/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/lib-dynload',
+ '/root/.local/lib/python3.12/site-packages',
+ '/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages',
+ '/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/launcher',
+ '/workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1']
+231 INFO: Appending 'datas' from .spec
+231 INFO: checking Analysis
+232 INFO: Building Analysis because Analysis-00.toc is non existent
+232 INFO: Looking for Python shared library...
+238 INFO: Using Python shared library: /opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/libpython3.12.so.1.0
+238 INFO: Running Analysis Analysis-00.toc
+238 INFO: Target bytecode optimization level: 0
+238 INFO: Initializing module dependency graph...
+238 INFO: Initializing module graph hook caches...
+246 INFO: Analyzing modules for base_library.zip ...
+651 INFO: Processing standard module hook 'hook-encodings.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+923 INFO: Processing standard module hook 'hook-math.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+1557 INFO: Processing standard module hook 'hook-pickle.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+2192 INFO: Processing standard module hook 'hook-heapq.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+2444 INFO: Caching module dependency graph...
+2474 INFO: Analyzing /workspace/scratch/647ea6e3ae16/work036/VROSTBridge-1.0.0-rc1/launcher/bootstrap.py
+2744 INFO: Processing standard module hook 'hook-_ctypes.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+2871 INFO: Processing standard module hook 'hook-webbrowser.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+3067 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+3121 INFO: Processing standard module hook 'hook-xml.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+3610 INFO: Processing standard module hook 'hook-platform.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks'
+3756 INFO: Processing module hooks (post-graph stage)...
+3784 INFO: Performing binary vs. data reclassification (10 entries)
+3788 INFO: Looking for ctypes DLLs
+3819 INFO: Analyzing run-time hooks ...
+3821 INFO: Including run-time hook 'pyi_rth_inspect.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+3822 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+3824 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from '/root/.local/lib/python3.12/site-packages/PyInstaller/hooks/rthooks'
+3828 INFO: Creating base_library.zip...
+3840 INFO: Looking for dynamic libraries
+3849 INFO: Warnings written to /workspace/scratch/647ea6e3ae16/freeze-work036/build/VROSTBridge-Client/warn-VROSTBridge-Client.txt
+3859 INFO: Graph cross-reference written to /workspace/scratch/647ea6e3ae16/freeze-work036/build/VROSTBridge-Client/xref-VROSTBridge-Client.html
+3868 INFO: checking PYZ
+3868 INFO: Building PYZ because PYZ-00.toc is non existent
+3868 INFO: Building PYZ (ZlibArchive) /workspace/scratch/647ea6e3ae16/freeze-work036/build/VROSTBridge-Client/PYZ-00.pyz
+4096 INFO: Building PYZ (ZlibArchive) /workspace/scratch/647ea6e3ae16/freeze-work036/build/VROSTBridge-Client/PYZ-00.pyz completed successfully.
+4109 INFO: checking PKG
+4110 INFO: Building PKG because PKG-00.toc is non existent
+4110 INFO: Building PKG (CArchive) VROSTBridge-Client.pkg
+4121 INFO: Building PKG (CArchive) VROSTBridge-Client.pkg completed successfully.
+4121 INFO: Bootloader /root/.local/lib/python3.12/site-packages/PyInstaller/bootloader/Linux-64bit-intel/run
+4121 INFO: checking EXE
+4121 INFO: Building EXE because EXE-00.toc is non existent
+4121 INFO: Building EXE from EXE-00.toc
+4121 INFO: Copying bootloader EXE to /workspace/scratch/647ea6e3ae16/freeze-work036/build/VROSTBridge-Client/VROSTBridge-Client
+4123 INFO: Appending PKG archive to custom ELF section in EXE
+4129 INFO: Building EXE from EXE-00.toc completed successfully.
+4129 INFO: checking COLLECT
+4129 INFO: Building COLLECT because COLLECT-00.toc is non existent
+4129 INFO: Building COLLECT COLLECT-00.toc
+4138 INFO: Building COLLECT COLLECT-00.toc completed successfully.
+4139 INFO: Build complete! The results are available in: /workspace/scratch/647ea6e3ae16/frozen036

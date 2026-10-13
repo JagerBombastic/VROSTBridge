@@ -1,0 +1,38 @@
+{
+  "crate": "http-body-util",
+  "version": "0.1.3",
+  "license": "MIT",
+  "repository": "https://github.com/hyperium/http-body",
+  "authors": [
+    "Carl Lerche <me@carllerche.com>",
+    "Lucio Franco <luciofranco14@gmail.com>",
+    "Sean McArthur <sean@seanmonstar.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "b843fb7430efdf9732c834b6814beda44fccf3f0ddf7c9e030b39da17f6b159c",
+      "bytes": 1083,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "b021d93e26becf5dc7e1b75b1bed1fd93124b374ceb73f43d4d4eafec896a64a"
+  },
+  "source_url": "https://crates.io/crates/http-body-util/0.1.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ad4a9c9450596ee3f41390448205432a8179d80c",
+      "dirty": true
+    },
+    "path_in_vcs": "http-body-util"
+  }
+}

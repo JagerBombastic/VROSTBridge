@@ -1,0 +1,20 @@
+test_client_cleanup_and_uninstall_keep_unowned_and_state (tests.test_install_maintenance.InstallMaintenanceTests.test_client_cleanup_and_uninstall_keep_unowned_and_state) ... ok
+test_client_uninstall_preserves_unowned_play_shortcut (tests.test_install_maintenance.InstallMaintenanceTests.test_client_uninstall_preserves_unowned_play_shortcut) ... ok
+test_denied_firewall_cleanup_retains_manifest (tests.test_install_maintenance.InstallMaintenanceTests.test_denied_firewall_cleanup_retains_manifest) ... ok
+test_failed_driver_migration_retains_old_files (tests.test_install_maintenance.InstallMaintenanceTests.test_failed_driver_migration_retains_old_files) ... ok
+test_firewall_uninstall_removes_only_owned_rules (tests.test_install_maintenance.InstallMaintenanceTests.test_firewall_uninstall_removes_only_owned_rules) ... ok
+test_host_migrates_trust_before_old_deletion (tests.test_install_maintenance.InstallMaintenanceTests.test_host_migrates_trust_before_old_deletion) ... ok
+test_hotfix_upgrade_preserves_nightly_profile_and_uses_new_build_identity (tests.test_install_maintenance.InstallMaintenanceTests.test_hotfix_upgrade_preserves_nightly_profile_and_uses_new_build_identity) ... ok
+test_repair_copy_failure_restores_same_version (tests.test_install_maintenance.InstallMaintenanceTests.test_repair_copy_failure_restores_same_version) ... ok
+test_stale_client_uninstall_does_not_touch_new_menu (tests.test_install_maintenance.InstallMaintenanceTests.test_stale_client_uninstall_does_not_touch_new_menu) ... ok
+test_manifest_cannot_claim_a_different_api_or_omit_it (tests.test_native_package_034.NativePackageTests.test_manifest_cannot_claim_a_different_api_or_omit_it) ... ok
+test_native_build_requires_matching_complete_patch_set_and_file_hashes (tests.test_native_package_034.NativePackageTests.test_native_build_requires_matching_complete_patch_set_and_file_hashes) ... ok
+test_profile_seed_removes_old_nightly_metadata_and_logs (tests.test_native_package_034.NativePackageTests.test_profile_seed_removes_old_nightly_metadata_and_logs) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.033s
+
+OK
+VROSTBridge Client removed. Settings, client identity and logs were retained.
+VROSTBridge Client removed. Settings, client identity and logs were retained.
+VROSTBridge Client removed. Settings, client identity and logs were retained.

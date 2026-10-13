@@ -1,0 +1,46 @@
+{
+  "crate": "backtrace",
+  "version": "0.3.76",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/backtrace-rs",
+  "authors": [
+    "The Rust Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "bb531853791a215d7c62a30daf0dde835f381ab5de4589cfe7c649d2cbe92bd6",
+    "linux_client": "bb531853791a215d7c62a30daf0dde835f381ab5de4589cfe7c649d2cbe92bd6",
+    "windows_client": "bb531853791a215d7c62a30daf0dde835f381ab5de4589cfe7c649d2cbe92bd6"
+  },
+  "source_url": "https://crates.io/crates/backtrace/0.3.76",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "775f6a1ba62e7d35a1fac76e64c61d9d4687b5f2"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "crate": "pipewire",
+  "version": "0.9.2",
+  "license": "MIT",
+  "repository": "https://gitlab.freedesktop.org/pipewire/pipewire-rs",
+  "authors": [
+    "Tom Wagner <tom.a.wagner@protonmail.com>",
+    "Guillaume Desmottes <guillaume.desmottes@collabora.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "c786d27ff72139f9c5dc2ff460c88fd59a6aed40be33c4d5e50bfaa2c1f43df6",
+      "bytes": 1096,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "9688b89abf11d756499f7c6190711d6dbe5a3acdb30c8fbf001d6596d06a8d44"
+  },
+  "source_url": "https://crates.io/crates/pipewire/0.9.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "03301bc734c9f1d3fb7a064c072458ad00245133"
+    },
+    "path_in_vcs": "pipewire"
+  }
+}

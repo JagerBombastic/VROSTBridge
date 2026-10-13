@@ -1,0 +1,35 @@
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/work033/VROSTBridge-0.2.13/build-tests
+[ 12%] Built target video_handshake_tests
+[ 25%] Built target stream_tests
+[ 37%] Built target core_tests
+[ 50%] Built target presentation_tests
+[ 56%] Building CXX object CMakeFiles/skeletal_tests.dir/tests/skeletal_tests.cpp.o
+[ 68%] Built target runtime_settings_tests
+[ 81%] Built target geometry_tests
+[ 93%] Built target input_tests
+[100%] Linking CXX executable skeletal_tests
+[100%] Built target skeletal_tests
+Internal ctest changing into directory: /workspace/scratch/647ea6e3ae16/work033/VROSTBridge-0.2.13/build-tests
+Test project /workspace/scratch/647ea6e3ae16/work033/VROSTBridge-0.2.13/build-tests
+    Start 1: core_contracts
+1/8 Test #1: core_contracts ...................   Passed    0.00 sec
+    Start 2: stream_contracts
+2/8 Test #2: stream_contracts .................   Passed    0.00 sec
+    Start 3: video_handshake_contracts
+3/8 Test #3: video_handshake_contracts ........   Passed    0.00 sec
+    Start 4: presentation_contracts
+4/8 Test #4: presentation_contracts ...........   Passed    0.01 sec
+    Start 5: live_geometry_contracts
+5/8 Test #5: live_geometry_contracts ..........   Passed    0.00 sec
+    Start 6: input_contracts
+6/8 Test #6: input_contracts ..................   Passed    0.00 sec
+    Start 7: skeletal_contracts
+7/8 Test #7: skeletal_contracts ...............   Passed    0.00 sec
+    Start 8: runtime_settings_contracts
+8/8 Test #8: runtime_settings_contracts .......   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) =   0.03 sec

@@ -1,0 +1,33 @@
+{
+  "crate": "rustls-webpki",
+  "version": "0.103.12",
+  "license": "ISC",
+  "repository": "https://github.com/rustls/webpki",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "5b698ca13897be3afdb7174256fa1574f8c6892b8bea1a66dd6469d3fe27885a",
+      "bytes": 916,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "8279bb85272c9f10811ae6a6c547ff594d6a7f3c6c6b02ee9726d1d0dcfcdd06"
+  },
+  "source_url": "https://crates.io/crates/rustls-webpki/0.103.12",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "27131d476e2b68a537e629d6d012bef8dad6efd3"
+    },
+    "path_in_vcs": ""
+  }
+}

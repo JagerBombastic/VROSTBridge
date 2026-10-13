@@ -1,0 +1,184 @@
+{
+  "version": "1.0.0-rc1",
+  "transport": "reused verified 0.2.14 native transport; protocol unchanged",
+  "binary_sha256": "2f3c9fe56b1d86abb16f2532457e73d294bd042d1f9729cc78549f3396270dc5",
+  "checked_sources": {
+    "alvr/audio/src/lib.rs": {
+      "sha256": "9e5ce3bd20262d95060cb981401f727f37e6bad8c7f58dc00680cdd79e8ae35d",
+      "matches_0.2.14_build": true
+    },
+    "alvr/audio/src/linux.rs": {
+      "sha256": "66899a4f5554560b81e8b25ec82f7aed9fe2d611d4b7c4412d62a919c5c21c38",
+      "matches_0.2.14_build": true
+    },
+    "alvr/audio/src/windows.rs": {
+      "sha256": "221618bee54e05893138fe6154faedc2f6c558acf3900d59896db5fba4763ab2",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/build.rs": {
+      "sha256": "84a2d0aa36ddf5752c59763fc731ef1fcfc40f2b602edf4c04ae0ca2d79f0596",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/audio.rs": {
+      "sha256": "795a8e675e268c9fff71cb24d05cdf6e408c00eac3dcfaa8a2cdea2e1bdc6657",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/c_api.rs": {
+      "sha256": "75cc95f9233a6d37ad7489227ac18ae4d8f334f984527a60e78e1f38bcac34df",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/connection.rs": {
+      "sha256": "8c42f2f1d38d422c3839b9ca6da5e9cdca3a9e665a6246fa7715d3b9f51d48f7",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/lib.rs": {
+      "sha256": "4c9faa26744bc0fea4005f30db770648529d6ab329e4afb3e5a7edb93b0a3ce4",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/logging_backend.rs": {
+      "sha256": "bf230223c61ea7fd3d6aa5d28a22d9f97f1506266d2ea8433ea63a46a8f85951",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/sockets.rs": {
+      "sha256": "5ac1370efe5fbb42001407ecb6878e62f7bea4b5c33975e222598817be80c400",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/statistics.rs": {
+      "sha256": "5c77b93f48663467fa3fb3eaab3efa7f67d64167f707b6fbe0b69f0611a54753",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/storage.rs": {
+      "sha256": "4b054a04bd8e9f14b23072f54694bc6c9252c699c1383b5a510746156cc3f8cc",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/video_decoder/android.rs": {
+      "sha256": "5553d87f2900acf92909408d467dde31b2fa98e207eede63c16a731c306c344b",
+      "matches_0.2.14_build": true
+    },
+    "alvr/client_core/src/video_decoder/mod.rs": {
+      "sha256": "4ddb0aae59472a20e5b2545715c6068cb2645844064ea0ff44e43e8323e0c383",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/average.rs": {
+      "sha256": "1eefcc36dc01b0e4a14379960e35747a3565196172546ff0571cf4a4c1883f59",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/c_api.rs": {
+      "sha256": "8e77c9331769c6668efd006802d937e9d3cebfbb01936dbcb72c148fb7de17aa",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/connection_result.rs": {
+      "sha256": "da14e3ca0cbaa47b9f1f06c7f6efaaa22bfac4a402c858648f02484b0228b5ae",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/inputs.rs": {
+      "sha256": "286ff17e8f3dd095afa8822622dae3604b9ec32c6f86b5ef8410ef7852ef3457",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/lib.rs": {
+      "sha256": "82f93b086ab32c3ff242f1d2d06df0908f0ccc88fd1c13f548478de6d1d05509",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/logging.rs": {
+      "sha256": "4be5bbe6a802f9d73d7eb78510c0fc7c0ebedd9ea385e50e089c8108e43db927",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/primitives.rs": {
+      "sha256": "02ac970de907965bbba350247dd56db7a0afcc2e1dd76da21990b72c25bb94cf",
+      "matches_0.2.14_build": true
+    },
+    "alvr/common/src/version.rs": {
+      "sha256": "4e9412336ce3d6cd2eed0f31eb71f819c1393b4c986be1031671eea3ebee61e2",
+      "matches_0.2.14_build": true
+    },
+    "alvr/events/src/lib.rs": {
+      "sha256": "0e3f60c8c10909cec00c08cbc1a383a9fedde13d2b4c88951c684138156a110d",
+      "matches_0.2.14_build": true
+    },
+    "alvr/filesystem/build.rs": {
+      "sha256": "601ae15a732a6539f1472f7d3569679b59766e82ac18ccc2fbff692ab6a45f93",
+      "matches_0.2.14_build": true
+    },
+    "alvr/filesystem/src/lib.rs": {
+      "sha256": "dcda24be7ec1fce92010530f84bda899d806ba5209b04dc8bb2126b370e284e9",
+      "matches_0.2.14_build": true
+    },
+    "alvr/graphics/src/lib.rs": {
+      "sha256": "0535de79940668fcf6c7b136a0d581edf4ece9867d0b8e01c2bd1552a2b8671b",
+      "matches_0.2.14_build": true
+    },
+    "alvr/graphics/src/lobby.rs": {
+      "sha256": "83238f5ece56bd278179d4562dedefb2b087215ddc0bbff512f3dd0abd1c9e53",
+      "matches_0.2.14_build": true
+    },
+    "alvr/graphics/src/staging.rs": {
+      "sha256": "488c8628b6e1f75338933f555d7da945a1d42fd8080cde0e8cec779d359dea86",
+      "matches_0.2.14_build": true
+    },
+    "alvr/graphics/src/stream.rs": {
+      "sha256": "4e927476b3594e515d65447e73eb1c1cb83926b02f89b16d6ac969ca454cce07",
+      "matches_0.2.14_build": true
+    },
+    "alvr/packets/src/lib.rs": {
+      "sha256": "b302ef84a245a34d6bbaef7d66e2825e0035b7a67e4317531845b6fdb72e0cea",
+      "matches_0.2.14_build": true
+    },
+    "alvr/session/build.rs": {
+      "sha256": "a0566dd94eb72740be3f0262a86b95d19dc45f8bdf7d5221ffe389571c349044",
+      "matches_0.2.14_build": true
+    },
+    "alvr/session/src/lib.rs": {
+      "sha256": "a438cd93aaae132eb63fc1474c97aa078c5dd0a463792f580451973e0ab1b270",
+      "matches_0.2.14_build": true
+    },
+    "alvr/session/src/settings.rs": {
+      "sha256": "35950f9594bea6c9ebe80ecb5aa9b21dfc2e3efa392d5d6ec18b7f5af5092218",
+      "matches_0.2.14_build": true
+    },
+    "alvr/sockets/src/control_socket.rs": {
+      "sha256": "d26009b41c26caab4032bd8c3774750834769e67e5d837b53244e24786733e92",
+      "matches_0.2.14_build": true
+    },
+    "alvr/sockets/src/vrostbridge_liveness.rs": {
+      "sha256": "7431cc1e967a7d936ba6b66e271943ef19a79f577ad2d53d4bd8f0bc748d716b",
+      "matches_0.2.14_build": true
+    },
+    "alvr/sockets/src/lib.rs": {
+      "sha256": "d348f82493a2e6f09699386bdd1b060abc605d512104245743d7d182e9dfd195",
+      "matches_0.2.14_build": true
+    },
+    "alvr/sockets/src/stream_socket/mod.rs": {
+      "sha256": "1a560fec6a7b272cfcd5b88d325615bc2272962b880cd53ee3fa6eb7ef103160",
+      "matches_0.2.14_build": true
+    },
+    "alvr/sockets/src/stream_socket/tcp.rs": {
+      "sha256": "350c1731dd7c65bc533c160296c6985b08f4b0f55ea8dadb438eaf9c23a64510",
+      "matches_0.2.14_build": true
+    },
+    "alvr/sockets/src/stream_socket/udp.rs": {
+      "sha256": "19f4d701ca9fa32e536913d64939751b537b271ab7e1f7621ed417d591245875",
+      "matches_0.2.14_build": true
+    },
+    "client/transport/defaults.rs": {
+      "sha256": "1ceed289acf7be218e91d9f295372f64da68f9543cbd4aa905c0105b55140f28",
+      "matches_0.2.14_build": true
+    },
+    "client/transport/lib.rs": {
+      "sha256": "27a294f3350aee1451bd89710b655298c48ffb709164fbe2da60fa573a33fc52",
+      "matches_0.2.14_build": true
+    },
+    "client/transport/Cargo.toml": {
+      "sha256": "8778127bc784cc4a4f26c8d84c39c6d6479470813dd23cdeabdcc88e24ecf80e",
+      "matches_0.2.14_build": true
+    },
+    "client/transport/Cargo.lock": {
+      "sha256": "b28988ad21ef95856e4414f80b8c1e14e5a2f16c9a21b4dd2b687f025822f64e",
+      "matches_0.2.14_build": true
+    },
+    "client/transport/bridge.h": {
+      "sha256": "bfa4d682d6bbbc0696e34a752d5320aa4c5033b312997132d5971718aa5e36cd",
+      "matches_0.2.14_build": true
+    }
+  },
+  "hardware_execution": false
+}

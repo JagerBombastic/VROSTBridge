@@ -1,0 +1,44 @@
+{
+  "crate": "termcolor",
+  "version": "1.4.1",
+  "license": "Unlicense OR MIT",
+  "repository": "https://github.com/BurntSushi/termcolor",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "bytes": 126,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755",
+    "windows_client": "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
+  },
+  "source_url": "https://crates.io/crates/termcolor/1.4.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "71f0921f1eeceda85487098588a1602979d52493"
+    },
+    "path_in_vcs": ""
+  }
+}

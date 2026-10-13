@@ -1,0 +1,35 @@
+{
+  "crate": "slab",
+  "version": "0.4.12",
+  "license": "MIT",
+  "repository": "https://github.com/tokio-rs/slab",
+  "authors": [
+    "Carl Lerche <me@carllerche.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "8ce0830173fdac609dfb4ea603fdc002c2f4af0dc9b1a005653f5da9cf534b18",
+      "bytes": 1055,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "0c790de23124f9ab44544d7ac05d60440adc586479ce501c1d6d7da3cd8c9cf5"
+  },
+  "source_url": "https://crates.io/crates/slab/0.4.12",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "a1e4346070a48c936d808de75191dee5d01e433c"
+    },
+    "path_in_vcs": ""
+  }
+}

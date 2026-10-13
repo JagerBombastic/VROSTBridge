@@ -1,0 +1,46 @@
+{
+  "crate": "arrayvec",
+  "version": "0.7.8",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/bluss/arrayvec",
+  "authors": [
+    "bluss"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "4da95ec4ecb65b738d470b7d762894ad9c97da93e6cbfb18b570fc2c96f4b871",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56",
+    "linux_client": "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56",
+    "windows_client": "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
+  },
+  "source_url": "https://crates.io/crates/arrayvec/0.7.8",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "0cb664cf505844348538230479b0040b44f3faf1"
+    },
+    "path_in_vcs": ""
+  }
+}

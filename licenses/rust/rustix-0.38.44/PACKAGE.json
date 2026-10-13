@@ -1,0 +1,57 @@
+{
+  "crate": "rustix",
+  "version": "0.38.44",
+  "license": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+  "repository": "https://github.com/bytecodealliance/rustix",
+  "authors": [
+    "Dan Gohman <dev@sunfishcode.online>",
+    "Jakub Konka <kubkon@jakubkonka.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "COPYRIGHT",
+    "LICENSE-APACHE",
+    "LICENSE-Apache-2.0_WITH_LLVM-exception",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYRIGHT",
+      "sha256": "377c2e7c53250cc5905c0b0532d35973392af16ffb9596a41d99d202cf3617c9",
+      "bytes": 853,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-Apache-2.0_WITH_LLVM-exception",
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5",
+      "bytes": 12243,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "fdb5bc1ae2baa591800df16c9ca78619bf65c0488b41b96ccec5d11220d8c154"
+  },
+  "source_url": "https://crates.io/crates/rustix/0.38.44",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "acf4a284ea893efa93953e1ff2f2f0ab00be1cdc"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "crate": "rfd",
+  "version": "0.17.2",
+  "license": "MIT",
+  "repository": "https://github.com/PolyMeilex/rfd",
+  "authors": [
+    "Poly <marynczak.bartlomiej@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE",
+    "src/backend/xdg_desktop_portal/window_identifier/LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "65fc947f4bac882a2cd104ef73c246b1b037059df9f2b3a58b7f77f0b9e56071",
+      "bytes": 1079,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "src/backend/xdg_desktop_portal/window_identifier/LICENSE",
+      "sha256": "ae26bc7b1bc91fb8648f6a298decbb1a77090a56c9d04e2c23b8365e5f54acb5",
+      "bytes": 1074,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "20dafead71c16a34e1ff357ddefc8afc11e7d51d6d2b9fbd07eaa48e3e540220"
+  },
+  "source_url": "https://crates.io/crates/rfd/0.17.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "cca0cfa5fc38c2752c9c98f9f5168904a515fd55"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "base_commit": "f5023f8e78fa14ea57fb1038548d7820289a8524",
+  "baseline_archive_commit": "4ddeb55a7c0e3d36de7d20bb857255e5059aea10",
+  "applied_patches": [
+    {
+      "file": "0001-local-microphone-consent.patch",
+      "sha256": "9377a0d5658bfe67355496ad9fc65a492fc8b1a98a0b64eb8dd40e92ebb7ee7b"
+    },
+    {
+      "file": "0002-transport-network-resilience.patch",
+      "sha256": "a4bcacb11156f597d4cb21a02ca464df8dacb46582816f64aae2bf611b0cb68b"
+    },
+    {
+      "file": "0003-native-controller-fidelity.patch",
+      "sha256": "dafc4e7d8fef3fd1b2d01726a2bcf9c45d5efdff6bb572a6d9f5b2356e084789"
+    }
+  ],
+  "owned_files_match": true,
+  "owned_files": [
+    {
+      "file": "alvr/packets/src/lib.rs",
+      "sha256": "b302ef84a245a34d6bbaef7d66e2825e0035b7a67e4317531845b6fdb72e0cea",
+      "bytes": 15984
+    },
+    {
+      "file": "alvr/client_core/src/c_api.rs",
+      "sha256": "75cc95f9233a6d37ad7489227ac18ae4d8f334f984527a60e78e1f38bcac34df",
+      "bytes": 32625
+    },
+    {
+      "file": "alvr/client_mock/src/main.rs",
+      "sha256": "00b698d6fd565342872f814ebd1e75934b41aa124399dbb5a03f00167cb259a7",
+      "bytes": 10019
+    },
+    {
+      "file": "alvr/client_openxr/src/stream.rs",
+      "sha256": "8fd9fca0e61d606ff03481ae17751b2ee3c300a1299c51bca629b1647fdaa267",
+      "bytes": 25189
+    },
+    {
+      "file": "alvr/server_core/src/lib.rs",
+      "sha256": "11efaac278881d51932d1dd9cf1ab1323435028143c414c57174038ba6bf8ee7",
+      "bytes": 20282
+    },
+    {
+      "file": "alvr/server_core/src/tracking/mod.rs",
+      "sha256": "f9da29e2f9ec3d3cf6de1eff6a7b723984237dc0dac42df713ef9e6eabf52e3e",
+      "bytes": 19144
+    },
+    {
+      "file": "alvr/server_core/src/tracking/native_hands.rs",
+      "sha256": "7d5bf5c3153943aac8a0f3e0d8771cf888c10a1cbfc30d097592d28943d35668",
+      "bytes": 5024
+    },
+    {
+      "file": "alvr/server_openvr/src/lib.rs",
+      "sha256": "fc0e6a222fdbe61b1ba81572e130c6a9349a5497a669023cf80cc73f6034842d",
+      "bytes": 34517
+    },
+    {
+      "file": "alvr/server_openvr/src/tracking.rs",
+      "sha256": "9b994fb3d929e9748b113bf876f5cfb484f068ea1f8bda2a021d38ea27560999",
+      "bytes": 9746
+    },
+    {
+      "file": "alvr/server_openvr/cpp/alvr_server/Controller.cpp",
+      "sha256": "6c86f820671b56ca619b7e5545c80c83fce0d6a227e9229948d79525c6754b5f",
+      "bytes": 83067
+    },
+    {
+      "file": "alvr/server_openvr/cpp/alvr_server/Controller.h",
+      "sha256": "5541f35622beb520b1e0bc2e2cc6956c7019296d2be3d63f8868dffaea35a56d",
+      "bytes": 1653
+    },
+    {
+      "file": "alvr/server_openvr/cpp/alvr_server/bindings.h",
+      "sha256": "b315b91301e8cab8ed2a0978e0f812e20c17c0fa681c199b8e505d78bb1b23ae",
+      "bytes": 8353
+    },
+    {
+      "file": "alvr/server_openvr/cpp/alvr_server/VROSTBridgeHand.h",
+      "sha256": "4f815c8fd84995dfd3edbd68d057c3da7666ad195bd9c40f22a3bc509722e8e8",
+      "bytes": 1044
+    }
+  ]
+}

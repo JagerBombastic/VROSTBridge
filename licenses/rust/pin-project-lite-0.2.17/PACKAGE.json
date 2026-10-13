@@ -1,0 +1,40 @@
+{
+  "crate": "pin-project-lite",
+  "version": "0.2.17",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/taiki-e/pin-project-lite",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "bytes": 10174,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
+  },
+  "source_url": "https://crates.io/crates/pin-project-lite/0.2.17",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "3bdf763446aa78f90e3bdac1ef583e014832ab4c"
+    },
+    "path_in_vcs": ""
+  }
+}

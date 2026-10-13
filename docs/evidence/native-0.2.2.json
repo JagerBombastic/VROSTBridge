@@ -1,0 +1,31 @@
+{
+  "artifact": "dist/client/VROSTBridgeClient",
+  "sha256": "a5129c53c97f8548dae75279393a17c8123be065afaf2cbeec71eab6bfd75ac6",
+  "source_change": "client/device/openvr_device.cpp: stop forwarding invalid joint-to-bone skeletal mapping; retain normal Index inputs and raw tracked poses; main.cpp displays version 0.2.2 in help and startup status",
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "cmake": "cmake version 4.3.0",
+  "command": "build-tools/native-build.sh",
+  "headers": {
+    "Vulkan": "Ubuntu Noble libvulkan-dev 1.3.275.0-1build1",
+    "FFmpeg": "Ubuntu Noble 6.1.1 development headers (same libavcodec60/libavutil58/libswscale7 ABI as bundled 6.1.4 libraries)"
+  },
+  "libraries": {
+    "dist/client/libvrostbridge_transport.so": "204c1661cbb300325759133d84f96a2a76cab0b085ae6b14e9f920a602800bf8",
+    "dist/client/lib/libavcodec.so.60": "5a3bd1641d776b07c880ca3b2d47b9dd5bbafa5d301d6a86488ca646e81a56d8",
+    "dist/client/lib/libavutil.so.58": "9a3de19e0a04400e94fba75fbe511e09826c1c74441221ef8fb81bff0312f091",
+    "dist/client/lib/libswscale.so.7": "5b2863736559e17d43a541272dc30113b459edaa1e6ca7f0845f0c965deb004f"
+  },
+  "checks": {
+    "CMake Release build": "passed, no compiler warnings",
+    "CTest": "core_contracts and stream_contracts passed (2/2)",
+    "native --help": "passed; displays VROSTBridge 0.2.2 native Linux client",
+    "ELF RUNPATH": "$ORIGIN:$ORIGIN/lib",
+    "ldd": "all dependencies resolved in build environment",
+    "shader": "regenerated SPIR-V SHA256 matches existing packaged asset exactly"
+  },
+  "limits": [
+    "No headset connected; SteamVR, Vulkan/VA-API GPU import and physical headset streaming were not run.",
+    "No claim of Bazzite hardware qualification from these container checks."
+  ],
+  "version": "0.2.2"
+}

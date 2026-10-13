@@ -1,0 +1,29 @@
+{
+  "crate": "alvr_session",
+  "version": "21.0.0-dev14",
+  "license": "MIT",
+  "repository": "https://github.com/alvr-org/ALVR",
+  "authors": [
+    "alvr-org"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "126f3a3e99c05ba1f203d4c3e8d80ca87742659dfbf46be3e4ecb6b09819c01f",
+      "bytes": 1093,
+      "origin": "upstream repository"
+    }
+  ],
+  "source": "pinned ALVR workspace",
+  "cargo_package_checksums": {},
+  "source_url": "https://github.com/alvr-org/ALVR/tree/f5023f8e78fa14ea57fb1038548d7820289a8524"
+}

@@ -1,0 +1,14 @@
+VROSTBridge 0.2.5 Windows package verification
+UTC: 2026-09-25T00:13:53.228780+00:00
+Installer: VROSTBridge-Host-Setup-0.2.5.exe
+NSIS CRC32: PASS b34dbd63
+7-Zip full archive integrity test: PASS
+Manifest comparison: PASS 569 staged files match installer payload exactly
+Extraction discrepancies independently verified from archive stdout: 1
+  Streamed SHA-256 PASS: dist/host/bin/win64/avfilter-11.dll
+Large FFmpeg archive stream: PASS dist/host/bin/win64/avcodec-62.dll, 118089216 bytes, SHA-256 6a945d93e8c25db74ac3966bb1de0834029fa06f230dc1c220734a26606cb917
+Package identity: version 0.2.5, host, expected ALVR pin f5023f8e78fa14ea57fb1038548d7820289a8524
+Launcher: x64 Windows GUI, embedded RT_ICON/RT_GROUP_ICON resources
+Launcher imports: KERNEL32.dll, USER32.dll, SHELL32.dll (no C runtime dependency)
+Installer SHA-256: f8b423e016790ada0031226fc6a79808d5caf6f3f0b61023314f0699474ed7b3
+Validation limit: cross-build and package integrity checks on Linux only. Windows install/launch, elevation, firewall and physical headset execution were not tested here.

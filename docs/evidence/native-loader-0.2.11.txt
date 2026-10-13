@@ -1,0 +1,3 @@
+VROSTBridge 0.2.11 native Linux client
+--software-decode  Explicit CPU compatibility mode (not a performance path)
+--no-late-frame-catchup  Disable bounded late-frame selection for comparison

@@ -1,0 +1,59 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+-- Found Threads: TRUE  
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/work031/VROSTBridge-0.2.11/build-tests-031
+[ 14%] Building CXX object CMakeFiles/stream_tests.dir/tests/stream_tests.cpp.o
+[ 14%] Building CXX object CMakeFiles/core_tests.dir/tests/core_tests.cpp.o
+[ 21%] Building CXX object CMakeFiles/presentation_tests.dir/tests/presentation_tests.cpp.o
+[ 28%] Building CXX object CMakeFiles/video_handshake_tests.dir/tests/video_handshake_tests.cpp.o
+[ 35%] Linking CXX executable video_handshake_tests
+[ 35%] Built target video_handshake_tests
+[ 42%] Building CXX object CMakeFiles/geometry_tests.dir/tests/geometry_tests.cpp.o
+[ 50%] Linking CXX executable core_tests
+[ 50%] Built target core_tests
+[ 57%] Building CXX object CMakeFiles/input_tests.dir/tests/input_tests.cpp.o
+[ 64%] Linking CXX executable stream_tests
+[ 71%] Linking CXX executable presentation_tests
+[ 71%] Built target stream_tests
+[ 78%] Linking CXX executable input_tests
+[ 85%] Building CXX object CMakeFiles/runtime_settings_tests.dir/tests/runtime_settings_tests.cpp.o
+[ 92%] Linking CXX executable geometry_tests
+[ 92%] Built target presentation_tests
+[ 92%] Built target input_tests
+[ 92%] Built target geometry_tests
+[100%] Linking CXX executable runtime_settings_tests
+[100%] Built target runtime_settings_tests
+Internal ctest changing into directory: /workspace/scratch/647ea6e3ae16/work031/VROSTBridge-0.2.11/build-tests-031
+Test project /workspace/scratch/647ea6e3ae16/work031/VROSTBridge-0.2.11/build-tests-031
+    Start 1: core_contracts
+1/7 Test #1: core_contracts ...................   Passed    0.00 sec
+    Start 2: stream_contracts
+2/7 Test #2: stream_contracts .................   Passed    0.00 sec
+    Start 3: video_handshake_contracts
+3/7 Test #3: video_handshake_contracts ........   Passed    0.00 sec
+    Start 4: presentation_contracts
+4/7 Test #4: presentation_contracts ...........   Passed    0.00 sec
+    Start 5: live_geometry_contracts
+5/7 Test #5: live_geometry_contracts ..........   Passed    0.00 sec
+    Start 6: input_contracts
+6/7 Test #6: input_contracts ..................   Passed    0.00 sec
+    Start 7: runtime_settings_contracts
+7/7 Test #7: runtime_settings_contracts .......   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) =   0.02 sec

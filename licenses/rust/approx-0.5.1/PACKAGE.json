@@ -1,0 +1,37 @@
+{
+  "crate": "approx",
+  "version": "0.5.1",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/brendanzab/approx",
+  "authors": [
+    "Brendan Zabarauskas <bjzaba@yahoo.com.au>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "3ddf9be5c28fe27dad143a5dc76eea25222ad1dd68934a047064e56ed2fa40c5",
+      "bytes": 11560,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6",
+    "windows_client": "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
+  },
+  "source_url": "https://crates.io/crates/approx/0.5.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "13fcbc78dcda4d0136de07c36a7979d545f08e38"
+    },
+    "path_in_vcs": ""
+  }
+}

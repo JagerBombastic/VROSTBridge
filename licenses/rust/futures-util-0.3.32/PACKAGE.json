@@ -1,0 +1,40 @@
+{
+  "crate": "futures-util",
+  "version": "0.3.32",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/futures-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427",
+      "bytes": 10874,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd",
+      "bytes": 1094,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "389ca41296e6190b48053de0321d02a77f32f8a5d2461dd38762c0593805c6d6"
+  },
+  "source_url": "https://crates.io/crates/futures-util/0.3.32",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d9bba94c239daa1175a5bb2958f37a5c72db3f6a"
+    },
+    "path_in_vcs": "futures-util"
+  }
+}

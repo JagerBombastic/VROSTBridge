@@ -1,0 +1,33 @@
+{
+  "VROSTBridge Host.exe": {
+    "architecture": "x64",
+    "imports": [
+      "KERNEL32.dll",
+      "USER32.dll",
+      "SHELL32.dll"
+    ]
+  },
+  "host/VROSTBridgeVRHelper.exe": {
+    "architecture": "x64",
+    "imports": [
+      "api-ms-win-crt-convert-l1-1-0.dll",
+      "api-ms-win-crt-heap-l1-1-0.dll",
+      "api-ms-win-crt-private-l1-1-0.dll",
+      "api-ms-win-crt-runtime-l1-1-0.dll",
+      "api-ms-win-crt-stdio-l1-1-0.dll",
+      "api-ms-win-crt-string-l1-1-0.dll",
+      "KERNEL32.dll",
+      "api-ms-win-crt-math-l1-1-0.dll",
+      "api-ms-win-crt-environment-l1-1-0.dll"
+    ]
+  },
+  "upstream_host_and_python_bytes_unchanged": "pass",
+  "new_vendored_websocket_license": true,
+  "Windows_execution": "not available",
+  "nsis_archive_integrity": "pass",
+  "installer_payload_matches_verified_portable_payload": "pass",
+  "verified_files": 534,
+  "archive_entries_verified_by_direct_stream": [
+    "dist/host/bin/win64/avcodec-62.dll"
+  ]
+}

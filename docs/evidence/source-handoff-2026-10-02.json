@@ -1,0 +1,63 @@
+{
+  "documentation_revision": "2026-10-02/docs.1",
+  "runtime_baseline": {
+    "windows_host": "1.0.0-rc1",
+    "bazzite_client": "1.0.0-rc1.3"
+  },
+  "scope": "Source and documentation handoff; no new runtime build or physical testing",
+  "existing_files_preserved_before_doc_mirror": 3273,
+  "runtime_source_dependency_test_files_unchanged": 1429,
+  "existing_files_changed_before_doc_mirror": [
+    "THIRD_PARTY.md",
+    "README.md",
+    "START_HERE.html",
+    "CHECKPOINT.md",
+    "packaging/README.md",
+    "docs/RUNTIME_REVIEW.md",
+    "docs/VROSTBridge_Next_Update.md",
+    "docs/BUILD_VERIFICATION.md",
+    "docs/BEYOND_EYE_TRACKING.md",
+    "docs/PROJECT_DIRECTION.md",
+    "docs/BEYOND_DISPLAY_OPTIONS.md",
+    "docs/BUILDING.md",
+    "docs/HARDWARE_ACCEPTANCE.md",
+    "docs/QUICK_START.md",
+    "docs/IMPLEMENTATION_STATUS.md",
+    "docs/OPEN_SOURCE_CREDITS.md",
+    "docs/INSTALL_PACKAGES.md",
+    "docs/BAZZITE_PLAY.md",
+    "docs/STREAMING_NEXT_STEPS.md",
+    ".github/workflows/build.yml"
+  ],
+  "removed_existing_noncache_files": [],
+  "new_documentation": [
+    "docs/PROJECT_SPEC.md",
+    "docs/PROJECT_SPEC.pdf",
+    "docs/DOCUMENTATION_INDEX.md",
+    "docs/PACKAGING_HISTORY_0.2.md",
+    "scripts/render_spec.py"
+  ],
+  "linux_ci_change": "Add libwayland-dev and libsdl2-dev required by existing client build; workflow not executed",
+  "current_documentation_links": {
+    "relative_links_checked": 87,
+    "broken_links": []
+  },
+  "pdf": {
+    "pages": 15,
+    "sections": 17,
+    "sha256": "240a9a72efae0fb15177bde723f93fa0bacfc96915844c78916dab2c47f37618",
+    "all_sections_extracted": true,
+    "text_within_page_bounds": true,
+    "all_rendered_pages_visually_inspected": true
+  },
+  "runtime_test_evidence": "projection-1.0.0-rc1.3.json and client-package-1.0.0-rc1.3.json retained unchanged",
+  "archive_validation": "scripts/package.py verifies CRC and each PACKAGE_SHA256.json entry on final archive creation; external checksum records final ZIP",
+  "remaining_validation": [
+    "Physical Beyond RC1.3 projection and Index regression",
+    "Intermittent half-rate presentation",
+    "Controller/lifecycle soak",
+    "Game Mode and calibrated gaze",
+    "Windows clean build/installer qualification",
+    "Project licence and Windows GPL FFmpeg source/build closure"
+  ]
+}

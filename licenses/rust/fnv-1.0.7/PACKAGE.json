@@ -1,0 +1,45 @@
+{
+  "crate": "fnv",
+  "version": "1.0.7",
+  "license": "Apache-2.0 / MIT",
+  "repository": "https://github.com/servo/rust-fnv",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "65fdb6c76cd61612070c066eec9ecdb30ee74fb27859d0d9af58b9f499fd0c3e",
+      "bytes": 1056,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1",
+    "linux_client": "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1",
+    "windows_client": "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
+  },
+  "source_url": "https://crates.io/crates/fnv/1.0.7",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4b4784ebfd3332dc61f0640764d6f1140e03a9ab"
+    }
+  }
+}

@@ -1,0 +1,849 @@
+diff --git a/alvr/server_openvr/cpp/platform/win32/VROSTBridgeColor.h b/alvr/server_openvr/cpp/platform/win32/VROSTBridgeColor.h
+new file mode 100644
+index 00000000..0f2d6533
+--- /dev/null
++++ b/alvr/server_openvr/cpp/platform/win32/VROSTBridgeColor.h
+@@ -0,0 +1,132 @@
++#pragma once
++// VROSTBridge (patch 0018): what an RGB to Y'CbCr conversion really produced.
++//
++// Before streaming, the AMD encoder path converts a small test image (black, white, red and
++// mid grey stripes) with the same converter settings it will stream with, reads the result
++// back and classifies it here. The stream is then labelled with the range and matrix the
++// samples really have, so the headset shows black as black. Without this, a converter
++// that quietly produced studio-range samples (16-235) in a stream labelled full range
++// (0-255) turned black into dark grey with 10-bit encoding.
++//
++// No Windows or AMF types, so these rules are tested on any platform.
++#include <cmath>
++#include <cstdint>
++#include <initializer_list>
++
++namespace vrost_color {
++
++// AMF_VIDEO_CONVERTER_COLOR_PROFILE values (AMF ColorSpace.h). VideoEncoderAMF.cpp checks
++// at compile time that they match.
++constexpr int64_t kProfile601 = 0, kProfile709 = 1, kProfile2020 = 2, kProfileFull601 = 3,
++                  kProfileFull709 = 7, kProfileFull2020 = 8;
++
++// The test image: vertical stripes of these sRGB colours, in this order.
++constexpr int kColours = 4;
++constexpr uint8_t kTestColours[kColours][3] = {
++    {0, 0, 0}, {255, 255, 255}, {255, 0, 0}, {128, 128, 128}};
++
++struct Measured {
++    int bits = 0;               // sample depth: 8 (NV12) or 10 (P010)
++    int code[kColours][3] = {}; // Y', Cb, Cr codes for each stripe
++};
++
++struct Verdict {
++    bool known = false;        // range and matrix recognised
++    bool displayable = false;  // the headset client decodes this matrix (BT.709 or BT.601)
++    bool full = false;         // full range (0-255 scaled) rather than studio (16-235 scaled)
++    int matrix = 0;            // 709, 601 or 2020
++    int64_t profile = -1;      // AMF profile describing it, -1 when not known
++    const char* reason = "";   // why it is not known, for the log
++};
++
++inline bool IsFullRangeProfile(int64_t profile) {
++    return profile == kProfileFull601 || profile == kProfileFull709 || profile == kProfileFull2020;
++}
++
++inline int MatrixOfProfile(int64_t profile) {
++    switch (profile) {
++    case kProfile601:
++    case kProfileFull601: return 601;
++    case kProfile2020:
++    case kProfileFull2020: return 2020;
++    default: return 709;
++    }
++}
++
++inline int64_t ProfileFor(bool full, int matrix) {
++    switch (matrix) {
++    case 601: return full ? kProfileFull601 : kProfile601;
++    case 2020: return full ? kProfileFull2020 : kProfile2020;
++    default: return full ? kProfileFull709 : kProfile709;
++    }
++}
++
++inline Verdict Classify(const Measured& m) {
++    Verdict v;
++    if (m.bits != 8 && m.bits != 10) {
++        v.reason = "bit-depth";
++        return v;
++    }
++    const double step = m.bits == 10 ? 4.0 : 1.0; // one 8-bit code at this depth
++    const double tolerance = 3 * step;
++    const double centre = 128 * step;
++    const double top = m.bits == 10 ? 1023.0 : 255.0;
++    const auto within = [&](double value, double target) { // ("near" is a Windows macro)
++        return std::fabs(value - target) <= tolerance;
++    };
++    const int* black = m.code[0];
++    const int* white = m.code[1];
++    const int* red = m.code[2];
++    const int* grey = m.code[3];
++    for (const int* neutral : {black, white, grey}) {
++        if (!within(neutral[1], centre) || !within(neutral[2], centre)) {
++            v.reason = "neutral-has-colour";
++            return v;
++        }
++    }
++    if (within(black[0], 0) && within(white[0], top)) {
++        v.full = true;
++    } else if (within(black[0], 16 * step) && within(white[0], 235 * step)) {
++        v.full = false;
++    } else {
++        v.reason = "black-or-white-level";
++        return v;
++    }
++    const double span = double(white[0] - black[0]);
++    // Mid grey stays in the middle: no tone curve (linearisation, gamma) was applied.
++    if (std::fabs((grey[0] - black[0]) / span - 128.0 / 255.0) > 0.03) {
++        v.reason = "tone-curve";
++        return v;
++    }
++    // The red stripe's share of white's luma names the matrix: Kr.
++    const double share = (red[0] - black[0]) / span;
++    const struct {
++        int matrix;
++        double kr;
++    } matrices[] = {{709, 0.2126}, {601, 0.299}, {2020, 0.2627}};
++    double bestError = 1.0;
++    for (const auto& candidate : matrices) {
++        const double error = std::fabs(share - candidate.kr);
++        if (error < bestError) {
++            bestError = error;
++            v.matrix = candidate.matrix;
++        }
++    }
++    if (bestError > 0.02) {
++        v.reason = "matrix";
++        return v;
++    }
++    // Red carries its colour in Cr, well above the centre, with Cb below it: catches
++    // swapped chroma channels.
++    if (!(red[2] > centre + 64 * step && red[1] < centre)) {
++        v.reason = "chroma-order";
++        return v;
++    }
++    v.known = true;
++    v.displayable = v.matrix == 709 || v.matrix == 601;
++    v.profile = ProfileFor(v.full, v.matrix);
++    if (!v.displayable) v.reason = "matrix-not-decoded-by-client";
++    return v;
++}
++
++} // namespace vrost_color
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+index 65d14171..76853115 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+@@ -2,11 +2,21 @@
+ #include "VROSTBridgeTiming.h"
+ #include "ALVR-common/packet_types.h"
+ #include <algorithm>
++#include <cctype>
+ #include <cmath>
++#include <cstdio>
++#include <cstring>
+ 
+ #include "alvr_server/Logger.h"
+ #include "alvr_server/bindings.h"
+ 
++static_assert(vrost_color::kProfile601 == AMF_VIDEO_CONVERTER_COLOR_PROFILE_601, "AMF profile");
++static_assert(vrost_color::kProfile709 == AMF_VIDEO_CONVERTER_COLOR_PROFILE_709, "AMF profile");
++static_assert(vrost_color::kProfile2020 == AMF_VIDEO_CONVERTER_COLOR_PROFILE_2020, "AMF profile");
++static_assert(vrost_color::kProfileFull601 == AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_601, "AMF profile");
++static_assert(vrost_color::kProfileFull709 == AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_709, "AMF profile");
++static_assert(vrost_color::kProfileFull2020 == AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_2020, "AMF profile");
++
+ #define AMF_THROW_IF(expr)                                                                         \
+     {                                                                                              \
+         AMF_RESULT res = expr;                                                                     \
+@@ -60,11 +70,17 @@ bool AMFPipe::forwardReady(const std::function<bool()>& keepGoing) {
+     }
+ }
+ 
+-AMFSolidPipe::AMFSolidPipe(amf::AMFComponentPtr src, amf::AMFComponentPtr dst)
++AMFSolidPipe::AMFSolidPipe(amf::AMFComponentPtr src, amf::AMFComponentPtr dst, int64_t colorRange)
+     : AMFPipe(src, std::bind(&AMFSolidPipe::Passthrough, this, std::placeholders::_1))
+-    , m_amfComponentDst(dst) { }
++    , m_amfComponentDst(dst)
++    , m_colorRange(colorRange) { }
+ 
+ AMF_RESULT AMFSolidPipe::Passthrough(AMFDataPtr data) {
++    if (m_colorRange != AMF_COLOR_RANGE_UNDEFINED) {
++        // VROSTBridge (patch 0018): the range measured at start, whatever a converter's own
++        // label on the surface says.
++        data->SetProperty(AMF_VIDEO_COLOR_RANGE, m_colorRange);
++    }
+     return m_amfComponentDst->SubmitInput(data);
+ }
+ 
+@@ -230,7 +246,7 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         }
+ 
+         if (Settings_Instance()->m_enableAmfPreAnalysis) {
+-            if (!Settings_Instance()->m_useAmfPreproc || Settings_Instance()->m_use10bitEncoder) {
++            if (!m_preprocActive || m_use10bit) {
+                 Warn("Pre-analysis could not be enabled because \"Use preproc\" is not enabled or "
+                      "\"Reduce color banding\" is enabled.");
+             } else if (m_hasPreAnalysis) {
+@@ -246,8 +262,10 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+             }
+         }
+ 
+-        // Enable Full Range
+-        amfEncoder->SetProperty(AMF_VIDEO_ENCODER_FULL_RANGE_COLOR, true);
++        // Enable Full Range. VROSTBridge (patch 0018): for SDR, the range the samples really have.
++        amfEncoder->SetProperty(
++            AMF_VIDEO_ENCODER_FULL_RANGE_COLOR, Settings_Instance()->m_enableHdr || m_color.full
++        );
+ 
+         // Use BT.2020 for HDR encoding, BT.709 otherwise.
+         if (Settings_Instance()->m_enableHdr) {
+@@ -274,9 +292,12 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+                 AMF_VIDEO_ENCODER_OUTPUT_COLOR_PRIMARIES, AMF_COLOR_PRIMARIES_BT2020
+             );
+         } else {
+-            amfEncoder->SetProperty(
+-                AMF_VIDEO_ENCODER_OUTPUT_COLOR_PROFILE, AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_709
+-            );
++            if (m_color.yuvInput) {
++                // VROSTBridge (patch 0018): our converter's Y'CbCr is already in the stream's
++                // colour space; describing it the same way leaves the encoder nothing to convert.
++                amfEncoder->SetProperty(AMF_VIDEO_ENCODER_INPUT_COLOR_PROFILE, m_color.profile);
++            }
++            amfEncoder->SetProperty(AMF_VIDEO_ENCODER_OUTPUT_COLOR_PROFILE, m_color.profile);
+             amfEncoder->SetProperty(
+                 AMF_VIDEO_ENCODER_OUTPUT_TRANSFER_CHARACTERISTIC,
+                 AMF_COLOR_TRANSFER_CHARACTERISTIC_GAMMA22
+@@ -384,7 +405,7 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         }
+ 
+         if (Settings_Instance()->m_enableAmfPreAnalysis) {
+-            if (!Settings_Instance()->m_useAmfPreproc || Settings_Instance()->m_use10bitEncoder) {
++            if (!m_preprocActive || m_use10bit) {
+                 Warn("Pre-analysis could not be enabled because \"Use preproc\" is not enabled or "
+                      "\"Reduce color banding\" is enabled.");
+             } else if (m_hasPreAnalysis) {
+@@ -400,9 +421,12 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+             }
+         }
+ 
+-        // Enable Full Range
++        // Enable Full Range. VROSTBridge (patch 0018): for SDR, the range the samples really have.
+         amfEncoder->SetProperty(
+-            AMF_VIDEO_ENCODER_HEVC_NOMINAL_RANGE, AMF_VIDEO_ENCODER_HEVC_NOMINAL_RANGE_FULL
++            AMF_VIDEO_ENCODER_HEVC_NOMINAL_RANGE,
++            Settings_Instance()->m_enableHdr || m_color.full
++                ? AMF_VIDEO_ENCODER_HEVC_NOMINAL_RANGE_FULL
++                : AMF_VIDEO_ENCODER_HEVC_NOMINAL_RANGE_STUDIO
+         );
+ 
+         // Use BT.2020 for HDR encoding, BT.709 otherwise.
+@@ -432,10 +456,12 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+                 AMF_VIDEO_ENCODER_HEVC_OUTPUT_COLOR_PRIMARIES, AMF_COLOR_PRIMARIES_BT2020
+             );
+         } else {
+-            amfEncoder->SetProperty(
+-                AMF_VIDEO_ENCODER_HEVC_OUTPUT_COLOR_PROFILE,
+-                AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_709
+-            );
++            if (m_color.yuvInput) {
++                // VROSTBridge (patch 0018): our converter's Y'CbCr is already in the stream's
++                // colour space; describing it the same way leaves the encoder nothing to convert.
++                amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INPUT_COLOR_PROFILE, m_color.profile);
++            }
++            amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_OUTPUT_COLOR_PROFILE, m_color.profile);
+             amfEncoder->SetProperty(
+                 AMF_VIDEO_ENCODER_HEVC_OUTPUT_TRANSFER_CHARACTERISTIC,
+                 AMF_COLOR_TRANSFER_CHARACTERISTIC_GAMMA22
+@@ -556,7 +582,7 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         }
+ 
+         if (Settings_Instance()->m_enableAmfPreAnalysis) {
+-            if (!Settings_Instance()->m_useAmfPreproc || Settings_Instance()->m_use10bitEncoder) {
++            if (!m_preprocActive || m_use10bit) {
+                 Warn("Pre-analysis could not be enabled because \"Use preproc\" is not enabled or "
+                      "\"Reduce color banding\" is enabled.");
+             } else if (m_hasPreAnalysis) {
+@@ -572,9 +598,14 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+             }
+         }
+ 
+-        // Enable Full Range
++        // Enable Full Range. VROSTBridge (patch 0018): for SDR, the range and matrix the
++        // samples really have (full-range BT.601, JPEG, unless the start-up check said otherwise).
++        if (!Settings_Instance()->m_enableHdr && m_color.yuvInput) {
++            amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_INPUT_COLOR_PROFILE, m_color.profile);
++        }
+         amfEncoder->SetProperty(
+-            AMF_VIDEO_ENCODER_AV1_OUTPUT_COLOR_PROFILE, AMF_VIDEO_CONVERTER_COLOR_PROFILE_JPEG
++            AMF_VIDEO_ENCODER_AV1_OUTPUT_COLOR_PROFILE,
++            Settings_Instance()->m_enableHdr ? AMF_VIDEO_CONVERTER_COLOR_PROFILE_JPEG : m_color.profile
+         );
+ 
+         // May impact performance but improves quality in high-motion areas
+@@ -654,7 +685,11 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+ }
+ 
+ amf::AMFComponentPtr VideoEncoderAMF::MakeConverter(
+-    amf::AMF_SURFACE_FORMAT inputFormat, int width, int height, amf::AMF_SURFACE_FORMAT outputFormat
++    amf::AMF_SURFACE_FORMAT inputFormat,
++    int width,
++    int height,
++    amf::AMF_SURFACE_FORMAT outputFormat,
++    int64_t colorProfile
+ ) {
+     amf::AMFComponentPtr amfConverter;
+     AMF_THROW_IF(
+@@ -666,6 +701,23 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeConverter(
+     AMF_THROW_IF(amfConverter->SetProperty(
+         AMF_VIDEO_CONVERTER_OUTPUT_SIZE, ::AMFConstructSize(width, height)
+     ));
++    if (colorProfile != AMF_VIDEO_CONVERTER_COLOR_PROFILE_UNKNOWN) {
++        // VROSTBridge (patch 0018): RGB to Y'CbCr with this matrix and range, never AMF's
++        // automatic choice (which is studio range for HD sizes). The input is full-range RGB.
++        // Runtimes without the range properties still get the profile; the start-up test
++        // image shows what they really do either way.
++        AMF_THROW_IF(amfConverter->SetProperty(AMF_VIDEO_CONVERTER_COLOR_PROFILE, colorProfile));
++        const AMF_RESULT inputRange
++            = amfConverter->SetProperty(AMF_VIDEO_CONVERTER_INPUT_COLOR_RANGE, AMF_COLOR_RANGE_FULL);
++        const AMF_RESULT outputRange = amfConverter->SetProperty(
++            AMF_VIDEO_CONVERTER_OUTPUT_COLOR_RANGE,
++            vrost_color::IsFullRangeProfile(colorProfile) ? AMF_COLOR_RANGE_FULL
++                                                          : AMF_COLOR_RANGE_STUDIO
++        );
++        if (inputRange != AMF_OK || outputRange != AMF_OK) {
++            Info("VROST_COLOR_CONVERTER range_properties input=%d output=%d", inputRange, outputRange);
++        }
++    }
+ 
+     AMF_THROW_IF(amfConverter->Init(inputFormat, width, height));
+ 
+@@ -673,6 +725,168 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeConverter(
+     return amfConverter;
+ }
+ 
++bool VideoEncoderAMF::ProbeConverter(
++    amf::AMF_SURFACE_FORMAT outputFormat,
++    int64_t profile,
++    vrost_color::Measured& measured,
++    std::string& why
++) {
++    // A small image of vertical stripes, one per test colour. The real stream's converter
++    // has the same settings and differs only in size.
++    constexpr int kStripe = 32, kWidth = kStripe * vrost_color::kColours, kHeight = 64;
++    if (m_surfaceFormat != amf::AMF_SURFACE_RGBA) {
++        why = "input-format";
++        return false;
++    }
++    amf::AMFComponentPtr converter;
++    try {
++        converter = MakeConverter(m_surfaceFormat, kWidth, kHeight, outputFormat, profile);
++        amf::AMFSurfacePtr image;
++        if (m_amfContext->AllocSurface(
++                amf::AMF_MEMORY_HOST, m_surfaceFormat, kWidth, kHeight, &image
++            ) != AMF_OK
++            || !image) {
++            throw MakeException("host-surface");
++        }
++        amf::AMFPlane* plane = image->GetPlaneAt(0);
++        auto* pixels = static_cast<uint8_t*>(plane->GetNative());
++        if (!pixels) throw MakeException("host-surface-memory");
++        const size_t pitch = size_t(plane->GetHPitch());
++        for (int y = 0; y < kHeight; ++y) {
++            for (int x = 0; x < kWidth; ++x) {
++                const uint8_t* colour = vrost_color::kTestColours[x / kStripe];
++                uint8_t* pixel = pixels + y * pitch + size_t(x) * 4; // R, G, B, A bytes
++                pixel[0] = colour[0];
++                pixel[1] = colour[1];
++                pixel[2] = colour[2];
++                pixel[3] = 255;
++            }
++        }
++        if (image->Convert(amf::AMF_MEMORY_DX11) != AMF_OK) throw MakeException("upload");
++        const AMF_RESULT submitted = converter->SubmitInput(image);
++        if (submitted != AMF_OK && submitted != AMF_NEED_MORE_INPUT) {
++            throw MakeException("submit-%d", submitted);
++        }
++        converter->Drain();
++        amf::AMFDataPtr data;
++        const uint64_t deadline = VROSTBridgeNowUs() + 500000;
++        while (!data && VROSTBridgeNowUs() < deadline) {
++            const AMF_RESULT result = converter->QueryOutput(&data);
++            if (data || result == AMF_EOF) break;
++            amf_sleep(1);
++        }
++        if (!data) throw MakeException("no-output");
++        amf::AMFSurfacePtr output(data);
++        if (!output || output->GetFormat() != outputFormat) throw MakeException("output-format");
++        if (output->Convert(amf::AMF_MEMORY_HOST) != AMF_OK) throw MakeException("download");
++        amf::AMFPlane* luma = output->GetPlane(amf::AMF_PLANE_Y);
++        amf::AMFPlane* chroma = output->GetPlane(amf::AMF_PLANE_UV);
++        if (!luma || !chroma || !luma->GetNative() || !chroma->GetNative()) {
++            throw MakeException("planes");
++        }
++        const int sampleBytes = luma->GetPixelSizeInBytes(); // 1 for NV12, 2 for P010
++        if (sampleBytes != 1 && sampleBytes != 2) throw MakeException("sample-size");
++        measured.bits = sampleBytes == 2 ? 10 : 8;
++        const auto read = [&](amf::AMFPlane* source, int x, int y, int component) {
++            const uint8_t* at = static_cast<const uint8_t*>(source->GetNative())
++                + size_t(y + source->GetOffsetY()) * size_t(source->GetHPitch())
++                + size_t(x + source->GetOffsetX()) * size_t(source->GetPixelSizeInBytes())
++                + size_t(component) * size_t(sampleBytes);
++            if (sampleBytes == 1) return int(*at);
++            uint16_t value;
++            std::memcpy(&value, at, sizeof(value));
++            return int(value >> 6); // P010 keeps the 10-bit code in the top bits
++        };
++        for (int i = 0; i < vrost_color::kColours; ++i) {
++            const int x = i * kStripe + kStripe / 2, y = kHeight / 2;
++            measured.code[i][0] = read(luma, x, y, 0);
++            measured.code[i][1] = read(chroma, x / 2, y / 2, 0);
++            measured.code[i][2] = read(chroma, x / 2, y / 2, 1);
++        }
++        converter->Terminate();
++        return true;
++    } catch (const std::exception& error) {
++        why = error.what();
++        if (converter) converter->Terminate();
++        return false;
++    }
++}
++
++bool VideoEncoderAMF::AddYuvConverter(
++    amf::AMF_SURFACE_FORMAT outputFormat, const char* path, std::string& why
++) {
++    // Convert to the colour space the encoder would write for RGB input (MakeEncoder).
++    const int64_t wanted = m_color.profile;
++    vrost_color::Measured measured;
++    if (!ProbeConverter(outputFormat, wanted, measured, why)) return false;
++    m_colorMeasured = measured;
++    m_colorProbed = true;
++    const vrost_color::Verdict verdict = vrost_color::Classify(measured);
++    if (!verdict.known || !verdict.displayable) {
++        why = verdict.reason;
++        return false;
++    }
++    try {
++        m_amfComponents.emplace_back(
++            MakeConverter(m_surfaceFormat, m_renderWidth, m_renderHeight, outputFormat, wanted)
++        );
++    } catch (const std::exception& error) {
++        why = error.what();
++        return false;
++    }
++    // Label the stream with what the samples really are. When the converter ignored the
++    // requested range (or matrix), the decoder still reconstructs the picture exactly.
++    m_color.profile = verdict.profile;
++    m_color.full = verdict.full;
++    m_color.yuvInput = true;
++    m_color.verified = true;
++    if (verdict.profile != wanted) {
++        Warn(
++            "VROST_COLOR_RELABEL path=%s requested_profile=%lld produced_profile=%lld",
++            path,
++            (long long)wanted,
++            (long long)verdict.profile
++        );
++    }
++    return true;
++}
++
++void VideoEncoderAMF::LogColorSetup(
++    const char* path, const vrost_color::Measured* measured, const std::string& refused
++) {
++    // One structured line per encoder start; the host companion keeps it for reports.
++    std::string reason = refused.empty() ? std::string("none") : refused;
++    for (char& c : reason) {
++        if (!isalnum(static_cast<unsigned char>(c)) && c != ':' && c != '-' && c != '.' && c != '_' && c != '+')
++            c = '-';
++    }
++    if (reason.size() > 48) reason.resize(48);
++    const bool hdr = Settings_Instance()->m_enableHdr;
++    const int matrix = hdr ? 2020 : vrost_color::MatrixOfProfile(m_color.profile);
++    char codes[160] = "";
++    if (measured) {
++        const auto& c = measured->code;
++        snprintf(
++            codes,
++            sizeof(codes),
++            " probe_bits=%d black=%d,%d,%d white=%d,%d,%d red=%d,%d,%d grey=%d,%d,%d",
++            measured->bits,
++            c[0][0], c[0][1], c[0][2], c[1][0], c[1][1], c[1][2],
++            c[2][0], c[2][1], c[2][2], c[3][0], c[3][1], c[3][2]
++        );
++    }
++    Info(
++        "VROST_COLOR path=%s bits=%d range=%s matrix=%d verified=%d refused=%s%s",
++        path,
++        m_use10bit ? 10 : 8,
++        hdr || m_color.full ? "full" : "studio",
++        matrix,
++        m_color.verified ? 1 : 0,
++        reason.c_str(),
++        codes
++    );
++}
++
+ amf::AMFComponentPtr
+ VideoEncoderAMF::MakePreprocessor(amf::AMF_SURFACE_FORMAT inputFormat, int width, int height) {
+     amf::AMFComponentPtr amfPreprocessor;
+@@ -701,31 +915,73 @@ void VideoEncoderAMF::Initialize() {
+     AMF_THROW_IF(g_AMFFactory.GetFactory()->CreateContext(&m_amfContext));
+     AMF_THROW_IF(m_amfContext->InitDX11(m_d3dRender->GetDevice()));
+ 
+-    amf::AMF_SURFACE_FORMAT inFormat = m_surfaceFormat;
+-    if (Settings_Instance()->m_enableHdr) {
+-        // Bypass preprocessor and converters for HDR, since it will already be YUV
+-        ;
+-    } else if (m_use10bit) {
+-        inFormat = amf::AMF_SURFACE_R10G10B10A2;
+-        m_amfComponents.emplace_back(
+-            MakeConverter(m_surfaceFormat, m_renderWidth, m_renderHeight, inFormat)
+-        );
+-    } else {
+-        if (Settings_Instance()->m_useAmfPreproc) {
+-            inFormat = amf::AMF_SURFACE_NV12;
+-            m_amfComponents.emplace_back(
+-                MakeConverter(m_surfaceFormat, m_renderWidth, m_renderHeight, inFormat)
+-            );
+-            m_amfComponents.emplace_back(MakePreprocessor(inFormat, m_renderWidth, m_renderHeight));
++    // VROSTBridge (patch 0018): with 10-bit SDR, RGB is converted to 10-bit Y'CbCr (P010) by
++    // our own converter with an explicit matrix and range, checked with a test image, and the
++    // encoder is given Y'CbCr. Before, the image went through 10-bit RGB (R10G10B10A2) and the
++    // encoder's own conversion, which on AMD produced studio-range samples in a stream labelled
++    // full range: black showed as dark grey. If the check fails, the stream stays 8-bit
++    // (RGB into the encoder, as with 10-bit off), which shows black correctly.
++    std::string refused;
++    for (int attempt = 0;; ++attempt) {
++        for (auto& component : m_amfComponents) component->Terminate();
++        m_amfComponents.clear();
++        m_color = ColorSetup{};
++        m_color.profile = m_codec == ALVR_CODEC_AV1 ? AMF_VIDEO_CONVERTER_COLOR_PROFILE_JPEG
++                                                    : AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_709;
++        m_colorProbed = false;
++        m_preprocActive = false;
++        const char* path = "rgb";
++        amf::AMF_SURFACE_FORMAT inFormat = m_surfaceFormat;
++        const bool hdr = Settings_Instance()->m_enableHdr;
++        if (hdr) {
++            // Bypass preprocessor and converters for HDR, since it will already be YUV
++            path = "hdr";
++        } else if (m_use10bit) {
++            std::string why;
++            if (AddYuvConverter(amf::AMF_SURFACE_P010, "p010", why)) {
++                inFormat = amf::AMF_SURFACE_P010;
++                path = "p010";
++            } else {
++                refused += (refused.empty() ? "" : "+") + std::string("p010:") + why;
++                Warn("VROST_COLOR_FALLBACK 10-bit colour could not be confirmed (%s); streaming 8-bit", why.c_str());
++                m_use10bit = false;
++            }
+         }
++        if (!hdr && !m_use10bit && Settings_Instance()->m_useAmfPreproc && !m_noPreproc) {
++            std::string why;
++            if (AddYuvConverter(amf::AMF_SURFACE_NV12, "nv12", why)) {
++                inFormat = amf::AMF_SURFACE_NV12;
++                path = "nv12";
++                m_amfComponents.emplace_back(MakePreprocessor(inFormat, m_renderWidth, m_renderHeight));
++                m_preprocActive = true;
++            } else {
++                refused += (refused.empty() ? "" : "+") + std::string("nv12:") + why;
++                Warn("VROST_COLOR_FALLBACK preprocessing colour could not be confirmed (%s); preprocessing off", why.c_str());
++            }
++        }
++        try {
++            m_amfComponents.emplace_back(MakeEncoder(
++                inFormat, m_renderWidth, m_renderHeight, m_codec, m_refreshRate, m_bitrateInMBits
++            ));
++        } catch (const std::exception& error) {
++            if (!m_color.yuvInput || attempt > 0) throw;
++            // The encoder refused our converter's output: stream RGB as with 10-bit off.
++            refused += (refused.empty() ? "" : "+") + std::string(path) + "-encoder";
++            Warn("VROST_COLOR_FALLBACK encoder refused %s input (%s); streaming 8-bit RGB input", path, error.what());
++            m_use10bit = false;
++            m_noPreproc = true;
++            continue;
++        }
++        LogColorSetup(path, m_colorProbed ? &m_colorMeasured : nullptr, refused);
++        break;
+     }
+-    m_amfComponents.emplace_back(MakeEncoder(
+-        inFormat, m_renderWidth, m_renderHeight, m_codec, m_refreshRate, m_bitrateInMBits
+-    ));
+ 
++    const int64_t rangeTag = m_color.yuvInput
++        ? (m_color.full ? AMF_COLOR_RANGE_FULL : AMF_COLOR_RANGE_STUDIO)
++        : AMF_COLOR_RANGE_UNDEFINED;
+     m_pipeline = new AMFPipeline();
+     for (int i = 0; i < m_amfComponents.size() - 1; i++) {
+-        m_pipeline->Connect(new AMFSolidPipe(m_amfComponents[i], m_amfComponents[i + 1]));
++        m_pipeline->Connect(new AMFSolidPipe(m_amfComponents[i], m_amfComponents[i + 1], rangeTag));
+     }
+ 
+     m_pipeline->Connect(new AMFPipe(
+@@ -838,6 +1094,14 @@ void VideoEncoderAMF::Transmit(
+             m_amfComponents.back()->SetProperty(
+                 AMF_VIDEO_ENCODER_VBV_BUFFER_SIZE, bitRateIn / m_refreshRate * 1.1
+             );
++        } else if (m_codec == ALVR_CODEC_AV1) {
++            // VROSTBridge (patch 0018): AV1 has its own property names; the HEVC ones were
++            // ignored, so the AV1 bitrate never followed the adaptive bitrate.
++            m_amfComponents.back()->SetProperty(AMF_VIDEO_ENCODER_AV1_TARGET_BITRATE, bitRateIn);
++            m_amfComponents.back()->SetProperty(AMF_VIDEO_ENCODER_AV1_PEAK_BITRATE, bitRateIn);
++            m_amfComponents.back()->SetProperty(
++                AMF_VIDEO_ENCODER_AV1_VBV_BUFFER_SIZE, bitRateIn / m_refreshRate * 1.2
++            );
+         } else {
+             m_amfComponents.back()->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, bitRateIn);
+             m_amfComponents.back()->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, bitRateIn);
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+index 8283497a..bcace3bc 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+@@ -1,6 +1,8 @@
+ #pragma once
+ #include "VideoEncoder.h"
++#include "VROSTBridgeColor.h"
+ #include <array>
++#include <string>
+ 
+ #include "../../shared/amf/public/common/AMFFactory.h"
+ #include "../../shared/amf/public/common/AMFSTL.h"
+@@ -36,12 +38,16 @@ typedef AMFPipe* AMFPipePtr;
+ 
+ class AMFSolidPipe : public AMFPipe {
+ public:
+-    AMFSolidPipe(amf::AMFComponentPtr src, amf::AMFComponentPtr dst);
++    // colorRange (patch 0018): when not AMF_COLOR_RANGE_UNDEFINED, every surface passed on
++    // is tagged with the sample range it really has (measured at start), so no later stage
++    // re-interprets it from a converter's own label.
++    AMFSolidPipe(amf::AMFComponentPtr src, amf::AMFComponentPtr dst, int64_t colorRange = 0);
+ 
+ protected:
+     AMF_RESULT Passthrough(AMFDataPtr);
+ 
+     amf::AMFComponentPtr m_amfComponentDst;
++    int64_t m_colorRange = 0;
+ };
+ 
+ class AMFPipeline {
+@@ -85,12 +91,41 @@ private:
+     static const wchar_t* FRAME_INDEX_PROPERTY;
+     static const wchar_t* SURFACE_TOKEN_PROPERTY;
+ 
++    // colorProfile (patch 0018): an AMF_VIDEO_CONVERTER_COLOR_PROFILE value for an RGB to
++    // Y'CbCr conversion with that matrix and range; UNKNOWN keeps AMF's automatic choice.
+     amf::AMFComponentPtr MakeConverter(
+         amf::AMF_SURFACE_FORMAT inputFormat,
+         int width,
+         int height,
+-        amf::AMF_SURFACE_FORMAT outputFormat
++        amf::AMF_SURFACE_FORMAT outputFormat,
++        int64_t colorProfile = AMF_VIDEO_CONVERTER_COLOR_PROFILE_UNKNOWN
+     );
++    // VROSTBridge (patch 0018): the stream's colour description, as the encoder is told it
++    // and writes it into the stream. The defaults are those of RGB input converted by the
++    // encoder itself.
++    struct ColorSetup {
++        int64_t profile = AMF_VIDEO_CONVERTER_COLOR_PROFILE_FULL_709;
++        bool full = true;
++        bool yuvInput = false; // the encoder receives our converter's Y'CbCr, not RGB
++        bool verified = false; // a test image confirmed what the converter produces
++    };
++    ColorSetup m_color;
++    bool m_preprocActive = false;
++    bool m_noPreproc = false; // after the encoder refused our converter's output
++    vrost_color::Measured m_colorMeasured;
++    bool m_colorProbed = false;
++    // Converts the test image with these settings and reads the result back. False with
++    // `why` when it could not be measured.
++    bool ProbeConverter(
++        amf::AMF_SURFACE_FORMAT outputFormat,
++        int64_t profile,
++        vrost_color::Measured& measured,
++        std::string& why
++    );
++    // Appends an RGB to Y'CbCr converter whose output was confirmed by ProbeConverter and
++    // labels the stream with what it really produces. False (nothing appended) otherwise.
++    bool AddYuvConverter(amf::AMF_SURFACE_FORMAT outputFormat, const char* path, std::string& why);
++    void LogColorSetup(const char* path, const vrost_color::Measured* measured, const std::string& refused);
+     amf::AMFComponentPtr
+     MakePreprocessor(amf::AMF_SURFACE_FORMAT inputFormat, int width, int height);
+     amf::AMFComponentPtr MakeEncoder(
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index 393c19ea..28a01c9d 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -1,5 +1,6 @@
+ mod graphics;
+ mod vrostbridge_foveation;
++mod vrostbridge_pose;
+ mod props;
+ mod tracking;
+ 
+@@ -49,6 +50,9 @@ static FOVEATION_CENTER_QUEUE: Mutex<VecDeque<(Duration, [[f32; 2]; 2])>> =
+ static EVENT_LOOP_HANDLE: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
+ // VROSTBridge: gaze-driven foveation state (patch 0010).
+ static VROST_FOVEATION: Mutex<Option<vrostbridge_foveation::DynamicFoveation>> = Mutex::new(None);
++// VROSTBridge: frames dropped for lack of a head pose (patch 0018).
++static VROST_POSELESS: Mutex<vrostbridge_pose::PoselessFrames> =
++    Mutex::new(vrostbridge_pose::PoselessFrames::new());
+ static IDLE_INIT_HANDLE: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
+ static FACTORY_INIT_DATA: Mutex<Option<FactoryInitData>> = Mutex::new(None);
+ 
+@@ -250,6 +254,7 @@ fn spawn_event_loop(events_receiver: mpsc::Receiver<ServerCoreEvent>) {
+                 }
+                 ServerCoreEvent::ClientConnected(config) => unsafe {
+                     FOVEATION_CENTER_QUEUE.lock().clear();
++                    VROST_POSELESS.lock().reset();
+                     if InitializeStreaming(make_settings(Some(&config))) {
+                         RequestDriverResync();
+                     } else {
+@@ -263,6 +268,7 @@ fn spawn_event_loop(events_receiver: mpsc::Receiver<ServerCoreEvent>) {
+                     DeinitializeStreaming();
+                     FOVEATION_CENTER_QUEUE.lock().clear();
+                     *VROST_FOVEATION.lock() = None;
++                    VROST_POSELESS.lock().reset();
+                 },
+                 ServerCoreEvent::Battery(info) => unsafe {
+                     SetBattery(info.device_id, info.gauge_value, info.is_plugged)
+@@ -692,11 +698,19 @@ extern "C" fn send_video(timestamp_ns: u64, buffer_ptr: *mut u8, len: i32, is_id
+         let timestamp = Duration::from_nanos(timestamp_ns);
+         let buffer = unsafe { std::slice::from_raw_parts(buffer_ptr, len as usize) };
+ 
+-        let Some(head_pose) = HEAD_POSE_QUEUE
++        let head_pose = HEAD_POSE_QUEUE
+             .lock()
+             .iter()
+-            .find_map(|(ts, pose)| (*ts == timestamp).then_some(*pose))
+-        else {
++            .find_map(|(ts, pose)| (*ts == timestamp).then_some(*pose));
++        // VROSTBridge (patch 0018): count frames that had no pose. A run of them means the
++        // client's SteamVR is not tracking the headset, which it reports separately.
++        if let Some((dropped, sent)) = VROST_POSELESS.lock().note(head_pose.is_some(), Instant::now()) {
++            alvr_common::info!(
++                "VROST_NO_HEAD_POSE dropped={dropped} sent={sent} window_s={}",
++                vrostbridge_pose::WINDOW.as_secs()
++            );
++        }
++        let Some(head_pose) = head_pose else {
+             // We can't submit the frame without its pose
+             return;
+         };
+diff --git a/alvr/server_openvr/src/vrostbridge_pose.rs b/alvr/server_openvr/src/vrostbridge_pose.rs
+new file mode 100644
+index 00000000..c4bf7f4e
+--- /dev/null
++++ b/alvr/server_openvr/src/vrostbridge_pose.rs
+@@ -0,0 +1,105 @@
++//! VROSTBridge (patch 0018): encoded frames that had no head pose to go with them.
++//!
++//! The host sends a frame only together with the head pose it was rendered for, and that
++//! pose arrives in the client's tracking. The client sends tracking only while its own
++//! SteamVR tracks the headset (base stations seen, headset awake). So when frames keep
++//! being dropped here for lack of a pose, the video is fine and the network is fine: the
++//! headset is not tracked on the headset PC. Until 1.0.0.5 this was silent and looked
++//! like "video not arriving".
++//!
++//! Counts are encoder outputs (one per frame, occasionally more), totalled per window and
++//! logged only for windows that dropped any.
++
++use std::time::{Duration, Instant};
++
++pub const WINDOW: Duration = Duration::from_secs(5);
++
++#[derive(Default)]
++pub struct PoselessFrames {
++    dropped: u64,
++    sent: u64,
++    window_start: Option<Instant>,
++}
++
++impl PoselessFrames {
++    pub const fn new() -> Self {
++        Self {
++            dropped: 0,
++            sent: 0,
++            window_start: None,
++        }
++    }
++
++    /// Counts one encoded output (sent with its pose, or dropped without one). At the end
++    /// of each window returns (dropped, sent) for it when any were dropped.
++    pub fn note(&mut self, sent: bool, now: Instant) -> Option<(u64, u64)> {
++        if sent {
++            self.sent += 1;
++        } else {
++            self.dropped += 1;
++        }
++        let start = *self.window_start.get_or_insert(now);
++        if now.saturating_duration_since(start) < WINDOW {
++            return None;
++        }
++        let counts = (self.dropped, self.sent);
++        *self = Self {
++            dropped: 0,
++            sent: 0,
++            window_start: Some(now),
++        };
++        (counts.0 > 0).then_some(counts)
++    }
++
++    /// A new session starts counting afresh.
++    pub fn reset(&mut self) {
++        *self = Self::new();
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn a_window_without_drops_logs_nothing_and_one_with_drops_reports_both_counts() {
++        let start = Instant::now();
++        let mut frames = PoselessFrames::new();
++        for i in 0..375 {
++            assert_eq!(frames.note(true, start + Duration::from_millis(i * 13)), None);
++        }
++        // The window closes on the next output: nothing was dropped, nothing to say.
++        assert_eq!(frames.note(true, start + Duration::from_millis(5000)), None);
++        let second = start + Duration::from_millis(5000);
++        for i in 1..=10 {
++            assert_eq!(frames.note(false, second + Duration::from_millis(i * 13)), None);
++        }
++        for i in 11..300 {
++            assert_eq!(frames.note(true, second + Duration::from_millis(i * 13)), None);
++        }
++        assert_eq!(frames.note(false, second + WINDOW), Some((11, 289)));
++    }
++
++    #[test]
++    fn an_untracked_headset_drops_every_frame_and_a_reset_starts_afresh() {
++        let start = Instant::now();
++        let mut frames = PoselessFrames::new();
++        // 75 frames a second, none with a pose: the first report comes after five seconds.
++        let mut outputs = 0u64;
++        let reported = loop {
++            let at = start + Duration::from_micros(outputs * 13_333);
++            outputs += 1;
++            if let Some(counts) = frames.note(false, at) {
++                break (counts, at);
++            }
++        };
++        assert_eq!(reported.0, (outputs, 0));
++        assert!(reported.1 - start >= WINDOW && reported.1 - start < WINDOW + Duration::from_millis(20));
++        frames.note(false, start + Duration::from_secs(6));
++        frames.reset();
++        // Counting restarts with the next output, so a new session's window starts then.
++        assert_eq!(frames.note(true, start + Duration::from_secs(60)), None);
++        assert_eq!(frames.note(false, start + Duration::from_secs(64)), None);
++        assert_eq!(frames.note(true, start + Duration::from_secs(65)), Some((1, 2)));
++    }
++}

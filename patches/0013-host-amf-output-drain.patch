@@ -1,0 +1,333 @@
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+index a6aacb19..65d14171 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.cpp
+@@ -30,29 +30,31 @@ AMFPipe::~AMFPipe() {
+ 
+ void AMFPipe::Reset() { m_pending = nullptr; }
+ 
+-void AMFPipe::doPassthrough(bool hasQueryTimeout, uint32_t timerResolution, uint32_t waitBudgetMs) {
++bool AMFPipe::forwardReady(const std::function<bool()>& keepGoing) {
++    // VROSTBridge: forward everything this stage has finished, oldest first. Taking only
++    // one item per new frame let a single slow frame (for example during a game launch)
++    // leave the encoder permanently one or two frames behind.
++    // Ask for output only while the caller still waits for some: with AMF's query
++    // timeout an empty query blocks for the whole timeout.
+     // A downstream INPUT_FULL is backpressure, not permission to discard an
+     // already-converted frame. Keep it referenced and retry on the next pass.
+-    if (!m_pending) {
+-        AMF_RESULT res = m_amfComponentSrc->QueryOutput(&m_pending);
+-        if (!hasQueryTimeout && !m_pending && (res == AMF_OK || res == AMF_REPEAT)) {
+-            const uint64_t deadline = VROSTBridgeNowUs() + uint64_t(waitBudgetMs) * 1000;
+-            timeBeginPeriod(timerResolution);
+-            while (!m_pending && VROSTBridgeNowUs() < deadline && (res == AMF_OK || res == AMF_REPEAT)) {
+-                amf_sleep(1);
+-                res = m_amfComponentSrc->QueryOutput(&m_pending);
++    bool moved = false;
++    for (;;) {
++        if (!m_pending) {
++            if (!keepGoing()) return moved;
++            const AMF_RESULT res = m_amfComponentSrc->QueryOutput(&m_pending);
++            if (res != AMF_OK && res != AMF_REPEAT && res != AMF_EOF) {
++                throw MakeException("VROSTBridge AMF QueryOutput failed: %d", res);
+             }
+-            timeEndPeriod(timerResolution);
++            if (!m_pending) return moved;
+         }
+-        if (res != AMF_OK && res != AMF_REPEAT && res != AMF_EOF) {
+-            throw MakeException("VROSTBridge AMF QueryOutput failed: %d", res);
+-        }
+-    }
+-    if (m_pending) {
+         const AMF_RESULT res = m_receiver(m_pending);
+         if (res == AMF_OK || res == AMF_NEED_MORE_INPUT) {
+             m_pending = nullptr;
+-        } else if (res != AMF_INPUT_FULL) {
++            moved = true;
++        } else if (res == AMF_INPUT_FULL) {
++            return moved;
++        } else {
+             throw MakeException("VROSTBridge AMF downstream SubmitInput failed: %d", res);
+         }
+     }
+@@ -80,10 +82,13 @@ AMFPipeline::~AMFPipeline() {
+ 
+ void AMFPipeline::Connect(AMFPipePtr pipe) { m_pipes.emplace_back(pipe); }
+ 
+-void AMFPipeline::Run(bool hasQueryTimeout, uint32_t waitBudgetMs) {
++bool AMFPipeline::ForwardReady(const std::function<bool()>& keepGoing) {
++    // Stage order matters: data a converter releases reaches the encoder in the same pass.
++    bool moved = false;
+     for (auto& pipe : m_pipes) {
+-        pipe->doPassthrough(hasQueryTimeout, m_timerResolution, waitBudgetMs);
++        moved = pipe->forwardReady(keepGoing) || moved;
+     }
++    return moved;
+ }
+ 
+ void AMFPipeline::Reset() {
+@@ -112,7 +117,9 @@ VideoEncoderAMF::VideoEncoderAMF(std::shared_ptr<CD3DRender> d3dRender, int widt
+     }
+ }
+ 
+-VideoEncoderAMF::~VideoEncoderAMF() { }
++VideoEncoderAMF::~VideoEncoderAMF() {
++    if (m_timerRaised) timeEndPeriod(m_timerPeriod);
++}
+ 
+ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+     amf::AMF_SURFACE_FORMAT inputFormat,
+@@ -300,7 +307,8 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         amfEncoder->SetProperty(AMF_VIDEO_ENCODER_MAX_NUM_REFRAMES, 0);
+ 
+         if (m_hasQueryTimeout) {
+-            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_QUERY_TIMEOUT, m_queryWaitBudgetMs));
++            // VROSTBridge: a query waits at most 1 ms; CollectOutputs owns the per-frame budget.
++            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_QUERY_TIMEOUT, kQueryTimeoutMs));
+         }
+         break; // Each encoder accepts only its own codec properties.
+     }
+@@ -465,7 +473,7 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_NUM_REFRAMES, 0);
+ 
+         if (m_hasQueryTimeout) {
+-            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUERY_TIMEOUT, m_queryWaitBudgetMs));
++            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUERY_TIMEOUT, kQueryTimeoutMs));
+         }
+         break; // Each encoder accepts only its own codec properties.
+     }
+@@ -587,7 +595,7 @@ amf::AMFComponentPtr VideoEncoderAMF::MakeEncoder(
+         m_hasQueryTimeout = true;
+ 
+         if (m_hasQueryTimeout) {
+-            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_QUERY_TIMEOUT, m_queryWaitBudgetMs));
++            AMF_THROW_IF(amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_QUERY_TIMEOUT, kQueryTimeoutMs));
+         }
+         break; // Each encoder accepts only its own codec properties.
+     }
+@@ -727,6 +735,14 @@ void VideoEncoderAMF::Initialize() {
+         }
+     ));
+ 
++    // VROSTBridge: waits for encoder output use 1 ms query timeouts or 1 ms sleeps. With
++    // Windows' default 15.6 ms timer tick either can last a whole tick, so keep a 1 ms
++    // timer period while the encoder exists.
++    if (!m_timerRaised) {
++        m_timerPeriod = m_pipeline->TimerResolution();
++        m_timerRaised = timeBeginPeriod(m_timerPeriod) == TIMERR_NOERROR;
++    }
++
+     Debug("Successfully initialized VideoEncoderAMF.\n");
+ }
+ 
+@@ -734,6 +750,11 @@ void VideoEncoderAMF::Shutdown() {
+     Debug("Shutting down VideoEncoderAMF.\n");
+ 
+     delete m_pipeline;
++    m_pipeline = nullptr;
++    if (m_timerRaised) {
++        timeEndPeriod(m_timerPeriod);
++        m_timerRaised = false;
++    }
+ 
+     for (auto& component : m_amfComponents) {
+         component->Terminate();
+@@ -755,32 +776,44 @@ void VideoEncoderAMF::Shutdown() {
+ void VideoEncoderAMF::Transmit(
+     ID3D11Texture2D* pTexture, uint64_t presentationTime, uint64_t targetTimestampNs, bool insertIDR
+ ) {
++    LogDiagnostics(VROSTBridgeNowUs());
++    // Collect anything already finished first: after a pause in the game's frames the
++    // outputs of earlier frames are ready but were never asked for.
++    if (!m_recoveryPending && InFlightCount() && !CollectOutputs(0, [] { return false; })) return;
+     const uint64_t now = VROSTBridgeNowUs();
+-    LogDiagnostics(now);
+-    const bool hasPending = std::any_of(m_inFlight.begin(), m_inFlight.end(),
+-        [](const InputSurface& slot) { return bool(slot.surface); });
+-    if (m_recoveryPending || (hasPending && now - m_lastOutputProgressUs >= 250000)) {
++    const uint64_t oldest = OldestInFlightUs();
++    // A frame in flight for 250 ms is lost or the encoder is stuck, even while other
++    // frames still come out.
++    if (m_recoveryPending || (oldest && now - oldest >= 250000)) {
+         if (now < m_nextRecoveryUs) {
+             if (insertIDR) RequestIDR();
+             return;
+         }
+         m_nextRecoveryUs = now + 250000;
+-        Warn("VROST_HOST_AMF stalled output; recovering owned pipeline after %llu us", now - m_lastOutputProgressUs);
++        Warn("VROST_HOST_AMF stalled output; recovering owned pipeline after %llu us", oldest ? now - oldest : 0);
+         ResetAfterFailure();
+         insertIDR = true; // First image after a flush must itself be decodable.
+     }
+-    auto available = std::find_if(m_inFlight.begin(), m_inFlight.end(),
+-        [](const InputSurface& slot) { return !slot.surface; });
++    const size_t backlogBefore = InFlightCount();
++    // One frame's budget covers all waiting in this call (for a free slot and for the
++    // frame itself), so an overloaded encoder never holds Present back longer than RC4 did.
++    const uint64_t waitDeadline = VROSTBridgeNowUs() + uint64_t(m_queryWaitBudgetMs) * 1000;
++    auto freeSlot = [this] {
++        return std::find_if(m_inFlight.begin(), m_inFlight.end(),
++            [](const InputSurface& slot) { return !slot.surface; });
++    };
++    auto available = freeSlot();
++    if (available == m_inFlight.end()) {
++        // Wait (bounded) for the oldest frame, and only until a slot is free, instead of
++        // dropping this one at once.
++        if (!CollectOutputs(waitDeadline, [&] { return freeSlot() != m_inFlight.end(); })) return;
++        available = freeSlot();
++    }
+     if (available == m_inFlight.end()) {
+         // Do not let an encoder stall accumulate or overwrite GPU inputs. Drop
+         // only this not-yet-encoded raw image; retained compressed references
+         // and pending AMF data remain intact. Recovery continues on later calls.
+         ++m_poolFull;
+-        try { m_pipeline->Run(m_hasQueryTimeout, m_queryWaitBudgetMs); }
+-        catch (const std::exception& error) {
+-            Warn("VROSTBridge AMF recovery: %s", error.what());
+-            ResetAfterFailure();
+-        }
+         if (insertIDR) RequestIDR();
+         return;
+     }
+@@ -835,10 +868,12 @@ void VideoEncoderAMF::Transmit(
+     const uint64_t submitStarted = VROSTBridgeNowUs();
+     const AMF_RESULT submitted = m_amfComponents.front()->SubmitInput(surface);
+     m_maxSubmitUs = std::max(m_maxSubmitUs, VROSTBridgeNowUs() - submitStarted);
+-    if (submitted == AMF_OK || submitted == AMF_NEED_MORE_INPUT) {
+-        if (!hasPending) m_lastOutputProgressUs = VROSTBridgeNowUs();
++    const bool accepted = submitted == AMF_OK || submitted == AMF_NEED_MORE_INPUT;
++    if (accepted) {
++        if (!InFlightCount()) m_lastOutputProgressUs = VROSTBridgeNowUs();
+         available->surface = surface;
+         available->token = token;
++        available->submittedUs = VROSTBridgeNowUs();
+         ++m_inputsAccepted;
+     } else if (submitted == AMF_INPUT_FULL) {
+         // Input was not accepted. It is safe to drop this raw frame; ask again
+@@ -851,13 +886,57 @@ void VideoEncoderAMF::Transmit(
+         return;
+     }
+     const uint64_t pipelineStarted = VROSTBridgeNowUs();
++    // Deliver every finished frame in order and wait, within one frame's budget, only
++    // for the frame just submitted. The encoder therefore never stays behind after a
++    // slow frame: older outputs are already encoded and come out immediately.
++    if (!CollectOutputs(accepted ? waitDeadline : 0, [&] { return !accepted || !IsInFlight(token); })) return;
++    const uint64_t waited = VROSTBridgeNowUs() - pipelineStarted;
++    m_maxPipelineUs = std::max(m_maxPipelineUs, waited);
++    const size_t backlogAfter = InFlightCount();
++    if (backlogAfter) ++m_lateFrames;
++    if (backlogBefore && !backlogAfter) ++m_backlogCleared;
++    m_maxBacklog = std::max<uint64_t>(m_maxBacklog, backlogAfter);
++}
++
++size_t VideoEncoderAMF::InFlightCount() const {
++    return static_cast<size_t>(std::count_if(m_inFlight.begin(), m_inFlight.end(),
++        [](const InputSurface& slot) { return bool(slot.surface); }));
++}
++
++bool VideoEncoderAMF::IsInFlight(uint64_t token) const {
++    return std::any_of(m_inFlight.begin(), m_inFlight.end(),
++        [token](const InputSurface& slot) { return slot.surface && slot.token == token; });
++}
++
++uint64_t VideoEncoderAMF::OldestInFlightUs() const {
++    uint64_t oldest = 0;
++    for (const auto& slot : m_inFlight) {
++        if (slot.surface && (!oldest || slot.submittedUs < oldest)) oldest = slot.submittedUs;
++    }
++    return oldest;
++}
++
++bool VideoEncoderAMF::CollectOutputs(uint64_t deadlineUs, const std::function<bool()>& done) {
++    // Returns false after a pipeline failure (already reset; the caller stops this frame).
++    // Stages are asked for output only while a frame is in flight and the caller still
++    // waits for one, so no query waits out its timeout for nothing.
++    const std::function<bool()> keepGoing = [&] { return InFlightCount() > 0 && !done(); };
+     try {
+-        m_pipeline->Run(m_hasQueryTimeout, m_queryWaitBudgetMs);
++        while (keepGoing()) {
++            const uint64_t passStarted = VROSTBridgeNowUs();
++            const bool moved = m_pipeline->ForwardReady(keepGoing);
++            const uint64_t now = VROSTBridgeNowUs();
++            if (!keepGoing() || now >= deadlineUs) break;
++            // A pass that neither moved data nor waited inside AMF (no query timeout, or
++            // the frame is still in a converter stage) sleeps 1 ms instead of spinning.
++            if (!moved && now - passStarted < 500) amf_sleep(1);
++        }
+     } catch (const std::exception& error) {
+         Warn("VROSTBridge AMF pipeline recovery: %s", error.what());
+         ResetAfterFailure();
++        return false;
+     }
+-    m_maxPipelineUs = std::max(m_maxPipelineUs, VROSTBridgeNowUs() - pipelineStarted);
++    return true;
+ }
+ 
+ void VideoEncoderAMF::Receive(AMFDataPtr data) {
+@@ -928,11 +1007,11 @@ void VideoEncoderAMF::LogDiagnostics(uint64_t now) {
+     m_lastDiagnosticsUs = now;
+     size_t inFlight = 0;
+     for (const auto& slot : m_inFlight) if (slot.surface) ++inFlight;
+-    Info("VROST_HOST_AMF accepted=%llu output=%llu input_full=%llu pool_full=%llu failures=%llu in_flight=%u alloc_max_us=%llu submit_max_us=%llu output_wait_max_us=%llu output_age_max_us=%llu query_budget_ms=%u",
++    Info("VROST_HOST_AMF accepted=%llu output=%llu input_full=%llu pool_full=%llu failures=%llu in_flight=%u alloc_max_us=%llu submit_max_us=%llu output_wait_max_us=%llu output_age_max_us=%llu query_budget_ms=%u late_frames=%llu backlog_cleared=%llu max_backlog=%llu",
+         m_inputsAccepted, m_outputsReceived, m_inputFull, m_poolFull, m_failures,
+         static_cast<unsigned>(inFlight), m_maxAllocUs, m_maxSubmitUs, m_maxPipelineUs,
+-        m_maxOutputAgeUs, m_queryWaitBudgetMs);
+-    m_maxAllocUs = m_maxSubmitUs = m_maxPipelineUs = m_maxOutputAgeUs = 0;
++        m_maxOutputAgeUs, m_queryWaitBudgetMs, m_lateFrames, m_backlogCleared, m_maxBacklog);
++    m_maxAllocUs = m_maxSubmitUs = m_maxPipelineUs = m_maxOutputAgeUs = m_maxBacklog = 0;
+ }
+ 
+ void VideoEncoderAMF::ApplyFrameProperties(const amf::AMFSurfacePtr& surface, bool insertIDR) {
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+index f08a08fb..8283497a 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderAMF.h
+@@ -21,7 +21,9 @@ public:
+     AMFPipe(amf::AMFComponentPtr src, AMFDataReceiver receiver);
+     virtual ~AMFPipe();
+ 
+-    void doPassthrough(bool hasQueryTimeout, uint32_t timerResolution, uint32_t waitBudgetMs);
++    // Forward everything this stage has finished (oldest first) while keepGoing() holds.
++    // Returns true if any data moved downstream.
++    bool forwardReady(const std::function<bool()>& keepGoing);
+     void Reset();
+ 
+ protected:
+@@ -48,7 +50,9 @@ public:
+     ~AMFPipeline();
+ 
+     void Connect(AMFPipePtr pipe);
+-    void Run(bool hasQueryTimeout, uint32_t waitBudgetMs);
++    // Every stage forwards its finished data while keepGoing() holds. True if anything moved.
++    bool ForwardReady(const std::function<bool()>& keepGoing);
++    uint32_t TimerResolution() const { return m_timerResolution; }
+     void Reset();
+ 
+ protected:
+@@ -123,6 +127,7 @@ private:
+     struct InputSurface {
+         amf::AMFSurfacePtr surface;
+         uint64_t token = 0;
++        uint64_t submittedUs = 0;
+     };
+     std::array<InputSurface, 3> m_inFlight;
+     uint64_t m_nextSurfaceToken = 0;
+@@ -132,6 +137,17 @@ private:
+     uint64_t m_maxOutputAgeUs = 0, m_lastOutputProgressUs = 0, m_nextRecoveryUs = 0;
+     bool m_recoveryPending = false;
+     uint32_t m_queryWaitBudgetMs = 12;
++    // VROSTBridge: an AMF query waits at most this long; CollectOutputs owns the budget.
++    static constexpr uint32_t kQueryTimeoutMs = 1;
++    uint64_t m_lateFrames = 0, m_backlogCleared = 0, m_maxBacklog = 0;
++    size_t InFlightCount() const;
++    bool IsInFlight(uint64_t token) const;
++    uint64_t OldestInFlightUs() const;
++    // Forward finished frames until done() holds, nothing is in flight, or the deadline.
++    bool CollectOutputs(uint64_t deadlineUs, const std::function<bool()>& done);
++    // 1 ms Windows timer period while the encoder exists (query timeouts and sleeps).
++    bool m_timerRaised = false;
++    uint32_t m_timerPeriod = 1;
+     void LogDiagnostics(uint64_t now);
+     void ResetAfterFailure();
+ 

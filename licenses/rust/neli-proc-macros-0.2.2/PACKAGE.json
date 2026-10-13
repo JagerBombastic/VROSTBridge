@@ -1,0 +1,35 @@
+{
+  "crate": "neli-proc-macros",
+  "version": "0.2.2",
+  "license": "BSD-3-Clause",
+  "repository": "https://github.com/jbaublitz/neli",
+  "authors": [
+    "John Baublitz <john.m.baublitz@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "55db47296484645e5c3ff9965f79e4e1c521f4afc1e997590910e69a3dc41093",
+      "bytes": 1513,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "05d8d08c6e98f20a62417478ebf7be8e1425ec9acecc6f63e22da633f6b71609"
+  },
+  "source_url": "https://crates.io/crates/neli-proc-macros/0.2.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "77fcbed4a47e3650d27ee6b61e1c325ea62b49d8"
+    },
+    "path_in_vcs": "neli-proc-macros"
+  }
+}

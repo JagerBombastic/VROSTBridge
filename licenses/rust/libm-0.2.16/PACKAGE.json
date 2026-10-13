@@ -1,0 +1,40 @@
+{
+  "crate": "libm",
+  "version": "0.2.16",
+  "license": "MIT",
+  "repository": "https://github.com/rust-lang/compiler-builtins",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>",
+    "Amanieu d'Antras <amanieu@gmail.com>",
+    "Jorge Aparicio <japaricious@gmail.com>",
+    "Trevor Gross <tg@trevorgross.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.txt",
+      "sha256": "3823dda7cf046602f4b4e77ec8e227863dc4736037cc85bb33d9f19febe16bb7",
+      "bytes": 14088,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981",
+    "windows_client": "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
+  },
+  "source_url": "https://crates.io/crates/libm/0.2.16",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "dfd2203a4d6110820ad7bb65cafe1bf331a03a3d"
+    },
+    "path_in_vcs": "libm"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "crate": "lzma-rust2",
+  "version": "0.16.2",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/hasenbanck/lzma-rust2/",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "43070e2d4e532684de521b885f385d0841030efa2b1a20bafb76133a5e1379c1",
+      "bytes": 11356,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "47bb1e988e6fb779cf720ad431242d3f03167c1b3f2b1aae7f1a94b2495b36ae"
+  },
+  "source_url": "https://crates.io/crates/lzma-rust2/0.16.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4398f2a1fc016eb64a9f98a0f6b88da0db8f1c10"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "crate": "futures-sink",
+  "version": "0.3.34",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/futures-rs",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "275c491d6d1160553c32fd6127061d7f9606c3ea25abfad6ca3f6ed088785427",
+      "bytes": 10874,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6652c868f35dfe5e8ef636810a4e576b9d663f3a17fb0f5613ad73583e1b88fd",
+      "bytes": 1094,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "1944426bf7d03f1d14f708785e4b33efd750b36d48a157b836b3efc15ede8e1d",
+    "windows_client": "1944426bf7d03f1d14f708785e4b33efd750b36d48a157b836b3efc15ede8e1d"
+  },
+  "source_url": "https://crates.io/crates/futures-sink/0.3.34",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "705e6b5c0f06535b1aac1cb1989a172b3d45be8c"
+    },
+    "path_in_vcs": "futures-sink"
+  }
+}

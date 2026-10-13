@@ -1,0 +1,47 @@
+{
+  "crate": "rustls",
+  "version": "0.23.38",
+  "license": "Apache-2.0 OR ISC OR MIT",
+  "repository": "https://github.com/rustls/rustls",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-ISC",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-ISC",
+      "sha256": "7cfafc877eccc46c0e346ccbaa5c51bb6b894d2b818e617d970211e232785ad4",
+      "bytes": 775,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "709e3175b4212f7b13aa93971c9f62ff8c69ec45ad8c6532a7e0c41d7a7d6f8c",
+      "bytes": 1082,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "69f9466fb2c14ea04357e91413efb882e2a6d4a406e625449bc0a5d360d53a21"
+  },
+  "source_url": "https://crates.io/crates/rustls/0.23.38",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "6b116bc5e8556fd65286a1b4220f57dd9fbb5e54"
+    },
+    "path_in_vcs": "rustls"
+  }
+}

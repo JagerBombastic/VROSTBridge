@@ -1,0 +1,28 @@
+// Resource paths resolve against the packaging directory when building.
+// The VROSTBridge Host launcher's icon and version information (Explorer, Task Manager, Settings > Apps > Startup).
+1 ICON "../launcher/brand/vrostbridge.ico"
+
+1 VERSIONINFO
+FILEVERSION 1,0,0,11
+PRODUCTVERSION 1,0,0,11
+FILEOS 0x40004
+FILETYPE 0x1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "FileDescription", "VROSTBridge Host"
+      VALUE "FileVersion", "1.0.0.11"
+      VALUE "InternalName", "VROSTBridge Host"
+      VALUE "LegalCopyright", "Copyright (c) 2026 JagerBombastic. MIT licence."
+      VALUE "OriginalFilename", "VROSTBridge Host.exe"
+      VALUE "ProductName", "VROSTBridge"
+      VALUE "ProductVersion", "1.0.0.11"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

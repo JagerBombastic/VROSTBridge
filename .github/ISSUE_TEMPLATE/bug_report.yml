@@ -1,0 +1,54 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Reports from both PCs help most: on the client page choose **Send report to host**, then save both on the host page.
+        **Reports contain your local network addresses and hardware names.** Check them before attaching them here.
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Shown at the bottom of each page.
+      placeholder: "Host 1.0.0.6, client 1.0.0.6"
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      placeholder: "Headset, headset PC (and GPU), rendering PC GPU"
+    validations:
+      required: true
+  - type: dropdown
+    id: network
+    attributes:
+      label: Headset PC's network
+      options:
+        - Ethernet
+        - Wi-Fi
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Bazzite mode
+      options:
+        - Desktop Mode
+        - Game Mode
+        - Both
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: The steps, what the headset and the pages showed, and any error text.
+    validations:
+      required: true
+  - type: textarea
+    id: reports
+    attributes:
+      label: Reports or logs
+      description: Attach the reports (zip them if needed) after checking them.

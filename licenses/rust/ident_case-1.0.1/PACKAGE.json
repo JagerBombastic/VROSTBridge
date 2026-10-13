@@ -1,0 +1,38 @@
+{
+  "crate": "ident_case",
+  "version": "1.0.1",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/TedDriggs/ident_case",
+  "authors": [
+    "Ted Driggs <ted.driggs@outlook.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1",
+      "bytes": 1036,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39",
+    "linux_client": "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39",
+    "windows_client": "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
+  },
+  "source_url": "https://crates.io/crates/ident_case/1.0.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "bf0d863e3006b40a0d923a81d7b2dd2db1136c2c"
+    }
+  }
+}

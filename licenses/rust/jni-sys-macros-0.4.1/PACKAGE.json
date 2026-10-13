@@ -1,0 +1,50 @@
+{
+  "crate": "jni-sys-macros",
+  "version": "0.4.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/jni-rs/jni-sys",
+  "authors": [
+    "Robert Bragg <robert@sixbynine.org>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/LICENSE-APACHE",
+    "upstream/LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/LICENSE-MIT",
+      "sha256": "1d85bd754b04ceec93e98e890edd1fa3c6a22e81bcb32135806beeccefa51cd1",
+      "bytes": 1071,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/jni-rs/jni-sys/64d77b7a5f119d7b55b4e2c169a4668067ff59e6/LICENSE-MIT",
+      "commit": "64d77b7a5f119d7b55b4e2c169a4668067ff59e6"
+    },
+    {
+      "file": "upstream/LICENSE-APACHE",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "bytes": 11358,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/jni-rs/jni-sys/64d77b7a5f119d7b55b4e2c169a4668067ff59e6/LICENSE-APACHE",
+      "commit": "64d77b7a5f119d7b55b4e2c169a4668067ff59e6"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "38c0b942f458fe50cdac086d2f946512305e5631e720728f2a61aabcd47a6264",
+    "linux_client": "38c0b942f458fe50cdac086d2f946512305e5631e720728f2a61aabcd47a6264",
+    "windows_client": "38c0b942f458fe50cdac086d2f946512305e5631e720728f2a61aabcd47a6264"
+  },
+  "source_url": "https://crates.io/crates/jni-sys-macros/0.4.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "64d77b7a5f119d7b55b4e2c169a4668067ff59e6"
+    },
+    "path_in_vcs": "jni-sys-macros"
+  }
+}

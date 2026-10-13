@@ -1,0 +1,44 @@
+{
+  "crate": "equivalent",
+  "version": "1.0.2",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/indexmap-rs/equivalent",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7365cc8878a1d7ce155a58c4ca09c3d7a6be413efa5334a80ea842912b669349",
+      "bytes": 1049,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f",
+    "linux_client": "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f",
+    "windows_client": "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+  },
+  "source_url": "https://crates.io/crates/equivalent/1.0.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "44cdd44f8b8ebb5f9ae096c7550a5e74ffb7d6ae"
+    },
+    "path_in_vcs": ""
+  }
+}

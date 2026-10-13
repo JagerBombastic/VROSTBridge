@@ -1,0 +1,42 @@
+{
+  "crate": "jobserver",
+  "version": "0.1.34",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/jobserver-rs",
+  "authors": [
+    "Alex Crichton <alex@alexcrichton.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "378f5840b258e2779c39418f3f2d7b2ba96f1c7917dd6be0713f88305dbda397",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "9afb3de4395d6b3e67a780b6de64b51c978ecf11cb9a462c66be7d4ca9039d33"
+  },
+  "source_url": "https://crates.io/crates/jobserver/0.1.34",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4bcd123ffc997020367416a970ae20577a76a583"
+    },
+    "path_in_vcs": ""
+  }
+}

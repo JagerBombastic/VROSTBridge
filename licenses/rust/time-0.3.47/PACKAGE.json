@@ -1,0 +1,43 @@
+{
+  "crate": "time",
+  "version": "0.3.47",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/time-rs/time",
+  "authors": [
+    "Jacob Pratt <open-source@jhpratt.dev>",
+    "Time contributors"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-Apache",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-Apache",
+      "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594",
+      "bytes": 10174,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "2537228d9a1b44a5dc595241349cae7090b326c8de165aaf89bfddef4a00d0fc",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "743bd48c283afc0388f9b8827b976905fb217ad9e647fae3a379a9283c4def2c"
+  },
+  "source_url": "https://crates.io/crates/time/0.3.47",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d5144cd2874862d46466c900910cd8577d066019"
+    },
+    "path_in_vcs": "time"
+  }
+}

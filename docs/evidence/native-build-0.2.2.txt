@@ -1,0 +1,80 @@
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/build-tools/native-build
+[ 10%] Built target conversion_shader
+[ 30%] Built target stream_tests
+[ 50%] Built target core_tests
+[ 60%] Building CXX object CMakeFiles/VROSTBridgeClient.dir/client/platform/linux/main.cpp.o
+[ 70%] Linking CXX executable VROSTBridgeClient
+[100%] Built target VROSTBridgeClient
+Test project /workspace/scratch/647ea6e3ae16/build-tools/native-build
+    Start 1: core_contracts
+1/2 Test #1: core_contracts ...................   Passed    0.01 sec
+    Start 2: stream_contracts
+2/2 Test #2: stream_contracts .................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   0.01 sec
+
+Native help smoke test:
+VROSTBridge 0.2.2 native Linux client
+--software-decode  Explicit CPU compatibility mode (not a performance path)
+
+ELF dynamic dependencies and RUNPATH:
+
+Dynamic section at offset 0x216a0 contains 36 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libvulkan.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libvrostbridge_transport.so]
+ 0x0000000000000001 (NEEDED)             Shared library: [libavcodec.so.60]
+ 0x0000000000000001 (NEEDED)             Shared library: [libavutil.so.58]
+ 0x0000000000000001 (NEEDED)             Shared library: [libswscale.so.7]
+ 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN:$ORIGIN/lib]
+ 0x000000000000000c (INIT)               0x6000
+ 0x000000000000000d (FINI)               0x1d3b8
+ 0x0000000000000019 (INIT_ARRAY)         0x22290
+ 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x22298
+ 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)
+ 0x000000006ffffef5 (GNU_HASH)           0x3b0
+ 0x0000000000000005 (STRTAB)             0x1a58
+ 0x0000000000000006 (SYMTAB)             0x420
+ 0x000000000000000a (STRSZ)              6860 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000015 (DEBUG)              0x0
+ 0x0000000000000003 (PLTGOT)             0x22920
+ 0x0000000000000002 (PLTRELSZ)           4992 (bytes)
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000017 (JMPREL)             0x4170
+ 0x0000000000000007 (RELA)               0x3900
+ 0x0000000000000008 (RELASZ)             2160 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000000000001e (FLAGS)              BIND_NOW
+ 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE
+ 0x000000006ffffffe (VERNEED)            0x3700
+ 0x000000006fffffff (VERNEEDNUM)         7
+ 0x000000006ffffff0 (VERSYM)             0x3524
+ 0x000000006ffffff9 (RELACOUNT)          60
+ 0x0000000000000000 (NULL)               0x0
+
+Resolved dynamic libraries:
+	linux-vdso.so.1 (0x00007f5da5823000)
+	libvulkan.so.1 => /lib/x86_64-linux-gnu/libvulkan.so.1 (0x00007f5da5770000)
+	libvrostbridge_transport.so => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.0/dist/client/libvrostbridge_transport.so (0x00007f5da4cbe000)
+	libavcodec.so.60 => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.0/dist/client/lib/libavcodec.so.60 (0x00007f5da49a6000)
+	libavutil.so.58 => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.0/dist/client/lib/libavutil.so.58 (0x00007f5da38b0000)
+	libswscale.so.7 => /workspace/scratch/647ea6e3ae16/work/VROSTBridge-0.2.0/dist/client/lib/libswscale.so.7 (0x00007f5da3836000)
+	libstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f5da35b8000)
+	libm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f5da34cf000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f5da34a1000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f5da328f000)
+	libasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007f5da3185000)
+	/lib64/ld-linux-x86-64.so.2 (0x00007f5da5825000)
+	libva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007f5da3153000)
+	libva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007f5da314e000)
+	libdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007f5da3137000)

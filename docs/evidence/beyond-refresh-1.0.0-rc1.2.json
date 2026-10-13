@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0-rc1.2",
+  "scope": "Bazzite client Beyond reported-90/measured-75 readiness correction",
+  "compatible_host": "1.0.0-rc1",
+  "physical_beyond_fix_verified": false,
+  "observed_failure": {
+    "selected_display_mode": "0: 5088x2544@75 Hz",
+    "reported_property_hz": 90,
+    "physical_vsync_measured_hz": "approximately 75",
+    "host_session_started": false
+  },
+  "correction": "Require at least 1.5 seconds of advancing valid Beyond vsync near 75 Hz before reconciling a 90 Hz property; send 75 Hz in metadata and use it in the native client.",
+  "native_rebuilt_sha256": {
+    "VROSTBridgeClient": "a79358d55c4033061b782ed4d66e97fbf3ec59580b10ba7e510951f00eb6dc21",
+    "VROSTBridgeRuntimeProbe": "7b6cd501eedad89dd306f127664b7d51e10e62361e1e1d564ec4de73a61a67a2"
+  },
+  "native_reused_sha256": {
+    "VROSTBridgeLease": "21c759b56606ad3b87ab2c08a5dcdf2dccbaa185d219c8d8e94f81a500fbaccf",
+    "libvrostbridge_transport.so": "2f3c9fe56b1d86abb16f2532457e73d294bd042d1f9729cc78549f3396270dc5",
+    "libopenvr_api.so": "cb68c5788b0ddab32c0402e58820956a489ef6cb99ecf2e1fa997533ead54475",
+    "assets/convert.spv": "20d34ae3b17cfd2653f1bbdca23be4a3baf3c8d4fa262b44a6b6409bfec130eb",
+    "lib/libavcodec.so.60": "5a3bd1641d776b07c880ca3b2d47b9dd5bbafa5d301d6a86488ca646e81a56d8",
+    "lib/libavutil.so.58": "9a3de19e0a04400e94fba75fbe511e09826c1c74441221ef8fb81bff0312f091",
+    "lib/libswscale.so.7": "5b2863736559e17d43a541272dc30113b459edaa1e6ca7f0845f0c965deb004f",
+    "lib/libSDL2-2.0.so.0": "2507acbbe40afe7d3e2e775dd8af00a1dba93579b9e837563032f3d751a9a45b",
+    "lib/libwayland-server.so.0": "d6cc42aff7539831152735f58958fd3d854c77881b053c771fbe7a819df5392f",
+    "tools/go-bsb-cams": "42288d4d851c1a1b0d1ae496e9823cf72bb3c7ed7d56eeb13f33038dea8702ce"
+  },
+  "source_sha256": {
+    "client/device/runtime_readiness.hpp": "94e89da055a51d0fd3505de0e416aa38e5c8c9a4be5f6c196c47b3c86b3642f4",
+    "client/device/headset_metadata.hpp": "0f0b555953634b203725e6691661529f0c8e5027f81f4430ef5efb9f88b47760",
+    "client/device/openvr_device.hpp": "bdc32d672235ae014085f546b934db9b5600b92144a88c5889edc2273bc540e1",
+    "client/device/openvr_device.cpp": "172e1717be9f0cc226c143e1465b20a8a18d64fdb2cc09d18cf65b7ab15eb83b",
+    "client/platform/linux/runtime_settings.hpp": "a17c53d2a028d61f9b526361c478530fff0f8cae8cefd912e2ffbe89191a7804",
+    "client/platform/linux/main.cpp": "77bfb1aaeba9821cc6113a22266880fa9dcc652f0ec932b3b4838d6d8e9aad6f",
+    "client/platform/linux/runtime_probe.cpp": "bc26761ff9c9737eae1dfba894074d077b4de82d5810cc891d1d7fced244333e",
+    "client/platform/linux/vulkan.cpp": "99d5ca8c14fb8e41633a217ef87142e31eed18dc096dbaced9e3d4cb7ef87101",
+    "client/platform/linux/decoder.cpp": "9558125ff5aa1d3f4bf19db7ad99ba61cc44d117744ab20c5ca835a98c228b2f"
+  },
+  "compiler": "g++ (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0",
+  "compiler_flags": [
+    "-std=c++17",
+    "-O2",
+    "-Wall",
+    "-Wextra"
+  ],
+  "linking": "Existing pinned ALVR transport and LGPL FFmpeg shared libraries, system Vulkan loader and dynamic C++ runtime. RUNPATH=$ORIGIN:$ORIGIN/lib; no absolute build paths in DT_NEEDED.",
+  "ffmpeg_headers_source": "third_party/ffmpeg/ffmpeg-n6.1.4-source.tar.xz",
+  "ffmpeg_headers_sha256": "735b0713aa8f7218b1f77bf0407d6db6c9c4dde77d75f2e9e2d19f9b5c46ef55",
+  "vulkan_headers_source": "https://github.com/KhronosGroup/Vulkan-Headers/tree/v1.3.275",
+  "vulkan_headers_tar_sha256": "7161da645dbd33fd4ea61eec08e0d77389a640010acbf4afc00234f84df9b314",
+  "python": "Python 3.12.14",
+  "pyinstaller": "6.22.3",
+  "new_runtime_dependencies": [],
+  "tests": {
+    "python": "128 completed: 127 passed, one container procfs identity check skipped",
+    "native_runtime_readiness": "C++ regression contracts passed, assertions enabled",
+    "native_build": "streamer and probe built without warnings; both help commands launch",
+    "package": "see client-package-1.0.0-rc1.2.json"
+  },
+  "remaining_validation": [
+    "Physical Beyond start/stop and streaming",
+    "Physical Index regression",
+    "Bazzite Game Mode display lease"
+  ]
+}

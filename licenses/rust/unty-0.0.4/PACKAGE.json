@@ -1,0 +1,46 @@
+{
+  "crate": "unty",
+  "version": "0.0.4",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/bincode-org/unty",
+  "authors": [
+    "Victor Koenders <bincode@trang.ar>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "fa84f04c495f2533ba036606acc8644b50077752f17bc2e943235459dda1c12c",
+      "bytes": 11541,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "ac1e6e437cd571f6b450abd33dc055cf26dfb0fe2a72952c3ef6ae3844549c12",
+      "bytes": 1085,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae",
+    "linux_client": "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae",
+    "windows_client": "6d49784317cd0d1ee7ec5c716dd598ec5b4483ea832a2dced265471cc0f690ae"
+  },
+  "source_url": "https://crates.io/crates/unty/0.0.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5455639ae05f42202a270f16bb4d79f6791d9b70"
+    },
+    "path_in_vcs": ""
+  }
+}

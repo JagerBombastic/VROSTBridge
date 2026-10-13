@@ -1,0 +1,52 @@
+{
+  "crate": "unicode-width",
+  "version": "0.2.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/unicode-rs/unicode-width",
+  "authors": [
+    "kwantam <kwantam@gmail.com>",
+    "Manish Goregaokar <manishsmail@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYRIGHT",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYRIGHT",
+      "sha256": "23860c2a7b5d96b21569afedf033469bab9fe14a1b24a35068b8641c578ce24d",
+      "bytes": 321,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7b63ecd5f1902af1b63729947373683c32745c16a10e8e6292e2e2dcd7e90ae0",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "b4ac048d71ede7ee76d585517add45da530660ef4390e49b098733c6e897f254",
+    "windows_client": "b4ac048d71ede7ee76d585517add45da530660ef4390e49b098733c6e897f254"
+  },
+  "source_url": "https://crates.io/crates/unicode-width/0.2.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "9d98411769fe13c7c18cab0b3fbbab29ba8350ea"
+    },
+    "path_in_vcs": ""
+  }
+}

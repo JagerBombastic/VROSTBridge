@@ -1,0 +1,2 @@
+# Optional rootless Beyond 2e camera access for the active local desktop user.
+SUBSYSTEM=="usb", ATTR{idVendor}=="35bd", ATTR{idProduct}=="0202", TAG+="uaccess"

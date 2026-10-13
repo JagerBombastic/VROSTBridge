@@ -1,0 +1,40 @@
+{
+  "crate": "ppmd-rust",
+  "version": "1.4.0",
+  "license": "CC0-1.0 OR MIT-0",
+  "repository": "https://github.com/hasenbanck/ppmd-rust",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-CC0.md",
+    "LICENSE-MIT-0.md"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-CC0.md",
+      "sha256": "c2c14e64a5798ecd6e5332ed6139d950522352fb82ddfd1d620524db890712ec",
+      "bytes": 7016,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT-0.md",
+      "sha256": "5574529c6fc6bb5f1dba17056a3ae5fb5cac51bc50ae4d7cd146e13b708fe0ff",
+      "bytes": 916,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "efca4c95a19a79d1c98f791f10aebd5c1363b473244630bb7dbde1dc98455a24"
+  },
+  "source_url": "https://crates.io/crates/ppmd-rust/1.4.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "9415f9115a56b63e52d4c6e13a0be2da6e4651a9"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "crate": "gpu-descriptor",
+  "version": "0.3.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/zakarumych/gpu-descriptor",
+  "authors": [
+    "Zakarum <zakarumych@ya.ru>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "upstream/COPYING"
+  ],
+  "notice_details": [
+    {
+      "file": "upstream/COPYING",
+      "sha256": "f72143f7e9d9fb8bd336b139fa22f825a299591c29f2f7338c5566347b137613",
+      "bytes": 352,
+      "origin": "exact crate VCS revision",
+      "source_url": "https://raw.githubusercontent.com/zakarumych/gpu-descriptor/bb28b4e55b742e0ea3e7a0968e7ee6287ba0e06a/COPYING",
+      "commit": "bb28b4e55b742e0ea3e7a0968e7ee6287ba0e06a"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "b89c83349105e3732062a895becfc71a8f921bb71ecbbdd8ff99263e3b53a0ca",
+    "windows_client": "b89c83349105e3732062a895becfc71a8f921bb71ecbbdd8ff99263e3b53a0ca"
+  },
+  "source_url": "https://crates.io/crates/gpu-descriptor/0.3.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "bb28b4e55b742e0ea3e7a0968e7ee6287ba0e06a"
+    },
+    "path_in_vcs": "gpu-descriptor"
+  }
+}

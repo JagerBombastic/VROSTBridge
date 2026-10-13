@@ -1,0 +1,42 @@
+{
+  "crate": "crypto-common",
+  "version": "0.1.7",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/traits",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "3521672491a3479422d5fe1aca6645dd2984090f85da6e5205abfb18fb7a6897",
+      "bytes": 1065,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "78c8292055d1c1df0cce5d180393dc8cce0abec0a7102adb6c7b1eef6016d60a"
+  },
+  "source_url": "https://crates.io/crates/crypto-common/0.1.7",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "66a997ccf5776ce873da5a48e2885a9908e940f6"
+    },
+    "path_in_vcs": "crypto-common"
+  }
+}

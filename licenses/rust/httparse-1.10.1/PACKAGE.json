@@ -1,0 +1,42 @@
+{
+  "crate": "httparse",
+  "version": "1.10.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/seanmonstar/httparse",
+  "authors": [
+    "Sean McArthur <sean@seanmonstar.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "391a5396cec6230bfabd4ef4eb2350eb895bc5efce377a2218f5702ed020d3e3",
+      "bytes": 1063,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6dbf3de79e51f3d586ab4cb9d5c3e2c14aa28ed23d180cf89b4df0454a69cc87"
+  },
+  "source_url": "https://crates.io/crates/httparse/1.10.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "9f29e79f9832dbd0ae5220acb17c1866745bdecd"
+    },
+    "path_in_vcs": ""
+  }
+}

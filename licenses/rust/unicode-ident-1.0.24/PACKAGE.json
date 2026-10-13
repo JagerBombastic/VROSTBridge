@@ -1,0 +1,49 @@
+{
+  "crate": "unicode-ident",
+  "version": "1.0.24",
+  "license": "(MIT OR Apache-2.0) AND Unicode-3.0",
+  "repository": "https://github.com/dtolnay/unicode-ident",
+  "authors": [
+    "David Tolnay <dtolnay@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "LICENSE-UNICODE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-UNICODE",
+      "sha256": "f7db81051789b729fea528a63ec4c938fdcb93d9d61d97dc8cc2e9df6d47f2a1",
+      "bytes": 1995,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
+  },
+  "source_url": "https://crates.io/crates/unicode-ident/1.0.24",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5b54a632702b5744a1c40ea01c127c0ac0498172"
+    },
+    "path_in_vcs": ""
+  }
+}

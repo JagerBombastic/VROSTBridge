@@ -1,0 +1,30 @@
+{
+  "crate": "getset",
+  "version": "0.1.7",
+  "license": "MIT",
+  "repository": "https://github.com/jbaublitz/getset",
+  "authors": [
+    "Ana Hobden <ana@hoverbear.org>",
+    "John Baublitz <john.m.baublitz@gmail.com"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "002c2696d92b5c8cf956c11072baa58eaf9f6ade995c031ea635c6a1ee342ad1",
+      "bytes": 1069,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "6cf442baaabe4213ce7d1239afc26c039180b6456da2cededa316ae2c8a77a77"
+  },
+  "source_url": "https://crates.io/crates/getset/0.1.7"
+}

@@ -1,0 +1,16 @@
+{
+  "version": "0.2.13",
+  "native_build": "GNU C++17, optimization O2, Linux x86-64",
+  "loader_check": "passed without private LD_LIBRARY_PATH",
+  "binary_sha256": "d9f8b4a67eddda719f0d1b374a3e89c05b5f136aad8583a728b0cdbebd0dd988",
+  "source_sha256": {
+    "client/device/openvr_device.cpp": "11c853972c57e38c6de171f4e47cea06031f98815bcd891cb84e5a79e5fba96d",
+    "client/device/skeletal.hpp": "f07e5de0d05df66476da5604635f909b67f5efccb18dd0272583b4527703bee3",
+    "client/platform/linux/main.cpp": "2575b68b72f6a2e90d4e8dbb975ad2abbac3cf748e470f591e1792a5a9ade51a",
+    "client/platform/linux/decoder.cpp": "9558125ff5aa1d3f4bf19db7ad99ba61cc44d117744ab20c5ca835a98c228b2f",
+    "client/platform/linux/vulkan.cpp": "99d5ca8c14fb8e41633a217ef87142e31eed18dc096dbaced9e3d4cb7ef87101",
+    "client/platform/linux/video.hpp": "245341ce03faa9c1b4efa0ba4683cfb260170d6a069b27f93c85f58633274ee1",
+    "core/stream.hpp": "75b7004b059c971f4b486aecd32c095c6113a6231289a824d74cd9a1e8f04a40"
+  },
+  "physical_validation": false
+}

@@ -1,0 +1,34 @@
+{
+  "release": "0.2.10",
+  "python": {
+    "total": 182,
+    "passed": 180,
+    "skipped": 2,
+    "evidence": "python-tests-0.2.10.txt"
+  },
+  "cpp": {
+    "groups": 6,
+    "passed": 6,
+    "evidence": "cpp-tests-0.2.10.txt"
+  },
+  "desktop_javascript": "passed",
+  "native_linux_build": "passed",
+  "native_runtime_loader_without_LD_LIBRARY_PATH": "passed",
+  "frozen_install_checks_passed": 12,
+  "upgrade_from": "0.2.9",
+  "windows_packages": "NSIS CRC, payload hashes, AMD64 PE imports and icon validated; not executed",
+  "video_regressions": [
+    "request before codec config",
+    "encoder config arrives late",
+    "reject IDR before decoder ready",
+    "new IDR when decoder ready",
+    "silent video recovery",
+    "no periodic IDR during healthy streaming",
+    "stop and reconnect"
+  ],
+  "limits": [
+    "No Windows host execution",
+    "No physical headset end-to-end test",
+    "No measured 0.2.10 latency result"
+  ]
+}

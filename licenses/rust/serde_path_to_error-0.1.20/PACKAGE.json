@@ -1,0 +1,42 @@
+{
+  "crate": "serde_path_to_error",
+  "version": "0.1.20",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/dtolnay/path-to-error",
+  "authors": [
+    "David Tolnay <dtolnay@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "10a9ff822e371bb5403e391ecd83e182e0e77ba7f6fe0160b795797109d1b457"
+  },
+  "source_url": "https://crates.io/crates/serde_path_to_error/0.1.20",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "097ed8772815ab6a676ebf3998b6de4770af090d"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "crate": "webpki-roots",
+  "version": "1.0.6",
+  "license": "CDLA-Permissive-2.0",
+  "repository": "https://github.com/rustls/webpki-roots",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "e271993808fec50ab29350b39539cdec611a9103f827e0aa26d61da70e2d33f8",
+      "bytes": 2371,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "22cfaf3c063993ff62e73cb4311efde4db1efb31ab78a3e5c457939ad5cc0bed"
+  },
+  "source_url": "https://crates.io/crates/webpki-roots/1.0.6",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c97def9fb9fcf4c6f687a6f11c376c021b4811a1"
+    },
+    "path_in_vcs": "webpki-roots"
+  }
+}

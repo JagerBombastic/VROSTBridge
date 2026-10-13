@@ -1,0 +1,43 @@
+{
+  "crate": "crc32fast",
+  "version": "1.5.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/srijs/rust-crc32fast",
+  "authors": [
+    "Sam Rijs <srijs@airpost.net>",
+    "Alex Crichton <alex@alexcrichton.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "61d383b05b87d78f94d2937e2580cce47226d17823c0430fbcad09596537efcf",
+      "bytes": 1097,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "9481c1c90cbf2ac953f07c8d4a58aa3945c425b7185c9154d67a65e4230da511"
+  },
+  "source_url": "https://crates.io/crates/crc32fast/1.5.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "dbf4f76cd71cdcc57d9164cbd46890d53ce0423c"
+    },
+    "path_in_vcs": ""
+  }
+}

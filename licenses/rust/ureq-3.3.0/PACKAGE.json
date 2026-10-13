@@ -1,0 +1,43 @@
+{
+  "crate": "ureq",
+  "version": "3.3.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/algesten/ureq",
+  "authors": [
+    "Martin Algesten <martin@algesten.se>",
+    "Jacob Hoffman-Andrews <ureq@hoffman-andrews.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7e5886959f67f8c75063a9d55cd3cb08c5a8cbea9a944fa1df2d4ae038f53721",
+      "bytes": 1072,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "dea7109cdcd5864d4eeb1b58a1648dc9bf520360d7af16ec26d0a9354bafcfc0"
+  },
+  "source_url": "https://crates.io/crates/ureq/3.3.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b2adbf00f9a7ac0e2fbcb39d23c1b4f3da723e5c"
+    },
+    "path_in_vcs": ""
+  }
+}

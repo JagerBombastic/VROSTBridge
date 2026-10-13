@@ -1,0 +1,45 @@
+{
+  "crate": "pastey",
+  "version": "0.2.3",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/as1100k/pastey",
+  "authors": [
+    "Aditya Kumar <git@adityais.dev>",
+    "David Tolnay <dtolnay@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "2ee67f1008b1ba2321834326597b8e186293b049a023cdef258527550b9935b4",
+    "windows_client": "2ee67f1008b1ba2321834326597b8e186293b049a023cdef258527550b9935b4"
+  },
+  "source_url": "https://crates.io/crates/pastey/0.2.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c377d07c9d1a418e9922af59dc932736752a95cc"
+    },
+    "path_in_vcs": ""
+  }
+}

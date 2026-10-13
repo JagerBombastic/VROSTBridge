@@ -1,0 +1,42 @@
+{
+  "crate": "powerfmt",
+  "version": "0.2.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/jhpratt/powerfmt",
+  "authors": [
+    "Jacob Pratt <jacob@jhpratt.dev>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-Apache",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-Apache",
+      "sha256": "155420c6403d4e0fca34105e3c03fdd6939b64c393c7ec6f95f5b72c5474eab0",
+      "bytes": 11349,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "070dbc7dda03a29296f2d58bdb9b7331af90f2abc9f31df22875d1eabaf29852",
+      "bytes": 1062,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "439ee305def115ba05938db6eb1644ff94165c5ab5e9420d1c1bcedbba909391"
+  },
+  "source_url": "https://crates.io/crates/powerfmt/0.2.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5889a2a65c99836fd718340726f6b4379bc5028f"
+    },
+    "path_in_vcs": "powerfmt"
+  }
+}

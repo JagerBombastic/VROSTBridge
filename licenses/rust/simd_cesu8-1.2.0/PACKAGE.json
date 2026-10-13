@@ -1,0 +1,44 @@
+{
+  "crate": "simd_cesu8",
+  "version": "1.2.0",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/seancroach/simd_cesu8",
+  "authors": [
+    "Sean C. Roach <me@seancroach.dev>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "11031e251abf8611c80f460e19dbdeb54a66db918e49c65a7065b46ac7aec520",
+    "windows_client": "11031e251abf8611c80f460e19dbdeb54a66db918e49c65a7065b46ac7aec520"
+  },
+  "source_url": "https://crates.io/crates/simd_cesu8/1.2.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b7977cfbebc962b6fa68969bac9c863ae55a8233"
+    },
+    "path_in_vcs": ""
+  }
+}

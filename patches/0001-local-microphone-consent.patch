@@ -1,0 +1,26 @@
+--- a/alvr/client_core/src/connection.rs
++++ b/alvr/client_core/src/connection.rs
+@@ -158,8 +158,12 @@
+     *connection_state_lock = ConnectionState::Connecting;
+ 
+     // TODO: Don't fetch cpal sample rate, get directly from AAudio
+-    let microphone_sample_rate =
+-        alvr_audio::input_sample_rate(&alvr_audio::new_input(None).to_con()?).to_con()?;
++    // VROSTBridge: microphone capture requires a local opt-in. A missing microphone
++    // must not prevent video/audio-output-only sessions from connecting.
++    let allow_microphone = std::env::var("VROSTBRIDGE_MICROPHONE").as_deref() == Ok("1");
++    let microphone_sample_rate = if allow_microphone {
++        alvr_audio::input_sample_rate(&alvr_audio::new_input(None).to_con()?).to_con()?
++    } else { 48000 };
+ 
+     dbg_connection!("connection_pipeline: Send stream capabilities");
+     proto_control_socket
+@@ -363,7 +367,7 @@
+         thread::spawn(|| ())
+     };
+ 
+-    let microphone_thread = if matches!(settings.audio.microphone, Switch::Enabled(_)) {
++    let microphone_thread = if allow_microphone && matches!(settings.audio.microphone, Switch::Enabled(_)) {
+         let device = alvr_audio::new_input(None).to_con()?;
+ 
+         let microphone_sender = stream_socket.request_stream(AUDIO);

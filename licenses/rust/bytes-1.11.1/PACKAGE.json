@@ -1,0 +1,36 @@
+{
+  "crate": "bytes",
+  "version": "1.11.1",
+  "license": "MIT",
+  "repository": "https://github.com/tokio-rs/bytes",
+  "authors": [
+    "Carl Lerche <me@carllerche.com>",
+    "Sean McArthur <sean@seanmonstar.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "45f522cacecb1023856e46df79ca625dfc550c94910078bd8aec6e02880b3d42",
+      "bytes": 1055,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
+  },
+  "source_url": "https://crates.io/crates/bytes/1.11.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "417dccdeff249e0c011327de7d92e0d6fbe7cc43"
+    },
+    "path_in_vcs": ""
+  }
+}

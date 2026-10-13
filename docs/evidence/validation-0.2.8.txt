@@ -1,0 +1,8 @@
+0.2.8 release validation
+176 Python cases run: 174 passed, 2 environment-dependent skips.
+Desktop JavaScript checks passed, including microphone status on both roles.
+17 new regression cases cover microphone defaults, route checks, preference propagation, early diagnostic access, cache freshness, and native tray-message/menu dispatch with a Win32 adapter.
+All 12 frozen Bazzite installation/lifecycle groups passed against the final package, including a real 0.2.7 upgrade.
+Final ZIP CRCs and payload hashes passed. Final Windows NSIS CRC and extracted payload hashes passed. All three native Windows binaries are AMD64; launcher icon and subsystem checks passed.
+The native Linux streaming core and ALVR transport remain unchanged.
+Windows Explorer/Core Audio execution, SteamVR/GPU behavior, headset streaming and physical microphone delivery were not performed here.

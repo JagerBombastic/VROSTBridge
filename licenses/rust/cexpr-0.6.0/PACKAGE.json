@@ -1,0 +1,43 @@
+{
+  "crate": "cexpr",
+  "version": "0.6.0",
+  "license": "Apache-2.0/MIT",
+  "repository": "https://github.com/jethrogb/rust-cexpr",
+  "authors": [
+    "Jethro Beekman <jethro@jbeekman.nl>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "d9771b8c6cf4426d3846de54c1febe20907f1eeadf7adfb5ade89a83bd9ea77f",
+      "bytes": 1061,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766",
+    "linux_client": "6fac387a98bb7c37292057cffc56d62ecb629900026402633ae9160df93a8766"
+  },
+  "source_url": "https://crates.io/crates/cexpr/0.6.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c7ccdfbc37b508cfda1171ab4f89afaeb72e82f3"
+    }
+  }
+}

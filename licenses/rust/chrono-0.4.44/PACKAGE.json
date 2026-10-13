@@ -1,0 +1,33 @@
+{
+  "crate": "chrono",
+  "version": "0.4.44",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/chronotope/chrono",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE.txt",
+      "sha256": "946c9835d8034d24404f8cfec5f4654cee5dad17e944afc3d06d742cf2882831",
+      "bytes": 12307,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "c673075a2e0e5f4a1dde27ce9dee1ea4558c7ffe648f576438a20ca1d2acc4b0"
+  },
+  "source_url": "https://crates.io/crates/chrono/0.4.44",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c14b4599d07ef36ffa1f8a531fb0bc7eb3b42464"
+    },
+    "path_in_vcs": ""
+  }
+}

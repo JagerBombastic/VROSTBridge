@@ -1,0 +1,2 @@
+Unable to read VR Path Registry from /root/.config/openvr/openvrpaths.vrpath
+ERROR Installation path could not be located (110)

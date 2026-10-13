@@ -1,0 +1,42 @@
+{
+  "crate": "hmac",
+  "version": "0.12.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/MACs",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "9e0dfd2dd4173a530e238cb6adb37aa78c34c6bc7444e0e10c1ab5d8881f63ba",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
+  },
+  "source_url": "https://crates.io/crates/hmac/0.12.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "46797e3b44973a30edb9d7f3a3ebb41810061d90"
+    },
+    "path_in_vcs": "hmac"
+  }
+}

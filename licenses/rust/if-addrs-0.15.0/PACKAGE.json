@@ -1,0 +1,47 @@
+{
+  "crate": "if-addrs",
+  "version": "0.15.0",
+  "license": "MIT OR BSD-3-Clause",
+  "repository": "https://github.com/messense/if-addrs",
+  "authors": [
+    "MaidSafe Developers <dev@maidsafe.net>",
+    "Messense Lv <messense@icloud.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-BSD",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-BSD",
+      "sha256": "588713c78138d7d6985b87275724f7047949a71a007b16b352d7745499976f7f",
+      "bytes": 1490,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "3990ddb78a5a2cfd64a5ffe5cebc3306f3298f6880c644afdf15043ef7d702d9",
+      "bytes": 1085,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "c0a05c691e1fae256cf7013d99dad472dc52d5543322761f83ec8d47eab40d2b",
+    "linux_client": "c0a05c691e1fae256cf7013d99dad472dc52d5543322761f83ec8d47eab40d2b",
+    "windows_client": "c0a05c691e1fae256cf7013d99dad472dc52d5543322761f83ec8d47eab40d2b"
+  },
+  "source_url": "https://crates.io/crates/if-addrs/0.15.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "3cdbc8b7cfc70a328102bd8b1efdd3408c5d75b2"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "crate": "glyph_brush_layout",
+  "version": "0.2.4",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/alexheretic/glyph-brush",
+  "authors": [
+    "Alex Butler <alexheretic@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9",
+      "bytes": 10173,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "7b1e288bfd2f6c0313f78bf5aa538356ad481a3bb97e9b7f93220ab0066c5992",
+    "windows_client": "7b1e288bfd2f6c0313f78bf5aa538356ad481a3bb97e9b7f93220ab0066c5992"
+  },
+  "source_url": "https://crates.io/crates/glyph_brush_layout/0.2.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "9da30eacb54534248f62743f8e5a171694e529e1"
+    },
+    "path_in_vcs": "layout"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "crate": "rosc",
+  "version": "0.11.4",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/klingtnet/rosc",
+  "authors": [
+    "Andreas Linz <klingt.net@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE_APACHE_20",
+    "LICENSE_MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE_APACHE_20",
+      "sha256": "ccb1f606e19fac0cdc6992f6231d931419d022c0894a2342351085601733074e",
+      "bytes": 11344,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE_MIT",
+      "sha256": "31db17c11a379d91d2b48a52005156cde309739ee7795ba51dc269a894060a38",
+      "bytes": 1069,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "dd37602e1513794e952274082d074e8d31aa7f64d047e3acb746c91db40600a5"
+  },
+  "source_url": "https://crates.io/crates/rosc/0.11.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "711945b5d75b24a544cb80d8aa0e3d6a3f9dd880"
+    },
+    "path_in_vcs": ""
+  }
+}

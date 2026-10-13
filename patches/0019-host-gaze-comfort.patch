@@ -1,0 +1,266 @@
+diff --git a/alvr/server_core/src/vrostbridge_stream.rs b/alvr/server_core/src/vrostbridge_stream.rs
+index 79b8a604..acb46466 100644
+--- a/alvr/server_core/src/vrostbridge_stream.rs
++++ b/alvr/server_core/src/vrostbridge_stream.rs
+@@ -23,6 +23,10 @@
+ //!   last looked for this long before returning it to the fixed centre. Without it the
+ //!   region jumped back to the middle 150 ms into every pause, so the area the user was
+ //!   looking at turned coarse.
++//! - `gaze_comfort` (VROSTBridge 1.0.0.5, patch 0019): the region stays put while the
++//!   gaze stays within this fraction of the region's half-size from its middle, and moves
++//!   (centred on the gaze) once the gaze leaves that zone. 0 moves it with every change
++//!   larger than `gaze_deadband`, as before.
+ 
+ use alvr_common::{info, parking_lot::RwLock};
+ use std::path::Path;
+@@ -44,6 +48,9 @@ pub struct StreamConfig {
+     pub host_prediction: bool,
+     /// After the gaze goes stale, keep the last gaze-driven centre this long (patch 0017).
+     pub gaze_hold_ms: u32,
++    /// Comfort zone, a fraction of the region's half-size, inside which gaze does not move
++    /// the region (patch 0019).
++    pub gaze_comfort: f32,
+ }
+ 
+ impl Default for StreamConfig {
+@@ -57,12 +64,15 @@ impl Default for StreamConfig {
+             optical_centre: false,
+             host_prediction: true,
+             gaze_hold_ms: DEFAULT_GAZE_HOLD_MS,
++            gaze_comfort: DEFAULT_GAZE_COMFORT,
+         }
+     }
+ }
+ 
+ /// Patch 0017: the hold when the companion does not say (older companions).
+ pub const DEFAULT_GAZE_HOLD_MS: u32 = 1000;
++/// Patch 0019: the comfort zone when the companion does not say (older companions).
++pub const DEFAULT_GAZE_COMFORT: f32 = 0.5;
+ 
+ static CONFIG: RwLock<StreamConfig> = RwLock::new(StreamConfig {
+     pacing_mbps: 0,
+@@ -73,6 +83,7 @@ static CONFIG: RwLock<StreamConfig> = RwLock::new(StreamConfig {
+     optical_centre: false,
+     host_prediction: true,
+     gaze_hold_ms: DEFAULT_GAZE_HOLD_MS,
++    gaze_comfort: DEFAULT_GAZE_COMFORT,
+ });
+ 
+ pub fn parse(text: &str) -> StreamConfig {
+@@ -106,6 +117,12 @@ pub fn parse(text: &str) -> StreamConfig {
+     {
+         config.gaze_hold_ms = hold as u32;
+     }
++    if let Some(comfort) = value.get("gaze_comfort").and_then(|v| v.as_f64())
++        && comfort.is_finite()
++        && (0.0..=0.8).contains(&comfort)
++    {
++        config.gaze_comfort = comfort as f32;
++    }
+     config
+ }
+ 
+@@ -120,7 +137,7 @@ pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16) -> StreamC
+     *CONFIG.write() = config;
+     let paced = alvr_sockets::set_stream_pacing(video_stream, config.pacing_mbps);
+     info!(
+-        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={} gaze_hold_ms={} optical_centre={} host_prediction={}",
++        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={} gaze_hold_ms={} gaze_comfort={:.2} optical_centre={} host_prediction={}",
+         config.pacing_mbps,
+         u8::from(paced),
+         u8::from(config.intra_refresh),
+@@ -128,6 +145,7 @@ pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16) -> StreamC
+         config.gaze_deadband,
+         config.gaze_stale_ms,
+         config.gaze_hold_ms,
++        config.gaze_comfort,
+         u8::from(config.optical_centre),
+         u8::from(config.host_prediction)
+     );
+@@ -182,4 +200,16 @@ mod tests {
+         assert_eq!(parse(r#"{"gaze_hold_ms": 60000}"#).gaze_hold_ms, DEFAULT_GAZE_HOLD_MS);
+         assert_eq!(parse(r#"{"gaze_hold_ms": -5}"#).gaze_hold_ms, DEFAULT_GAZE_HOLD_MS);
+     }
++
++    #[test]
++    fn gaze_comfort_defaults_and_bounds() {
++        // Patch 0019: a companion that does not write it gets half the region's half-size.
++        assert_eq!(parse("{}").gaze_comfort, DEFAULT_GAZE_COMFORT);
++        assert_eq!(parse("not json").gaze_comfort, DEFAULT_GAZE_COMFORT);
++        assert_eq!(parse(r#"{"gaze_comfort": 0}"#).gaze_comfort, 0.0);
++        assert!((parse(r#"{"gaze_comfort": 0.35}"#).gaze_comfort - 0.35).abs() < 1e-6);
++        assert_eq!(parse(r#"{"gaze_comfort": 0.95}"#).gaze_comfort, DEFAULT_GAZE_COMFORT);
++        assert_eq!(parse(r#"{"gaze_comfort": -0.1}"#).gaze_comfort, DEFAULT_GAZE_COMFORT);
++        assert_eq!(parse(r#"{"gaze_comfort": "wide"}"#).gaze_comfort, DEFAULT_GAZE_COMFORT);
++    }
+ }
+diff --git a/alvr/server_openvr/src/lib.rs b/alvr/server_openvr/src/lib.rs
+index 28a01c9d..285df390 100644
+--- a/alvr/server_openvr/src/lib.rs
++++ b/alvr/server_openvr/src/lib.rs
+@@ -659,6 +659,7 @@ extern "C" fn vrostbridge_foveation_shifts(
+         },
+         defaults,
+         deadband: config.gaze_deadband,
++        comfort: config.gaze_comfort,
+         stale: Duration::from_millis(u64::from(config.gaze_stale_ms)),
+         hold: Duration::from_millis(u64::from(config.gaze_hold_ms)),
+         now,
+diff --git a/alvr/server_openvr/src/vrostbridge_foveation.rs b/alvr/server_openvr/src/vrostbridge_foveation.rs
+index 080e8f91..546c44c3 100644
+--- a/alvr/server_openvr/src/vrostbridge_foveation.rs
++++ b/alvr/server_openvr/src/vrostbridge_foveation.rs
+@@ -20,7 +20,15 @@
+ //!   could look straight at the coarse area;
+ //! - gaze missing for longer returns to the fixed centre: the negotiated one, or with
+ //!   `optical_centre` each eye's straight-ahead direction (which also serves fixed
+-//!   foveation without any eye tracker, for any headset's view geometry).
++//!   foveation without any eye tracker, for any headset's view geometry);
++//! - the region stays put while the gaze stays in a comfort zone around its middle
++//!   (`comfort`, a fraction of the region's half-size; patch 0019, VROSTBridge 1.0.0.5)
++//!   and moves, centred on the gaze, once the gaze leaves it. Eyes are never still: small
++//!   movements and tracker noise moved the region about twice a second in the 1.0.0.4
++//!   test, and every move was a visible change at the region's border and a cost for the
++//!   encoder, whose picture shifts wherever the border passes. With the zone the region
++//!   moves mostly with real changes of gaze (saccades, during which the eye barely sees),
++//!   and the gaze always keeps a sharp margin of half the region's half-size around it.
+ 
+ use alvr_common::{
+     ViewParams,
+@@ -85,6 +93,14 @@ pub fn region_middle(shift: f32, center_size: f32) -> f32 {
+     0.5 + (1.0 - center_size) / 2.0 * shift
+ }
+ 
++/// How far (in the eye image, 0..1) the gaze may be from the region's middle on one axis
++/// before the region moves: the comfort zone (a fraction of the region's half-size,
++/// patch 0019), and never less than the dead band.
++pub fn movement_threshold(deadband: f32, comfort: f32, center_size: f32) -> f32 {
++    let comfort = if comfort.is_finite() { comfort.clamp(0.0, 0.9) } else { 0.0 };
++    deadband.max(comfort * center_size.clamp(0.0, 1.0) / 2.0)
++}
++
+ /// Shifts for both eyes from a gaze direction, or None if it is outside either view.
+ pub fn gaze_shifts(
+     gaze: Quat,
+@@ -131,6 +147,9 @@ pub struct FrameInput<'a> {
+     pub geometry: FoveationGeometry,
+     pub defaults: [[f32; 2]; 2],
+     pub deadband: f32,
++    /// Comfort zone around the region's middle, as a fraction of the region's half-size,
++    /// inside which gaze does not move the region (patch 0019). 0 leaves only `deadband`.
++    pub comfort: f32,
+     pub stale: Duration,
+     /// After the gaze goes stale, keep the last gaze-driven centre this long (patch 0017).
+     pub hold: Duration,
+@@ -180,7 +199,7 @@ impl DynamicFoveation {
+                     let size = input.geometry.center_size[axis];
+                     (region_middle(target[eye][axis], size) - region_middle(current[eye][axis], size))
+                         .abs()
+-                        > input.deadband
++                        > movement_threshold(input.deadband, input.comfort, size)
+                 })
+             }),
+         };
+@@ -293,6 +312,7 @@ mod tests {
+             geometry: geometry(),
+             defaults,
+             deadband: 0.03,
++            comfort: 0.0,
+             stale: Duration::from_millis(150),
+             hold: Duration::ZERO,
+             now,
+@@ -329,6 +349,7 @@ mod tests {
+             geometry: geometry(),
+             defaults,
+             deadband: 0.03,
++            comfort: 0.0,
+             stale: Duration::from_millis(150),
+             hold: Duration::from_millis(1000),
+             now: Instant::now(),
+@@ -349,6 +370,78 @@ mod tests {
+         assert_eq!(state.update(&input), defaults);
+     }
+ 
++    #[test]
++    fn the_comfort_zone_is_half_the_regions_half_size_and_never_below_the_dead_band() {
++        // Patch 0019: a 0.40 region (half-size 0.20) keeps still for gaze within 0.10.
++        assert!((movement_threshold(0.025, 0.5, 0.40) - 0.10).abs() < 1e-6);
++        assert!((movement_threshold(0.025, 0.5, 0.30) - 0.075).abs() < 1e-6);
++        assert_eq!(movement_threshold(0.025, 0.0, 0.40), 0.025);
++        assert_eq!(movement_threshold(0.025, 0.05, 0.40), 0.025);
++        // Out-of-range values cannot freeze the region or make it jitter.
++        assert!((movement_threshold(0.025, 5.0, 0.40) - 0.18).abs() < 1e-6);
++        assert_eq!(movement_threshold(0.025, f32::NAN, 0.40), 0.025);
++        assert_eq!(movement_threshold(0.025, -1.0, 0.40), 0.025);
++    }
++
++    #[test]
++    fn gaze_wandering_inside_the_zone_keeps_the_region_and_leaving_it_recentres() {
++        // Patch 0019. Views about 95 degrees wide: 0.10 of the image is about 10 degrees.
++        let views = [view(0.0), view(0.0)];
++        let defaults = [[0.0, 0.0], [0.0, 0.0]];
++        let start = Instant::now();
++        let mut state = DynamicFoveation::default();
++        let mut input = FrameInput {
++            gaze: Some((Quat::IDENTITY, start)),
++            views: &views,
++            geometry: geometry(),
++            defaults,
++            deadband: 0.025,
++            comfort: 0.5,
++            stale: Duration::from_millis(150),
++            hold: Duration::from_millis(1000),
++            now: start,
++            optical_centre: false,
++        };
++        let first = state.update(&input);
++        assert_eq!(state.moves, 1);
++        // Fixational movements and tracker noise of up to about 6 degrees, 75 frames a second
++        // for two seconds: before the zone (0.025 dead band) most of these moved the region.
++        let mut old = DynamicFoveation::default();
++        let mut old_input = FrameInput { comfort: 0.0, ..input };
++        old.update(&old_input);
++        for frame in 1..150u32 {
++            let t = frame as f32 * 0.37;
++            let yaw = 6.0 * t.sin();
++            let pitch = 4.0 * (1.7 * t).cos();
++            let gaze = Quat::from_rotation_y(yaw.to_radians()) * Quat::from_rotation_x(pitch.to_radians());
++            let now = start + Duration::from_millis(u64::from(frame) * 13);
++            input.gaze = Some((gaze, now));
++            input.now = now;
++            old_input.gaze = input.gaze;
++            old_input.now = now;
++            assert_eq!(state.update(&input), first, "frame {frame}");
++            old.update(&old_input);
++        }
++        assert_eq!(state.moves, 1);
++        assert!(old.moves > 40, "the dead band alone moved {} times", old.moves);
++        // A real change of gaze (a 20 degree saccade) moves the region, centred on the gaze.
++        let looked = Quat::from_rotation_y((-20f32).to_radians());
++        input.gaze = Some((looked, input.now));
++        let moved = state.update(&input);
++        assert_eq!(state.moves, 2);
++        assert_eq!(moved, gaze_shifts(looked, &views, &geometry()).unwrap());
++        // ...and small movements around the new point keep it there.
++        input.gaze = Some((Quat::from_rotation_y((-24f32).to_radians()), input.now));
++        assert_eq!(state.update(&input), moved);
++        // The sharp margin around the gaze never falls below half the region's half-size:
++        // every frame's gaze is within the zone of the region shown for it.
++        let size = geometry().center_size[0];
++        let zone = movement_threshold(0.025, 0.5, size);
++        let [u, _] = eye_image_position(Quat::from_rotation_y((-24f32).to_radians()), &views[0]).unwrap();
++        assert!((u - region_middle(moved[0][0], size)).abs() <= zone);
++        assert!(size / 2.0 - zone >= size / 4.0 - 1e-6);
++    }
++
+     #[test]
+     fn a_pause_in_the_gaze_holds_the_region_then_returns_it() {
+         // Patch 0017: a blink or an eye-tracker pause keeps the region where the user looked.
+@@ -363,6 +456,7 @@ mod tests {
+             geometry: geometry(),
+             defaults,
+             deadband: 0.025,
++            comfort: 0.0,
+             stale: Duration::from_millis(150),
+             hold: Duration::from_millis(1000),
+             now: start,

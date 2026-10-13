@@ -1,0 +1,42 @@
+{
+  "crate": "httpdate",
+  "version": "1.0.3",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/pyfisch/httpdate",
+  "authors": [
+    "Pyfisch <pyfisch@posteo.org>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "4d10fe5f3aa176b05b229a248866bad70b834c173f1252a814ff4748d8a13837",
+      "bytes": 10255,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "934887691e05d69d7c86ad3f2c360980fa30c15b035e351f3c9865e99da4debc",
+      "bytes": 1051,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
+  },
+  "source_url": "https://crates.io/crates/httpdate/1.0.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "638da761065df8b67282b0a1d139c0a7e4a02429"
+    },
+    "path_in_vcs": ""
+  }
+}

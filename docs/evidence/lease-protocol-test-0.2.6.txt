@@ -1,0 +1,4 @@
+LEASE_GRANTED connector=123
+LEASE_RELEASED (SteamVR must exit before another session)
+LEASE_RELEASED (SteamVR must exit before another session)
+Wayland lease roundtrip, FD transfer, release lifetime and single-grant checks passed

@@ -1,0 +1,35 @@
+{
+  "crate": "target-lexicon",
+  "version": "0.13.5",
+  "license": "Apache-2.0 WITH LLVM-exception",
+  "repository": "https://github.com/bytecodealliance/target-lexicon",
+  "authors": [
+    "Dan Gohman <sunfish@mozilla.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "268872b9816f90fd8e85db5a28d33f8150ebb8dd016653fb39ef1f94f2686bc5",
+      "bytes": 12243,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "adb6935a6f5c20170eeceb1a3835a49e12e19d792f6dd344ccc76a985ca5a6ca"
+  },
+  "source_url": "https://crates.io/crates/target-lexicon/0.13.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "6647bd7d681d3e218c88568d8285dfd8cae2dd97"
+    },
+    "path_in_vcs": ""
+  }
+}

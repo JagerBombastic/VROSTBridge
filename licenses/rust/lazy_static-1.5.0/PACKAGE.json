@@ -1,0 +1,46 @@
+{
+  "crate": "lazy_static",
+  "version": "1.5.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang-nursery/lazy-static.rs",
+  "authors": [
+    "Marvin L\u00f6bel <loebel.marvin@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0621878e61f0d0fda054bcbe02df75192c28bde1ecc8289cbd86aeba2dd72720",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe",
+    "linux_client": "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe",
+    "windows_client": "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+  },
+  "source_url": "https://crates.io/crates/lazy_static/1.5.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "be7c1c43f264699f956b70ce8e29941bd1e61bde"
+    },
+    "path_in_vcs": ""
+  }
+}

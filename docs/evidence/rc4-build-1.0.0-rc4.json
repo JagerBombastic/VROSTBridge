@@ -1,0 +1,197 @@
+{
+ "version": "1.0.0-rc4",
+ "date": "2026-10-03",
+ "compatible_hosts": [
+  "1.0.0-rc1",
+  "1.0.0-rc2",
+  "1.0.0-rc3",
+  "1.0.0-rc4"
+ ],
+ "physical_validation": false,
+ "scope": [
+  "Foveated encoding: client inverse in the conversion shader with per-frame centres; presets subtle/balanced/eye-tracked; Auto = subtle (Index, Beyond) or eye-tracked (Beyond with gaze)",
+  "Patch 0010: host gaze-driven foveation (Beyond 2e gaze -> per-eye centre, ALVR grid snap, 2.5 % dead band, 150 ms stale fallback)",
+  "Patch 0012: optical-centre fixed foveation from each eye's FOV and pose",
+  "10-bit HEVC/AV1 (P010 decode), AV1 codec choice, signalled chroma siting, 8-bit output dither",
+  "Network test (frame-sized UDP bursts, host->client, between sessions) and automatic bitrate (0.7 wired / 0.6 Wi-Fi of the clean rate)",
+  "Patch 0009: host stream options file and video pacing to the client link rate",
+  "Patch 0008 + 0011: client stream statistics and loss policy; NVENC/AMF intra refresh with host confirmation before gradual recovery",
+  "In-headset status panel and optional quality line (font8x8)",
+  "Host: keep-awake during sessions, sleep after a session, Wake-on-LAN readiness, optional Wi-Fi QoS policy, quick resume (parked SteamVR)",
+  "Client: Wake-on-LAN of the host, keep-awake and performance power profile, headset audio routing, SteamVR async reprojection check/repair, permanent Wi-Fi power-save fix, Wi-Fi radio diagnostics",
+  "Per-headset-family settings",
+  "Host driver rebuilt from patches 0001-0012 without ALVR's gpl feature; Windows FFmpeg runtime removed"
+ ],
+ "deferred": {
+  "Wi-Fi BSSID lock": "NetworkManager refuses to change it on a running connection; a permanent lock would stop roaming",
+  "client SteamVR keep-warm": "local SteamVR settings are restored on every Stop; quick resume keeps the slower host half",
+  "wake progress in the headset": "the native client starts after the host answers; progress shows on the client page and Game Mode",
+  "host OpenXR gaze / foveated rendering in games": "not supplied by the streaming path"
+ },
+ "host_driver": {
+  "file": "dist/host/bin/win64/driver_alvr_server.dll",
+  "sha256": "c9fef38fe7e9ccf8cb56e1c11c29a2c09348d9525be6d6019b0517d838106391",
+  "bytes": 16815616,
+  "build_manifest_sha256": "9c9e41d4946f3de73860abc8d281f77682065c058ad4b1a70e499c1c4e503fad",
+  "alvr_commit": "f5023f8e78fa14ea57fb1038548d7820289a8524",
+  "api_version": "21.0.0-dev14",
+  "compiler": "clang version 19.1.1 (/home/runner/work/llvm-project/llvm-project/clang d401987fe349a87c53fe25829215b080b70c0c1a); rustc 1.97.1 (8bab26f4f 2026-07-14); Windows MSVC cross-build",
+  "source_patch_sha256": {
+   "0001-local-microphone-consent.patch": "9377a0d5658bfe67355496ad9fc65a492fc8b1a98a0b64eb8dd40e92ebb7ee7b",
+   "0002-transport-network-resilience.patch": "a4bcacb11156f597d4cb21a02ca464df8dacb46582816f64aae2bf611b0cb68b",
+   "0003-native-controller-fidelity.patch": "a7f44ad8ff13db4fecac6af1e1a45d58b8b89b136b1167ece7b14db6b616f3ef",
+   "0004-host-capture-amf.patch": "7ef93be05c90c8a7fcaf91f1d3cbdc79aa78592a334424cdf0ec84a2cec4034a",
+   "0005-native-protocol-and-build.patch": "6534962e2d7eb8ed5930601abbeeea8f165237ef67b793bad8e7b91b9559816d",
+   "0006-host-chaperone-idempotence.patch": "c71716c33433d2ca685f3f47f4bf8bf7562d3efabfe3c30b011f99223dc555b3",
+   "0007-host-frame-timing-lock.patch": "9358bbff57fffd2cb6054e6f29258d9cc695dc962bcdb47fbc908c4441d627c6",
+   "0008-client-stream-statistics.patch": "bffd383b2f5624e7c835f51ee268d70cda4db59e9d7eaef2d89a81b908e292c6",
+   "0009-host-stream-config-and-pacing.patch": "d2457808a09aacbf92652aa0fce83eaf96fe16a0037d5fedb5f53803693886b0",
+   "0010-host-gaze-foveated-encoding.patch": "7ebf1effd68f3acb01f8df2bf27b7878852ec33f84ffe6d6e0d091c84bdf44e0",
+   "0011-host-amf-intra-refresh.patch": "c64bfd3e3b99e8fef550fc78eeb0315772c10ab4456165352fb8f65e74b75bdd",
+   "0012-host-foveation-optical-centre.patch": "49855f398d45d457ac80714e76b91a6decc3b4685c7147db03615d67299d1970"
+  },
+  "gpl_feature": false,
+  "imports": [
+   "advapi32",
+   "api-ms-win-core-synch-l1-2-0",
+   "bcrypt",
+   "bcryptprimitives",
+   "combase",
+   "d3d11",
+   "dbghelp",
+   "dxgi",
+   "iphlpapi",
+   "kernel32",
+   "ntdll",
+   "ole32",
+   "oleaut32",
+   "openvr_api",
+   "pdh",
+   "powrprof",
+   "propsys",
+   "psapi",
+   "rpcrt4",
+   "shell32",
+   "user32",
+   "winmm",
+   "ws2_32"
+  ],
+  "ffmpeg_removed": [
+   "avcodec-62.dll",
+   "avdevice-62.dll",
+   "avfilter-11.dll",
+   "avformat-62.dll",
+   "avutil-60.dll",
+   "swresample-6.dll",
+   "swscale-9.dll",
+   "licenses/FFmpeg.txt"
+  ],
+  "command": "scripts/Build-Host-Cross.py --alvr <ALVR f5023f8e + 0001-0012> (Rust 1.97.1, Clang/LLD 19.1.1, MSVC CRT 14.44, Windows SDK 10.0.26100, static libvpl 2.15.0)"
+ },
+ "native_rebuilt_sha256": {
+  "VROSTBridgeClient": "74b67410a24203b427bf8ce219cb743ce06aadde80e2344dbb8ad42f06a30bcd",
+  "VROSTBridgeRuntimeProbe": "efd72b4f7289926769a05482ed1b5443e4c6b2d4f55c26c8a0fc0e1aaa258845",
+  "VROSTBridgeLease": "1f74a29b3b352f4622b0cc52c9c11a599e30b9a29ceecabe88a0d8f024ef8a74",
+  "libvrostbridge_transport.so": "64b7223e1ead0659375e959a9bd3252d94f920ce4cd73d8979a87ad405a6c051",
+  "assets/convert.spv": "cf88f83ad9a0d834241ea186ad1ab70a894bc53cbabd62e73ecb45c4a0d055ee",
+  "lib/libavcodec.so.60": "6c2c40f2dec6fa88bc8da566daee8d6f6b96a50e94b79b28fc801a4e70b517da",
+  "lib/libavutil.so.58": "ec3845244d61e0baafa0393178022982c75828a8b5cf788aa227e9fa70716f2e",
+  "lib/libswscale.so.7": "e29ea71d7bb7433a76b99dd922c46a75a85cdb47bc45113f37861aeea256bd33"
+ },
+ "native_reused_sha256": {
+  "libopenvr_api.so": "cb68c5788b0ddab32c0402e58820956a489ef6cb99ecf2e1fa997533ead54475",
+  "lib/libSDL2-2.0.so.0": "2507acbbe40afe7d3e2e775dd8af00a1dba93579b9e837563032f3d751a9a45b",
+  "lib/libwayland-server.so.0": "d6cc42aff7539831152735f58958fd3d854c77881b053c771fbe7a819df5392f",
+  "tools/go-bsb-cams": "42288d4d851c1a1b0d1ae496e9823cf72bb3c7ed7d56eeb13f33038dea8702ce"
+ },
+ "native_symbol_ceiling": "GLIBC_2.38, GLIBCXX_3.4.32 (unchanged since RC1.3)",
+ "client_ffmpeg": {
+  "version": "n6.1.4 (LGPL 2.1+, shared)",
+  "decoders": [
+   "h264",
+   "hevc",
+   "av1"
+  ],
+  "vaapi_hw_configs": "h264, hevc and av1 decoders each report a VA-API hardware configuration",
+  "configure_changes": [
+   "av1 decoder, parser and VA-API hwaccel",
+   "--disable-xlib (no libva-x11/libX11 dependency)"
+  ],
+  "needed": {
+   "libavcodec.so.60": [
+    "libavutil.so.58",
+    "libva.so.2",
+    "libc.so.6"
+   ],
+   "libavutil.so.58": [
+    "libva-drm.so.2",
+    "libva.so.2",
+    "libm.so.6",
+    "libdrm.so.2",
+    "libc.so.6"
+   ]
+  }
+ },
+ "source_sha256": {
+  "client/platform/linux/main.cpp": "a604887d0f34e8d936c7f5993f15b4446edfb33988076a3353a0f442ab7aae1f",
+  "client/platform/linux/vulkan.cpp": "2c0812f12867b3bc6ac592880c040007cf9b9e48c2a4ecb34f347bd4b3df0ca7",
+  "client/platform/linux/convert.comp": "a4c9d9447a786fec122053ee4416305d1c2db3289bca16b5d115283b2fc3388e",
+  "client/platform/linux/decoder.cpp": "7725d2b349333d8b7824901562b4d661ce4d60cb0c59d0b970bf65968f213b5a",
+  "client/platform/linux/video.hpp": "ead828bb8a4d6743961603d79c73284cf0e6f76ab4578392e816dd62bd23c69a",
+  "client/platform/linux/status_overlay.hpp": "f5b7f639a1df0e00f459fbfcc3337268bb406e5037250da68783216e73c972bc",
+  "client/device/conversion.hpp": "bc967ed9dabfd46b722a035ee4166537ed526fa69b0f3403798768f9525a83f8",
+  "client/device/status_text.hpp": "e565d81e903d05ff0dcf28eb42f913301045ca9873bfafc1fc6c520b00a22862",
+  "client/device/openvr_device.cpp": "b4453aeceb2c263be7ec1f77ed47f0c50a04b769924bb73bac545d3b9a71cf78",
+  "client/transport/lib.rs": "5ad9b22b4dc8e625540c122bbe6f561d5896515cfdab38f6359662e97421d4c8",
+  "client/transport/bridge.h": "6d0eb2829c371f235be44a5a0f4a809ff2c83bb25e6be6ed43ad68d5ce20e439",
+  "launcher/app.py": "c6d68a45069f183905283b17a5f83f426aaa340cb17b769fd74331d995af30a7",
+  "launcher/session_link.py": "abd2b57e14cb834eb7075c3306596d28cb3883d2703319cf7aa5b47cec6e42cf",
+  "launcher/headset.py": "6cd4194a0676909a0b122e348d29e7af36d760af95f1ce383c8a28c6271ea6a9",
+  "launcher/desktop.html": "33fef51f391684c2b779eea7d6ab7865c32c1bf3399c45b9944fd15c6bfad2fa",
+  "launcher/game_ui.py": "e07429ec6ffd8989411251e9adb5890d53141f5385a299ee3f0c593a3a951294",
+  "launcher/network_test.py": "55bdcb64cb019c49776f67b3f0eda9430c4c51b2f9cc7869d3a40afde5990678",
+  "launcher/link_test.py": "762c30a41fd33b059e1ae5c1c06135a707afedb18f5d91150a44da1c123e50d3",
+  "launcher/wake_host.py": "4739d25df217938492d907f86da8aa9e365e22cc1cac985be711ac1c36bcb56c",
+  "launcher/session_power.py": "9cfeb97bcf7d511e7c2fa604cedcd33298cd1028088f3e96b361f1ea376c1617",
+  "launcher/steamvr_async.py": "2c2c96a3fbb4fab6d2a42f369fd841c7cdc777fa7b9202d88795c84ad152c35c",
+  "launcher/headset_audio.py": "e759e619371d31009c09c67b9cb80f5cf1480ef0e5bdc607b8ef94c03e722102",
+  "launcher/wifi_diagnostics.py": "48fce828e76b5f64bdd3462548566de8eab2413eb8b23e7bf2c81da44df99c18",
+  "launcher/wifi_session.py": "a126cc1544cf8771f3cfafb0c4fbd4c1aaa07cff42b204bf306a71354c025984",
+  "host/stream_options.py": "a8bedc6e551665a993a4b0d0e03f05964a5ed15c281b1c7626377d118fb28375",
+  "host/profile.py": "56610643950cb80b8b46efac58a5f766891ff5e2adf87784b36b7446d869a7cc",
+  "host/events.py": "1e53672cf133f3b4b4e63d3fa9ac445ecc21da9c9cf577cbf3bc7cfc98da22d6",
+  "host/power.py": "f917752c38edd10037ae8eab51750350fac9def7276a678ceb6d73adf216765b",
+  "host/qos.py": "d7018ee37bbf1f45a1b75341ac747ec80fbde94deb368e0d032c7e41f1b5fc43",
+  "packaging/repack_host_payload.py": "990feef4c0df2bdee8d41e78c4147006a6329069e9c5a2f61c33b305d5754833",
+  "scripts/Build-FFmpeg-Linux.sh": "769956af8d8c26c113b5a4017ce5a71787994f88b3043180598d8ff06f78174b",
+  "tests/convert_shader_tests.cpp": "12e9e61429babdbba0759bc44c6d7c1ccc88e625eef545e26a8a2c8e273bc517",
+  "tests/status_text_tests.cpp": "20df3f007d4b04857b5f74d478f2b6581b16ddebc90b3d607f2ce20ca2ec841f",
+  "tests/test_rc4_integration.py": "d69658f5aab3a3a73c0f70fa61b08a303995c02100e32c5c4976ec25f1f22814",
+  "tests/test_rc4_client_system.py": "e407e52242eceeb26491e03e834c674f8fc4e2157352adea34da605bb908a2e4",
+  "tests/test_rc4_host_power.py": "5bcff60c3fb17f897bb599fc5d193e20a9910d825c0c194d9220131938cc264e",
+  "tests/test_rc4_network.py": "f7f3d099a34d997f41f13d485de8a0031bbed0b9d61c53b24fd73fc4fb6d888c"
+ },
+ "tests": {
+  "native": "13/13 CTest suites: core, lease_protocol, conversion_shader (lavapipe), stream, video_handshake, presentation, live_geometry, input, skeletal, runtime_settings, native_host_hand, chaperone_geometry, status_text",
+  "conversion_shader": "GPU (lavapipe) against a CPU reference: 8-bit and 10-bit, left/centre/top-left chroma siting, dither, foveated round trip through ALVR host compression; limited/full range constants and inverse algebra checked separately; 8-bit tolerance reflects lavapipe 8.8 fixed-point filtering",
+  "python": "512 tests pass (full discover), including test_rc4_integration (37), test_rc4_client_system (56), test_rc4_host_power (37), test_rc4_network (56)",
+  "desktop_ui": "pass (RC4 controls, wake hint, foveation and loss notes)",
+  "transport_smoke": "pass, including RC4 ABI: create2 capabilities, foveation state, stream counters, loss policy, frame centres",
+  "host_foveation_module": "vrostbridge_foveation.rs compiled standalone: 6/6 pass (straight ahead maps to the projection centre, looking right moves right and up moves up, eye rotation respected, optical centre per eye, aligned/clamped shifts, dead band and stale-gaze fallback)",
+  "alvr_crates": "28/28 pass on the final patched tree (0001-0012), cargo test --lib: alvr_sockets 10, alvr_client_core 4, alvr_server_core 14 (vrostbridge_stream, vrostbridge_vsync, native_hands)"
+ },
+ "package_checks": [
+  "frozen companion self-test and payload SHA256SUMS verified",
+  "managed RC4 install over a simulated RC3 install keeps codec, bitrate, stream size, encoder, late-frame, prediction, timing lock, microphone and host address; RC4 defaults added",
+  "same-version repair",
+  "packaged companion reports 1.0.0-rc4, serves the RC4 controls, report and quit",
+  "host payload: verified previous payload + rebuilt driver overlay; FFmpeg removed after import check; setup EXE built with NSIS 3.09 and its extracted payload re-verified"
+ ],
+ "remaining_validation": [
+  "All RC4 behaviour on hardware (see RELEASE_1.0.0-rc4.md, How to test)",
+  "Foveation image quality on Index and Beyond 2e; gaze-following latency with calibrated eye tracking",
+  "NVENC/AMF intra refresh acceptance per GPU; AV1 on supported GPUs",
+  "Wake-on-LAN and sleep-after-session on the real host; quick resume",
+  "Earlier physical gates: Beyond projection result, Game Mode, timing lock"
+ ]
+}

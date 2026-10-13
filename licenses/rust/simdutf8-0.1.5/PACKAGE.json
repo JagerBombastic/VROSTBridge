@@ -1,0 +1,46 @@
+{
+  "crate": "simdutf8",
+  "version": "0.1.5",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rusticstuff/simdutf8",
+  "authors": [
+    "Hans Kratz <hans@appfour.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-Apache",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-Apache",
+      "sha256": "0cec06e0e55fbc3dc5cee4fca9b607f66cb8f4e4dbcf3b3c013594dd156732e9",
+      "bytes": 10173,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "1847e0e0698142ed4347c1441a9fa81c8fbddd44b1d8bbcd5e3647f991759d7f",
+      "bytes": 1035,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e",
+    "linux_client": "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e",
+    "windows_client": "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
+  },
+  "source_url": "https://crates.io/crates/simdutf8/0.1.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "87ee8d9d20b849eae1974a82b248ee6fe7491bcc"
+    },
+    "path_in_vcs": ""
+  }
+}

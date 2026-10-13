@@ -1,0 +1,42 @@
+{
+  "crate": "local-ip-address",
+  "version": "0.6.11",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/LeoBorai/local-ip-address",
+  "authors": [
+    "Leo Borai <estebanborai@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "b181eef0db675818306068b726419377e39377ede46b8939df9808a28b1dcd41",
+      "bytes": 11356,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "4a183ecc62532a975ece5067b64200c75dfcc0953c0034103b008cda54902fe7",
+      "bytes": 1070,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "d4a59a0cb1c7f84471ad5cd38d768c2a29390d17f1ff2827cdf49bc53e8ac70b"
+  },
+  "source_url": "https://crates.io/crates/local-ip-address/0.6.11",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "bfd22a7b819ac3700113229235d13421e71eb65e"
+    },
+    "path_in_vcs": ""
+  }
+}

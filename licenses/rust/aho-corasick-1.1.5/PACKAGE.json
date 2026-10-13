@@ -1,0 +1,44 @@
+{
+  "crate": "aho-corasick",
+  "version": "1.1.5",
+  "license": "Unlicense OR MIT",
+  "repository": "https://github.com/BurntSushi/aho-corasick",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "bytes": 126,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba",
+    "windows_client": "c982642fa9e8606056828ee9a8505737230110bb1099153c79efe865c59d12ba"
+  },
+  "source_url": "https://crates.io/crates/aho-corasick/1.1.5",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5178060ce73d91938f8582d0360e3be031380440"
+    },
+    "path_in_vcs": ""
+  }
+}

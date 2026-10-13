@@ -1,0 +1,43 @@
+{
+  "crate": "regex",
+  "version": "1.12.3",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/regex",
+  "authors": [
+    "The Rust Project Developers",
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e10754a14b9137dd7b1e3e5b0493cc9171fdd105e0ab477f51b72e7f3ac0e276"
+  },
+  "source_url": "https://crates.io/crates/regex/1.12.3",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "b028e4f40eac8959d05e82abf8404906b1c565c0"
+    },
+    "path_in_vcs": ""
+  }
+}

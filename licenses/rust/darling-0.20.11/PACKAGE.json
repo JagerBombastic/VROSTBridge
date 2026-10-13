@@ -1,0 +1,39 @@
+{
+  "crate": "darling",
+  "version": "0.20.11",
+  "license": "MIT",
+  "repository": "https://github.com/TedDriggs/darling",
+  "authors": [
+    "Ted Driggs <ted.driggs@outlook.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "8ea93490d74a5a1b1af3ff71d786271b3f1e5f0bea79ac16e02ec533cef040d6",
+      "bytes": 1067,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "fc7f46116c46ff9ab3eb1597a45688b6715c6e628b5c133e288e709a29bcb4ee",
+    "linux_client": "fc7f46116c46ff9ab3eb1597a45688b6715c6e628b5c133e288e709a29bcb4ee",
+    "windows_client": "fc7f46116c46ff9ab3eb1597a45688b6715c6e628b5c133e288e709a29bcb4ee"
+  },
+  "source_url": "https://crates.io/crates/darling/0.20.11",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "82a51e0b65b158de02ffb5d753ea4cd03529743b"
+    },
+    "path_in_vcs": ""
+  }
+}

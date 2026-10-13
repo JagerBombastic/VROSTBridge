@@ -1,0 +1,43 @@
+{
+  "crate": "winapi",
+  "version": "0.3.9",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/retep998/winapi-rs",
+  "authors": [
+    "Peter Atashian <retep998@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+      "bytes": 11357,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "ce7bc3499fee93d5022ef430d5e4201e79a6d9154f3974e42f41349f0569e09b",
+      "bytes": 1073,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419",
+    "windows_client": "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419"
+  },
+  "source_url": "https://crates.io/crates/winapi/0.3.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "796a8e6c2971dc2ff1bcff166e6671284f9b5b6b"
+    }
+  }
+}

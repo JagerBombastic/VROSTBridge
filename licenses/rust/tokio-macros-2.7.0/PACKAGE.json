@@ -1,0 +1,35 @@
+{
+  "crate": "tokio-macros",
+  "version": "2.7.0",
+  "license": "MIT",
+  "repository": "https://github.com/tokio-rs/tokio",
+  "authors": [
+    "Tokio Contributors <team@tokio.rs>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "0b83dc40cba89b9922bb84b0a9c7d2768ce37c1d7e138b7424fd4549915778c9",
+      "bytes": 1102,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "385a6cb71ab9ab790c5fe8d67f1645e6c450a7ce006a33de03daa956cf70a496"
+  },
+  "source_url": "https://crates.io/crates/tokio-macros/2.7.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "01a7f1dfabc93293743701074752ff0d8e787595"
+    },
+    "path_in_vcs": "tokio-macros"
+  }
+}

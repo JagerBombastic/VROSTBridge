@@ -1,0 +1,14 @@
+{
+  "method": "Production MakeEncoder compiled against strict codec property test doubles using real AMF SDK constants; no GPU execution.",
+  "before": {
+    "returncode": 1,
+    "output": "Initialization rejected codec=0: AMF rejected property: amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_QUERY_TIMEOUT, m_queryWaitBudgetMs)\nInitialization rejected codec=0: AMF rejected property: amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_QUERY_TIMEOUT, m_queryWaitBudgetMs)\nInitialization rejected codec=0: AMF rejected property: amfEncoder->SetProperty(AMF_VIDEO_ENCODER_AV1_QUERY_TIMEOUT, m_queryWaitBudgetMs)\nAMF actual MakeEncoder: cases=288 failures=192"
+  },
+  "after": {
+    "returncode": 0,
+    "output": "AMF actual MakeEncoder: cases=288 failures=0"
+  },
+  "source_sha256": "18d8d578930b0446f2338556f7ceb36128d078a04be3eae5aa91962bee37a51d",
+  "patch_sha256": "7ef93be05c90c8a7fcaf91f1d3cbdc79aa78592a334424cdf0ec84a2cec4034a",
+  "scope": "288 codec/capability/HDR/rate/preset/preanalysis/VBAQ combinations. Baseline H264/HEVC reject AV1 or HEVC timeout property; fixed all pass with only own codec properties, one Init and timeout budget 11ms where supported. No physical Windows AMD runtime execution."
+}

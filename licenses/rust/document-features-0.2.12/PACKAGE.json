@@ -1,0 +1,44 @@
+{
+  "crate": "document-features",
+  "version": "0.2.12",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/slint-ui/document-features",
+  "authors": [
+    "Slint Developers <info@slint.dev>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "074e6e32c86a4c0ef8b3ed25b721ca23aca83df277cd88106ef7177c354615ff",
+      "bytes": 10280,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "aa893340d14b9844625be6a50ac644169a01b52f0211cbf81b09e1874c8cd81d",
+      "bytes": 1082,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "d4b8a88685455ed29a21542a33abd9cb6510b6b129abadabdcef0f4c55bc8f61",
+    "windows_client": "d4b8a88685455ed29a21542a33abd9cb6510b6b129abadabdcef0f4c55bc8f61"
+  },
+  "source_url": "https://crates.io/crates/document-features/0.2.12",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "721e708012254b81760bd2befdae0970e7a2615e"
+    },
+    "path_in_vcs": ""
+  }
+}

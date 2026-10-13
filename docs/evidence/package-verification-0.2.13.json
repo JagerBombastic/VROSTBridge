@@ -1,0 +1,68 @@
+{
+  "version": "0.2.13",
+  "checks": {
+    "VROSTBridge-Host-Portable-0.2.13.zip": {
+      "sha256": "fd7e7c603c99be7134e302db07edbfb75707a3bb805dd2b7e0d201fcab03dcd8",
+      "bytes": 134990028,
+      "verified_files": 696,
+      "crc": "pass"
+    },
+    "VROSTBridge-Bazzite-Installer-0.2.13.zip": {
+      "sha256": "85bfa0b417d142902fed88891da5330d8cab00b6d5f8589dc8ac8c0eb1912bd8",
+      "bytes": 41050925,
+      "verified_files": 702,
+      "crc": "pass"
+    },
+    "VROSTBridge Host.exe": {
+      "machine": "AMD64",
+      "subsystem": 2,
+      "imports": [
+        "KERNEL32.dll",
+        "USER32.dll",
+        "SHELL32.dll"
+      ],
+      "sha256": "3c8812cf1b1f67bcd8e27c107632bd85441d9365bb8a7068e18ea592ae318385"
+    },
+    "host/VROSTBridgeVRHelper.exe": {
+      "machine": "AMD64",
+      "subsystem": 3,
+      "imports": [
+        "api-ms-win-crt-convert-l1-1-0.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-math-l1-1-0.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll"
+      ],
+      "sha256": "851564ab423018a44f4858324cfcdf64944d2f1562b2ccef910b1c1e08720b27"
+    },
+    "host/VROSTBridgeAudioProbe.exe": {
+      "machine": "AMD64",
+      "subsystem": 3,
+      "imports": [
+        "ole32.dll",
+        "api-ms-win-crt-heap-l1-1-0.dll",
+        "api-ms-win-crt-private-l1-1-0.dll",
+        "api-ms-win-crt-runtime-l1-1-0.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll",
+        "api-ms-win-crt-string-l1-1-0.dll",
+        "KERNEL32.dll",
+        "api-ms-win-crt-environment-l1-1-0.dll",
+        "api-ms-win-crt-math-l1-1-0.dll"
+      ],
+      "sha256": "0b531e82b0416ed480f969a0841a71c032210b8e56bff83dab951f0b44ba10fa"
+    },
+    "VROSTBridge-Host-Setup-0.2.13.exe": {
+      "sha256": "20b3034c66a40eaff849695bf554ad5a52d9636c68939ca8b7070a3308c9cef1",
+      "bytes": 133109263,
+      "nsis_crc": "0xdbab7aa6",
+      "verified_extracted_files": 696
+    }
+  },
+  "limits": [
+    "Windows execution and physical VR not tested"
+  ]
+}

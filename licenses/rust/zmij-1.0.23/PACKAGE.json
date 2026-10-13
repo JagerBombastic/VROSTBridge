@@ -1,0 +1,37 @@
+{
+  "crate": "zmij",
+  "version": "1.0.23",
+  "license": "MIT",
+  "repository": "https://github.com/dtolnay/zmij",
+  "authors": [
+    "David Tolnay <dtolnay@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b",
+    "windows_client": "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"
+  },
+  "source_url": "https://crates.io/crates/zmij/1.0.23",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7b7cc48b58028e8af7be87e94c0c1c8936f1a57c"
+    },
+    "path_in_vcs": ""
+  }
+}

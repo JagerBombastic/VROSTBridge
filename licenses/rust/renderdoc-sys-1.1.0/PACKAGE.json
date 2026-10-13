@@ -1,0 +1,44 @@
+{
+  "crate": "renderdoc-sys",
+  "version": "1.1.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/ebkalderon/renderdoc-rs",
+  "authors": [
+    "Eyal Kalderon <ebkalderon@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "24b2f2eff5a7622e87162823e260f00c6dfbce0e26d585d3d28c785f1edc80ed",
+      "bytes": 1057,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832",
+    "windows_client": "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
+  },
+  "source_url": "https://crates.io/crates/renderdoc-sys/1.1.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "0276afc3686dd3ee9475798ed8ab89026d74143d"
+    },
+    "path_in_vcs": "renderdoc-sys"
+  }
+}

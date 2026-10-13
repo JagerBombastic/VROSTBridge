@@ -1,0 +1,8 @@
+..........................s...s........................................................................................................................
+----------------------------------------------------------------------
+Ran 151 tests in 34.085s
+
+OK (skipped=2)
+VROSTBridge Client removed. Settings, client identity and logs were retained.
+VROSTBridge Client removed. Settings, client identity and logs were retained.
+VROSTBridge Client removed. Settings, client identity and logs were retained.

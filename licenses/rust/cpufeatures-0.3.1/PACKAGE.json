@@ -1,0 +1,44 @@
+{
+  "crate": "cpufeatures",
+  "version": "0.3.1",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/utils",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "73b9dc2e79c7308998dd30296e073aefaefb944a68fb89aa412c23c0edcabcaa",
+      "bytes": 1082,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566",
+    "windows_client": "5ca28b0ae3115b884660db4118d803791fd6756b6e88f39c0f3f7859060d7566"
+  },
+  "source_url": "https://crates.io/crates/cpufeatures/0.3.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "e3ac92bfd33051e146025baa2d0ce79891b7fc73"
+    },
+    "path_in_vcs": "cpufeatures"
+  }
+}

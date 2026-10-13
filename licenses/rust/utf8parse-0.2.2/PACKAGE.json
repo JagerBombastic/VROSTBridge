@@ -1,0 +1,45 @@
+{
+  "crate": "utf8parse",
+  "version": "0.2.2",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/alacritty/vte",
+  "authors": [
+    "Joe Wilm <joe@jwilm.com>",
+    "Christian Duerr <contact@christianduerr.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "e4c9b06fa850cb9b540a5e400e9f6394cf15efcf4098144de477d1d3dae10150",
+      "bytes": 1052,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821",
+    "windows_client": "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
+  },
+  "source_url": "https://crates.io/crates/utf8parse/0.2.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ebc4a4d7259678a8626f5c269ea9348dfc3e79b2"
+    },
+    "path_in_vcs": "utf8parse"
+  }
+}

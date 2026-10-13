@@ -1,0 +1,50 @@
+{
+  "crate": "zerocopy",
+  "version": "0.8.52",
+  "license": "BSD-2-Clause OR Apache-2.0 OR MIT",
+  "repository": "https://github.com/google/zerocopy",
+  "authors": [
+    "Joshua Liebow-Feeser <joshlf@google.com>",
+    "Jack Wrenn <jswrenn@amazon.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-BSD",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "9d185ac6703c4b0453974c0d85e9eee43e6941009296bb1f5eb0b54e2329e9f3",
+      "bytes": 11350,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-BSD",
+      "sha256": "83c1763356e822adde0a2cae748d938a73fdc263849ccff6b27776dff213bd32",
+      "bytes": 1275,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "1a2f5c12ddc934d58956aa5dbdd3255fe55fd957633ab7d0d39e4f0daa73f7df",
+      "bytes": 1060,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "ce1022995ff5ff5d841ad7d994facc23098cd40152f2c1d11cd607c6f530653f"
+  },
+  "source_url": "https://crates.io/crates/zerocopy/0.8.52",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "8beb48b32e5b57dab67a4cb2bf2baca22792a605"
+    },
+    "path_in_vcs": "zerocopy"
+  }
+}

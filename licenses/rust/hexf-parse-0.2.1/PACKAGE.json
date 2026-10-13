@@ -1,0 +1,39 @@
+{
+  "crate": "hexf-parse",
+  "version": "0.2.1",
+  "license": "CC0-1.0",
+  "repository": "https://github.com/lifthrasiir/hexf",
+  "authors": [
+    "Kang Seonghoon <public+rust@mearie.org>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "license-authority/CC0-1.0.txt"
+  ],
+  "notice_details": [
+    {
+      "file": "license-authority/CC0-1.0.txt",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "bytes": 7048,
+      "origin": "SPDX License List canonical text matching the package declaration",
+      "source_url": "https://raw.githubusercontent.com/spdx/license-list-data/v3.27.0/text/CC0-1.0.txt",
+      "declared_by_crate_commit": "4225763d744183d720f575ae96d04161b4d08ea0"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df",
+    "windows_client": "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
+  },
+  "source_url": "https://crates.io/crates/hexf-parse/0.2.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4225763d744183d720f575ae96d04161b4d08ea0"
+    }
+  },
+  "upstream_notice_gap": "No full licence file was bundled in the crate or its exact repository commit; the declared CC0-1.0 legal text is supplied from SPDX License List Data v3.27.0."
+}

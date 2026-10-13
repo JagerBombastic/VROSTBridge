@@ -1,0 +1,71 @@
+diff --git a/alvr/common/src/version.rs b/alvr/common/src/version.rs
+index 1d919d1..0052015 100644
+--- a/alvr/common/src/version.rs
++++ b/alvr/common/src/version.rs
+@@ -27,11 +27,14 @@ pub fn is_stable() -> bool {
+ // As a convention, encode/decode the protocol ID bytes as little endian.
+ // Only makor and
+ pub fn protocol_id() -> String {
+-    if ALVR_VERSION.pre.is_empty() {
++    // VROSTBridge extends TrackingData with exact OpenVR skeletal samples. Reject
++    // older stock/native peers at discovery rather than misdecoding UDP packets.
++    let base = if ALVR_VERSION.pre.is_empty() {
+         ALVR_VERSION.major.to_string()
+     } else {
+         format!("{}-{}", ALVR_VERSION.major, ALVR_VERSION.pre)
+-    }
++    };
++    format!("{base}-vrostbridge-native-1")
+ }
+ 
+ pub fn protocol_id_u64() -> u64 {
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.cpp b/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.cpp
+index 54a564a..8497c19 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.cpp
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.cpp
+@@ -154,7 +154,7 @@ void VideoEncoderVPL::InitTransferTex() {
+                                              D3D11_RESOURCE_MISC_SHARED };
+ 
+     HRESULT hr
+-        = m_pD3DRender->GetDevice()->CreateTexture2D(&transferTexDesc, nullptr, &m_transferTex);
++        = m_pD3DRender->GetDevice()->CreateTexture2D(&transferTexDesc, nullptr, m_transferTex.GetAddressOf());
+     if (FAILED(hr))
+         ERROR_THROW("failed to create transfer texture HR=%p %ls", hr, GetErrorStr(hr).c_str());
+ }
+@@ -214,14 +214,14 @@ void VideoEncoderVPL::InitVplEncode() {
+ }
+ 
+ mfxFrameSurface1* VideoEncoderVPL::VplImportTexture(ID3D11Texture2D* texture) {
+-    m_pD3DRender->GetContext()->CopyResource(m_transferTex.p, texture);
++    m_pD3DRender->GetContext()->CopyResource(m_transferTex.Get(), texture);
+ 
+     mfxSurfaceD3D11Tex2D extSurfD3D11 = {};
+     extSurfD3D11.SurfaceInterface.Header.SurfaceType = MFX_SURFACE_TYPE_D3D11_TEX2D;
+     extSurfD3D11.SurfaceInterface.Header.SurfaceFlags
+         = MFX_SURFACE_FLAG_IMPORT_SHARED | MFX_SURFACE_FLAG_IMPORT_COPY;
+     extSurfD3D11.SurfaceInterface.Header.StructSize = sizeof(mfxSurfaceD3D11Tex2D);
+-    extSurfD3D11.texture2D = m_transferTex.p;
++    extSurfD3D11.texture2D = m_transferTex.Get();
+ 
+     mfxFrameSurface1* encSurface = nullptr;
+     VPL_VERIFY(m_vplMemoryInterface->ImportFrameSurface(
+diff --git a/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.h b/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.h
+index ade6f40..b65e9c2 100644
+--- a/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.h
++++ b/alvr/server_openvr/cpp/platform/win32/VideoEncoderVPL.h
+@@ -2,7 +2,7 @@
+ 
+ #include "VideoEncoder.h"
+ #include "shared/d3drender.h"
+-#include <atlbase.h>
++#include <wrl/client.h>
+ #include <d3d11.h>
+ #include <dxgi.h>
+ #include <vector>
+@@ -60,5 +60,5 @@ private:
+     mfxSession m_vplSession = nullptr;
+     mfxBitstream m_vplBitstream = {};
+     mfxMemoryInterface* m_vplMemoryInterface = nullptr;
+-    CComPtr<ID3D11Texture2D> m_transferTex;
++    Microsoft::WRL::ComPtr<ID3D11Texture2D> m_transferTex;
+ };

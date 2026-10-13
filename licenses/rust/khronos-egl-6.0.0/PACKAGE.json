@@ -1,0 +1,45 @@
+{
+  "crate": "khronos-egl",
+  "version": "6.0.0",
+  "license": "MIT/Apache-2.0",
+  "repository": "https://github.com/timothee-haudebourg/khronos-egl",
+  "authors": [
+    "Timoth\u00e9e Haudebourg <author@haudebourg.net>",
+    "Sean Kerr <sean@metatomic.io>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "6aae1df220ece3c0ada96b8153459b67eebe9ae9212258bb0134ae60416fdf76",
+    "windows_client": "6aae1df220ece3c0ada96b8153459b67eebe9ae9212258bb0134ae60416fdf76"
+  },
+  "source_url": "https://crates.io/crates/khronos-egl/6.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "5605af04fb91ca3e5cc314ac374d21c452bb6855"
+    },
+    "path_in_vcs": ""
+  }
+}

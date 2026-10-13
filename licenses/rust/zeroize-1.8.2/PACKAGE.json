@@ -1,0 +1,42 @@
+{
+  "crate": "zeroize",
+  "version": "1.8.2",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/RustCrypto/utils",
+  "authors": [
+    "The RustCrypto Project Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0b04ee3ce0021a922f43f37a17fee09a5a1ee6d1f4e149d5bf75b72395a49c72",
+      "bytes": 1095,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "b97154e67e32c85465826e8bcc1c59429aaaf107c1e4a9e53c8d8ccd5eff88d0"
+  },
+  "source_url": "https://crates.io/crates/zeroize/1.8.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c100874101bfd584870de5dde1b13dd92a17bf48"
+    },
+    "path_in_vcs": "zeroize"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "crate": "axum",
+  "version": "0.8.9",
+  "license": "MIT",
+  "repository": "https://github.com/tokio-rs/axum",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "6a13bc24a100a6812f053879ec51b126b103af7cda6dbf48c4188722da44da9f",
+      "bytes": 1061,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90"
+  },
+  "source_url": "https://crates.io/crates/axum/0.8.9",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "c59208c86fded335cd85e388030ad59347b0e5ae"
+    },
+    "path_in_vcs": "axum"
+  }
+}

@@ -1,0 +1,61 @@
+#version 450
+// Re-aims a converted stereo frame (RGBA8, both eyes side by side) from the head pose
+// the host rendered it for to the head pose SteamVR will show it with. Each eye uses
+// a rotation-only homography from core/reaim.hpp (push constants: three rows per eye)
+// that maps output texture coordinates to source texture coordinates of that eye.
+// Sampling is Catmull-Rom (nine bilinear taps), so an unchanged pose reproduces the
+// source exactly and sub-pixel shifts stay sharp. Taps never cross into the other eye.
+// Directions outside the rendered field of view fade to black over two pixels.
+layout(local_size_x=16,local_size_y=16) in;
+layout(binding=0) uniform sampler2D source;
+layout(binding=1,rgba8) writeonly uniform image2D outputImage;
+layout(push_constant) uniform Reaim {
+ vec4 eyeRows[6]; // rows 0-2: left eye, rows 3-5: right eye
+} pc;
+
+vec3 catmullRom(vec2 pixel, vec2 lo, vec2 hi, vec2 size){
+ // pixel: sample position in texels (centres at .5); lo/hi: texel-centre bounds of this eye.
+ vec2 p1=floor(pixel-.5)+.5;
+ vec2 f=pixel-p1;
+ vec2 w0=f*(-.5+f*(1.-.5*f));
+ vec2 w1=1.+f*f*(-2.5+1.5*f);
+ vec2 w2=f*(.5+f*(2.-1.5*f));
+ vec2 w3=f*f*(-.5+.5*f);
+ vec2 w12=w1+w2;
+ vec2 p0=clamp(p1-1.,lo,hi)/size;
+ vec2 p3=clamp(p1+2.,lo,hi)/size;
+ vec2 p12=clamp(p1+w2/w12,lo,hi)/size;
+ vec3 c=texture(source,vec2(p0.x,p0.y)).rgb*w0.x*w0.y
+       +texture(source,vec2(p12.x,p0.y)).rgb*w12.x*w0.y
+       +texture(source,vec2(p3.x,p0.y)).rgb*w3.x*w0.y
+       +texture(source,vec2(p0.x,p12.y)).rgb*w0.x*w12.y
+       +texture(source,vec2(p12.x,p12.y)).rgb*w12.x*w12.y
+       +texture(source,vec2(p3.x,p12.y)).rgb*w3.x*w12.y
+       +texture(source,vec2(p0.x,p3.y)).rgb*w0.x*w3.y
+       +texture(source,vec2(p12.x,p3.y)).rgb*w12.x*w3.y
+       +texture(source,vec2(p3.x,p3.y)).rgb*w3.x*w3.y;
+ return clamp(c,0.,1.);
+}
+
+void main(){
+ ivec2 p=ivec2(gl_GlobalInvocationID.xy);
+ ivec2 size=imageSize(outputImage);
+ if(any(greaterThanEqual(p,size)))return;
+ int eyeWidth=size.x/2;
+ int eye=p.x>=eyeWidth?1:0;
+ vec2 uv=vec2((float(p.x-eye*eyeWidth)+.5)/float(eyeWidth),(float(p.y)+.5)/float(size.y));
+ int r=eye*3;
+ vec3 h=vec3(dot(pc.eyeRows[r].xyz,vec3(uv,1.)),dot(pc.eyeRows[r+1].xyz,vec3(uv,1.)),dot(pc.eyeRows[r+2].xyz,vec3(uv,1.)));
+ if(h.z<=1e-6){imageStore(outputImage,p,vec4(0.,0.,0.,1.));return;}
+ vec2 s=h.xy/h.z;
+ vec2 eyeSize=vec2(float(eyeWidth),float(size.y));
+ // Distance outside the rendered view, in pixels: fade to black over two pixels.
+ vec2 outside=max(max(-s,s-1.),0.)*eyeSize;
+ float fade=clamp(1.-max(outside.x,outside.y)*.5,0.,1.);
+ if(fade<=0.){imageStore(outputImage,p,vec4(0.,0.,0.,1.));return;}
+ vec2 texSize=vec2(textureSize(source,0));
+ vec2 pixel=vec2(clamp(s.x,0.,1.)*eyeSize.x+float(eye*eyeWidth),clamp(s.y,0.,1.)*eyeSize.y);
+ vec2 lo=vec2(float(eye*eyeWidth)+.5,.5);
+ vec2 hi=vec2(float((eye+1)*eyeWidth)-.5,eyeSize.y-.5);
+ imageStore(outputImage,p,vec4(catmullRom(pixel,lo,hi,texSize)*fade,1.));
+}

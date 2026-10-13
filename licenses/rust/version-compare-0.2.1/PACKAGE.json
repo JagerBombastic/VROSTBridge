@@ -1,0 +1,35 @@
+{
+  "crate": "version-compare",
+  "version": "0.2.1",
+  "license": "MIT",
+  "repository": "https://gitlab.com/timvisee/version-compare",
+  "authors": [
+    "Tim Visee <3a4fb3964f@sinenomine.email>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "cedfcc7ace1639adb054bd4a19b6f8585ccb2429a60b4bf51bfeb0601058c22c",
+      "bytes": 1055,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "03c2856837ef78f57382f06b2b8563a2f512f7185d732608fd9176cb3b8edf0e"
+  },
+  "source_url": "https://crates.io/crates/version-compare/0.2.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "0c261ec99783236a5acfc511f62253ba2d3f21b8"
+    },
+    "path_in_vcs": ""
+  }
+}

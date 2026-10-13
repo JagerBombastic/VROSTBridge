@@ -1,0 +1,68 @@
+{
+  "schema": 1,
+  "release": "0.2.14.1",
+  "built_utc": "2026-09-28T01:26:59.208441+00:00",
+  "machine": "0x8664",
+  "bytes": 16864768,
+  "sha256": "fdcebf0bac6cb71e64ec79ec756168a38922b057fa0da70ada4be1745e42715a",
+  "api_version": "21.0.0-dev14",
+  "native_protocol_marker": true,
+  "driver_factory_export": true,
+  "imports": [
+    "avcodec-62.dll",
+    "avutil-60.dll",
+    "swscale-9.dll",
+    "kernel32.dll",
+    "api-ms-win-core-synch-l1-2-0.dll",
+    "advapi32.dll",
+    "openvr_api.dll",
+    "ws2_32.dll",
+    "ntdll.dll",
+    "pdh.dll",
+    "powrprof.dll",
+    "bcryptprimitives.dll",
+    "dbghelp.dll",
+    "oleaut32.dll",
+    "ole32.dll",
+    "combase.dll",
+    "user32.dll",
+    "psapi.dll",
+    "shell32.dll",
+    "dxgi.dll",
+    "d3d11.dll",
+    "rpcrt4.dll",
+    "winmm.dll",
+    "propsys.dll",
+    "bcrypt.dll",
+    "iphlpapi.dll"
+  ],
+  "packaged_dependency_symbols": {
+    "avcodec-62.dll": {
+      "imported": 8,
+      "missing": [],
+      "dependency_sha256": "6a945d93e8c25db74ac3966bb1de0834029fa06f230dc1c220734a26606cb917"
+    },
+    "avutil-60.dll": {
+      "imported": 5,
+      "missing": [],
+      "dependency_sha256": "fda5b450631242df80241ab2ea71d3ff871c0708a26dd8afc77a77d8fc44e43c"
+    },
+    "swscale-9.dll": {
+      "imported": 3,
+      "missing": [],
+      "dependency_sha256": "0694a87ad37036c689bbf718c11202d140e28d4581bb6d48246a5b7e82b1c6bb"
+    },
+    "openvr_api.dll": {
+      "imported": 5,
+      "missing": [],
+      "dependency_sha256": "bab8ac6ef64e68a9ca53315b0014d131088584b2efdfa6db511d67ec03cfcb4a"
+    }
+  },
+  "source_coherence_evidence": "patched-native-source-0.2.14.1.json",
+  "source_coherence_sha256": "267dbbe907b71edc88344d1999aac3351ebe3c47d324e1706e55561dffc3a568",
+  "physical_session_tested": false,
+  "windows_runtime_execution": {
+    "result": "not performed",
+    "reason": "This Linux build environment has no usable Windows runtime; the prior Wine attempt was blocked by wineserver socket Operation not permitted."
+  }
+}

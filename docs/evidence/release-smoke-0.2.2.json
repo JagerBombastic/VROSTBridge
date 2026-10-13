@@ -1,0 +1,12 @@
+{
+  "release": "0.2.2",
+  "platform": "Linux container; no physical headset",
+  "checks": {
+    "install": "pass",
+    "repeat_install": "pass",
+    "spaces_non_ascii_and_logo": "pass",
+    "frozen_http_logo_token_report_and_reopen": "pass",
+    "quit_releases_instance": "pass",
+    "damaged_package_rejected_and_logged": "pass"
+  }
+}

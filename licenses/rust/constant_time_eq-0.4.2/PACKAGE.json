@@ -1,0 +1,49 @@
+{
+  "crate": "constant_time_eq",
+  "version": "0.4.2",
+  "license": "CC0-1.0 OR MIT-0 OR Apache-2.0",
+  "repository": "https://github.com/cesarb/constant_time_eq",
+  "authors": [
+    "Cesar Eduardo Barros <cesarb@cesarb.eti.br>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-CC0",
+    "LICENSE-MIT0"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "62c7a1e35f56406896d7aa7ca52d0cc0d272ac022b5d2796e7d6905db8a3636a",
+      "bytes": 9723,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-CC0",
+      "sha256": "a2010f343487d3f7618affe54f789f5487602331c0a8d03f49e9a7c547cf0499",
+      "bytes": 7048,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT0",
+      "sha256": "9a3aeb3f63659c4c6302d315e1d98784d1e8559858a47ff9562e091bb922d28d",
+      "bytes": 858,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "3d52eff69cd5e647efe296129160853a42795992097e8af39800e1060caeea9b"
+  },
+  "source_url": "https://crates.io/crates/constant_time_eq/0.4.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "86f38ed9ad4d0500c5472bb8cb2ddc4fe5ac7143"
+    },
+    "path_in_vcs": ""
+  }
+}

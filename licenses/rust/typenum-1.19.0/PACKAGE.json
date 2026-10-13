@@ -1,0 +1,50 @@
+{
+  "crate": "typenum",
+  "version": "1.19.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/paholg/typenum",
+  "authors": [
+    "Paho Lurie-Gregg <paho@paholg.com>",
+    "Andre Bogus <bogusandre@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE",
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "db11fec9946737df39ca3898d9cd8c10ec6f6c3a884a6802b0ad0b81b4e8f23a",
+      "bytes": 17,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "516b24e051bf5630880ebbd55c40a25ce9552ebaf8970a53e8976eb70e522406",
+      "bytes": 10835,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "a825bd853ab71619a4923d7b4311221427848070ff44d990da39b0b274c1683f",
+      "bytes": 1083,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
+  },
+  "source_url": "https://crates.io/crates/typenum/1.19.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "65d17389fad2919dab23c1e62cdf1226615c72bd"
+    },
+    "path_in_vcs": ""
+  }
+}

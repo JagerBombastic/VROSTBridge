@@ -1,0 +1,35 @@
+{
+  "crate": "glutin_wgl_sys",
+  "version": "0.6.1",
+  "license": "Apache-2.0",
+  "repository": "https://github.com/rust-windowing/glutin",
+  "authors": [
+    "Kirill Chibisov <contact@kchibisov.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "a4445427440043e8ce6fadf7a43fb906cb0d7f6c573a560a9f142cf9f9bf8ff4",
+      "bytes": 11312,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_client": "2c4ee00b289aba7a9e5306d57c2d05499b2e5dc427f84ac708bd2c090212cf3e"
+  },
+  "source_url": "https://crates.io/crates/glutin_wgl_sys/0.6.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "d9b4fd7036386c5f23b0a1015a31a986805d4db3"
+    },
+    "path_in_vcs": "glutin_wgl_sys"
+  }
+}

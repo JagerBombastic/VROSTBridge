@@ -1,0 +1,42 @@
+{
+  "crate": "cipher",
+  "version": "0.4.4",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/traits",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "5c7bd92d1f096f12203dc1b601e3cb17484fa1b023e30b6b8edcc80e416237ec",
+      "bytes": 1070,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "773f3b9af64447d2ce9850330c473515014aa235e6a783b02db81ff39e4a3dad"
+  },
+  "source_url": "https://crates.io/crates/cipher/0.4.4",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "0af93f6076a76757c65cb2ef6f6abd9756440478"
+    },
+    "path_in_vcs": "cipher"
+  }
+}

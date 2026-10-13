@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=VROSTBridge Client
+Comment=Use a local headset with a remote rendering host
+Exec=bash -c 'cd "$(dirname "$1")" && ./Start-Client.sh' bash %k
+Terminal=false
+Categories=Game;

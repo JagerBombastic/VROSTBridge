@@ -1,0 +1,35 @@
+{
+  "crate": "nom",
+  "version": "8.0.0",
+  "license": "MIT",
+  "repository": "https://github.com/rust-bakery/nom",
+  "authors": [
+    "contact@geoffroycouprie.com"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "4dbda04344456f09a7a588140455413a9ac59b6b26a1ef7cdf9c800c012d87f0",
+      "bytes": 1065,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405"
+  },
+  "source_url": "https://crates.io/crates/nom/8.0.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "2cec1b3e4c9ccac62c902d60c00de6d1549ccbe1"
+    },
+    "path_in_vcs": ""
+  }
+}

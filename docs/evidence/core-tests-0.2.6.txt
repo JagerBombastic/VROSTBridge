@@ -1,0 +1,40 @@
+-- The C compiler identification is GNU 13.3.0
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /usr/bin/cc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /workspace/scratch/647ea6e3ae16/build-tools/core
+[ 12%] Building CXX object CMakeFiles/core_tests.dir/tests/core_tests.cpp.o
+[ 25%] Building CXX object CMakeFiles/stream_tests.dir/tests/stream_tests.cpp.o
+[ 37%] Building CXX object CMakeFiles/runtime_settings_tests.dir/tests/runtime_settings_tests.cpp.o
+[ 50%] Building CXX object CMakeFiles/input_tests.dir/tests/input_tests.cpp.o
+[ 62%] Linking CXX executable core_tests
+[ 62%] Built target core_tests
+[ 75%] Linking CXX executable input_tests
+[ 75%] Built target input_tests
+[ 87%] Linking CXX executable runtime_settings_tests
+[ 87%] Built target runtime_settings_tests
+[100%] Linking CXX executable stream_tests
+[100%] Built target stream_tests
+Test project /workspace/scratch/647ea6e3ae16/build-tools/core
+    Start 1: core_contracts
+1/4 Test #1: core_contracts ...................   Passed    0.00 sec
+    Start 2: stream_contracts
+2/4 Test #2: stream_contracts .................   Passed    0.00 sec
+    Start 3: input_contracts
+3/4 Test #3: input_contracts ..................   Passed    0.00 sec
+    Start 4: runtime_settings_contracts
+4/4 Test #4: runtime_settings_contracts .......   Passed    0.00 sec
+
+100% tests passed out of 4
+
+Total Test time (real) =   0.01 sec

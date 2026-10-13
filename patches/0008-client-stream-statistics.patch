@@ -1,0 +1,224 @@
+diff --git a/alvr/client_core/src/connection.rs b/alvr/client_core/src/connection.rs
+index d3924b0a..cfafe3b5 100644
+--- a/alvr/client_core/src/connection.rs
++++ b/alvr/client_core/src/connection.rs
+@@ -2,6 +2,7 @@
+ 
+ use crate::{
+     ClientCapabilities, ClientCoreEvent, VideoFrameMetadata,
++    vrostbridge_stream::StreamCounters,
+     logging_backend::{LOG_CHANNEL_SENDER, LogMirrorData},
+     sockets::AnnouncerSocket,
+     statistics::StatisticsManager,
+@@ -67,6 +68,9 @@ pub struct ConnectionContext {
+     pub decoder_callback: Mutex<Option<Box<DecoderCallback>>>,
+     pub video_frame_metadata_queue: Mutex<VecDeque<(Duration, VideoFrameMetadata)>>,
+     pub max_prediction: RwLock<Duration>,
++    // VROSTBridge: stream counters and loss-recovery policy (see vrostbridge_stream.rs).
++    pub vrost_counters: crate::vrostbridge_stream::StreamCounters,
++    pub vrost_loss_policy: crate::vrostbridge_stream::LossPolicy,
+ }
+ 
+ fn set_hud_message(event_queue: &Mutex<VecDeque<ClientCoreEvent>>, message: &str) {
+@@ -298,15 +302,23 @@ fn connection_pipeline(
+                 if let Some(stats) = &mut *ctx.statistics_manager.lock() {
+                     stats.report_video_packet_received(header.timestamp);
+                 }
++                StreamCounters::add(&ctx.vrost_counters.frames);
+ 
+                 if header.is_idr {
+                     stream_corrupted = false;
++                    ctx.vrost_loss_policy.on_clean_frame();
+                 } else if data.had_packet_loss() {
+                     stream_corrupted = true;
+-                    if let Some(sender) = &mut *ctx.control_sender.lock() {
+-                        sender.send(&ClientControlPacket::RequestIdr).ok();
++                    StreamCounters::add(&ctx.vrost_counters.network_losses);
++                    if ctx.vrost_loss_policy.on_loss() {
++                        if let Some(sender) = &mut *ctx.control_sender.lock() {
++                            sender.send(&ClientControlPacket::RequestIdr).ok();
++                        }
++                        StreamCounters::add(&ctx.vrost_counters.idr_requests);
+                     }
+                     warn!("Network dropped video packet");
++                } else {
++                    ctx.vrost_loss_policy.on_clean_frame();
+                 }
+ 
+                 if !stream_corrupted || !settings.connection.avoid_video_glitching {
+@@ -337,12 +349,16 @@ fn connection_pipeline(
+                         if let Some(sender) = &mut *ctx.control_sender.lock() {
+                             sender.send(&ClientControlPacket::RequestIdr).ok();
+                         }
++                        StreamCounters::add(&ctx.vrost_counters.decoder_saturation);
++                        StreamCounters::add(&ctx.vrost_counters.idr_requests);
+                         warn!("Dropped video packet. Reason: Decoder saturation")
+                     }
+                 } else {
+                     if let Some(sender) = &mut *ctx.control_sender.lock() {
+                         sender.send(&ClientControlPacket::RequestIdr).ok();
+                     }
++                    StreamCounters::add(&ctx.vrost_counters.skipped_until_idr);
++                    StreamCounters::add(&ctx.vrost_counters.idr_requests);
+                     warn!("Dropped video packet. Reason: Waiting for IDR frame")
+                 }
+             }
+diff --git a/alvr/client_core/src/vrostbridge_stream.rs b/alvr/client_core/src/vrostbridge_stream.rs
+new file mode 100644
+index 00000000..37ea789e
+--- /dev/null
++++ b/alvr/client_core/src/vrostbridge_stream.rs
+@@ -0,0 +1,124 @@
++//! VROSTBridge: client-side video stream counters and the loss-recovery policy.
++//!
++//! The pinned client core reacts to every lost video packet by asking the host for
++//! a keyframe, but the embedding application could not see how often that happened.
++//! These counters make network loss visible in the session quality line, so a
++//! freeze can be told apart from a slow decoder or a late host.
++//!
++//! The policy decides whether a loss asks for a keyframe. Keyframe recovery (the
++//! default) is unchanged from upstream. Gradual recovery is for hosts that refresh
++//! the picture with periodic intra-coded stripes: one isolated loss then heals by
++//! itself within the refresh period, so requesting a large keyframe would only add
++//! a burst to an already struggling link. A keyframe is still requested when losses
++//! repeat in consecutive frames, so a host that cannot refresh never leaves the
++//! picture broken.
++
++use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
++
++/// Losses in consecutive frames after which gradual recovery still asks for a keyframe.
++pub const GRADUAL_KEYFRAME_AFTER: u64 = 3;
++
++#[derive(Default)]
++pub struct StreamCounters {
++    pub frames: AtomicU64,
++    pub network_losses: AtomicU64,
++    pub idr_requests: AtomicU64,
++    pub decoder_saturation: AtomicU64,
++    pub skipped_until_idr: AtomicU64,
++}
++
++#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
++pub struct StreamCounterSnapshot {
++    pub frames: u64,
++    pub network_losses: u64,
++    pub idr_requests: u64,
++    pub decoder_saturation: u64,
++    pub skipped_until_idr: u64,
++}
++
++impl StreamCounters {
++    pub fn snapshot(&self) -> StreamCounterSnapshot {
++        StreamCounterSnapshot {
++            frames: self.frames.load(Ordering::Relaxed),
++            network_losses: self.network_losses.load(Ordering::Relaxed),
++            idr_requests: self.idr_requests.load(Ordering::Relaxed),
++            decoder_saturation: self.decoder_saturation.load(Ordering::Relaxed),
++            skipped_until_idr: self.skipped_until_idr.load(Ordering::Relaxed),
++        }
++    }
++
++    pub fn add(counter: &AtomicU64) {
++        counter.fetch_add(1, Ordering::Relaxed);
++    }
++}
++
++#[derive(Default)]
++pub struct LossPolicy {
++    gradual: AtomicBool,
++    consecutive: AtomicU64,
++}
++
++impl LossPolicy {
++    pub fn set_gradual(&self, enabled: bool) {
++        self.gradual.store(enabled, Ordering::Relaxed);
++        self.consecutive.store(0, Ordering::Relaxed);
++    }
++
++    pub fn gradual(&self) -> bool {
++        self.gradual.load(Ordering::Relaxed)
++    }
++
++    /// A frame arrived with missing packets. Returns true when a keyframe should be requested.
++    pub fn on_loss(&self) -> bool {
++        let consecutive = self.consecutive.fetch_add(1, Ordering::Relaxed) + 1;
++        !self.gradual() || consecutive >= GRADUAL_KEYFRAME_AFTER
++    }
++
++    /// A complete frame arrived, or a keyframe restarted the stream.
++    pub fn on_clean_frame(&self) {
++        self.consecutive.store(0, Ordering::Relaxed);
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn keyframe_policy_requests_on_every_loss() {
++        let policy = LossPolicy::default();
++        assert!(policy.on_loss());
++        assert!(policy.on_loss());
++        policy.on_clean_frame();
++        assert!(policy.on_loss());
++    }
++
++    #[test]
++    fn gradual_policy_requests_only_for_repeated_losses() {
++        let policy = LossPolicy::default();
++        policy.set_gradual(true);
++        assert!(!policy.on_loss());
++        policy.on_clean_frame();
++        assert!(!policy.on_loss());
++        assert!(!policy.on_loss());
++        assert!(policy.on_loss(), "third consecutive loss asks for a keyframe");
++        policy.on_clean_frame();
++        assert!(!policy.on_loss());
++        policy.set_gradual(false);
++        assert!(policy.on_loss());
++    }
++
++    #[test]
++    fn counters_snapshot() {
++        let counters = StreamCounters::default();
++        StreamCounters::add(&counters.frames);
++        StreamCounters::add(&counters.frames);
++        StreamCounters::add(&counters.network_losses);
++        StreamCounters::add(&counters.idr_requests);
++        let snapshot = counters.snapshot();
++        assert_eq!(snapshot.frames, 2);
++        assert_eq!(snapshot.network_losses, 1);
++        assert_eq!(snapshot.idr_requests, 1);
++        assert_eq!(snapshot.decoder_saturation, 0);
++    }
++}
+diff --git a/alvr/client_core/src/lib.rs b/alvr/client_core/src/lib.rs
+index c2e6f837..d506c570 100644
+--- a/alvr/client_core/src/lib.rs
++++ b/alvr/client_core/src/lib.rs
+@@ -7,6 +7,7 @@
+ 
+ mod c_api;
+ mod connection;
++pub mod vrostbridge_stream;
+ mod logging_backend;
+ mod sockets;
+ mod statistics;
+@@ -243,6 +244,16 @@ impl ClientCoreContext {
+         }
+     }
+ 
++    /// VROSTBridge: cumulative video stream counters (frames, network losses, keyframe requests).
++    pub fn vrostbridge_stream_counters(&self) -> vrostbridge_stream::StreamCounterSnapshot {
++        self.connection_context.vrost_counters.snapshot()
++    }
++
++    /// VROSTBridge: gradual loss recovery for hosts that refresh the picture with intra stripes.
++    pub fn set_vrostbridge_gradual_recovery(&self, enabled: bool) {
++        self.connection_context.vrost_loss_policy.set_gradual(enabled);
++    }
++
+     pub fn get_total_prediction_offset(&self) -> Duration {
+         dbg_client_core!("get_total_prediction_offset");
+ 

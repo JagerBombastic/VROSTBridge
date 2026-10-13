@@ -1,0 +1,42 @@
+{
+  "crate": "indexmap",
+  "version": "2.14.2",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/indexmap-rs/indexmap",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "ecc269ef87fd38a1d98e30bfac9ba964a9dbd9315c3770fed98d4d7cb5882055",
+      "bytes": 1049,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855",
+    "windows_client": "cc4e190f5d26ca7051642629da2c52fc03bde85a03197c99408dcd291734c855"
+  },
+  "source_url": "https://crates.io/crates/indexmap/2.14.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "41a870887c4c77adf665886e63df08f406bfe37a"
+    },
+    "path_in_vcs": ""
+  }
+}

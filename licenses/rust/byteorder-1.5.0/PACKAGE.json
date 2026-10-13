@@ -1,0 +1,44 @@
+{
+  "crate": "byteorder",
+  "version": "1.5.0",
+  "license": "Unlicense OR MIT",
+  "repository": "https://github.com/BurntSushi/byteorder",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "bytes": 126,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b",
+    "linux_client": "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
+  },
+  "source_url": "https://crates.io/crates/byteorder/1.5.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ec068eefa042d494475db125c4b034bd8e9e34dd"
+    },
+    "path_in_vcs": ""
+  }
+}

@@ -1,0 +1,155 @@
+{
+  "date_utc": "2026-09-28T00:21:06.795019+00:00",
+  "version": "0.2.14",
+  "files": {
+    "dist/client/VROSTBridgeClient": {
+      "bytes": 281032,
+      "sha256": "c9d02a8cbfb167615de03393a6b31a46638f2e43e206674977d281d8e30d677c"
+    },
+    "dist/client/libvrostbridge_transport.so": {
+      "bytes": 15433384,
+      "sha256": "2f3c9fe56b1d86abb16f2532457e73d294bd042d1f9729cc78549f3396270dc5"
+    },
+    "dist/client/assets/convert.spv": {
+      "bytes": 3032,
+      "sha256": "0c5ef6ff8ea7d1e59b471988ef4954dfd905ff77a2873c5b939dd385fc3b4daa"
+    }
+  },
+  "checks": [
+    {
+      "command": [
+        "g++",
+        "-pthread",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/main.o",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/vulkan.o",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/decoder.o",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/openvr_device.o",
+        "-L/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/client/transport/target/release",
+        "-Ldist/client/lib",
+        "-lvrostbridge_transport",
+        "-l:libavcodec.so.60",
+        "-l:libavutil.so.58",
+        "-l:libswscale.so.7",
+        "-l:libvulkan.so.1",
+        "-ldl",
+        "-Wl,-rpath,$ORIGIN:$ORIGIN/lib",
+        "-o",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/build-linux/VROSTBridgeClient"
+      ],
+      "returncode": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "readelf",
+        "-d",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/VROSTBridgeClient"
+      ],
+      "returncode": 0,
+      "output": "\nDynamic section at offset 0x39608 contains 36 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libvrostbridge_transport.so]\n 0x0000000000000001 (NEEDED)             Shared library: [libavcodec.so.60]\n 0x0000000000000001 (NEEDED)             Shared library: [libavutil.so.58]\n 0x0000000000000001 (NEEDED)             Shared library: [libswscale.so.7]\n 0x0000000000000001 (NEEDED)             Shared library: [libvulkan.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x000000000000001d (RUNPATH)            Library runpath: [$ORIGIN:$ORIGIN/lib]\n 0x000000000000000c (INIT)               0x7000\n 0x000000000000000d (FINI)               0x31848\n 0x0000000000000019 (INIT_ARRAY)         0x39e50\n 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0x39e58\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x3b0\n 0x0000000000000005 (STRTAB)             0x1d30\n 0x0000000000000006 (SYMTAB)             0x470\n 0x000000000000000a (STRSZ)              7974 (bytes)\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000015 (DEBUG)              0x0\n 0x0000000000000003 (PLTGOT)             0x3a888\n 0x0000000000000002 (PLTRELSZ)           5448 (bytes)\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000017 (JMPREL)             0x4c78\n 0x0000000000000007 (RELA)               0x4078\n 0x0000000000000008 (RELASZ)             3072 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000000000001e (FLAGS)              BIND_NOW\n 0x000000006ffffffb (FLAGS_1)            Flags: NOW PIE\n 0x000000006ffffffe (VERNEED)            0x3e68\n 0x000000006fffffff (VERNEEDNUM)         7\n 0x000000006ffffff0 (VERSYM)             0x3c56\n 0x000000006ffffff9 (RELACOUNT)          78\n 0x0000000000000000 (NULL)               0x0\n"
+    },
+    {
+      "command": [
+        "readelf",
+        "-d",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so"
+      ],
+      "returncode": 0,
+      "output": "\nDynamic section at offset 0xab3740 contains 30 entries:\n  Tag        Type                         Name/Value\n 0x0000000000000001 (NEEDED)             Shared library: [libasound.so.2]\n 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]\n 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]\n 0x0000000000000001 (NEEDED)             Shared library: [ld-linux-x86-64.so.2]\n 0x000000000000001e (FLAGS)              BIND_NOW\n 0x000000006ffffffb (FLAGS_1)            Flags: NOW\n 0x0000000000000007 (RELA)               0x3348\n 0x0000000000000008 (RELASZ)             423168 (bytes)\n 0x0000000000000009 (RELAENT)            24 (bytes)\n 0x000000006ffffff9 (RELACOUNT)          17420\n 0x0000000000000017 (JMPREL)             0x6a848\n 0x0000000000000002 (PLTRELSZ)           72 (bytes)\n 0x0000000000000003 (PLTGOT)             0xabb720\n 0x0000000000000014 (PLTREL)             RELA\n 0x0000000000000006 (SYMTAB)             0x2d0\n 0x000000000000000b (SYMENT)             24 (bytes)\n 0x0000000000000005 (STRTAB)             0x21f8\n 0x000000000000000a (STRSZ)              4427 (bytes)\n 0x000000006ffffef5 (GNU_HASH)           0x2028\n 0x0000000000000019 (INIT_ARRAY)         0xa6cf90\n 0x000000000000001b (INIT_ARRAYSZ)       16 (bytes)\n 0x000000000000001a (FINI_ARRAY)         0xa6cf88\n 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)\n 0x000000000000000c (INIT)               0x2d7858\n 0x000000000000000d (FINI)               0x2d7874\n 0x000000006ffffff0 (VERSYM)             0x1c08\n 0x000000006ffffffe (VERNEED)            0x1e24\n 0x000000006fffffff (VERNEEDNUM)         5\n 0x0000000000000000 (NULL)               0x0\n"
+    },
+    {
+      "command": [
+        "ldd",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/VROSTBridgeClient"
+      ],
+      "returncode": 0,
+      "output": "\tlinux-vdso.so.1 (0x00007faceb474000)\n\tlibvrostbridge_transport.so => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so (0x00007facea972000)\n\tlibavcodec.so.60 => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/lib/libavcodec.so.60 (0x00007facea65a000)\n\tlibavutil.so.58 => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/lib/libavutil.so.58 (0x00007face9564000)\n\tlibswscale.so.7 => /workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/lib/libswscale.so.7 (0x00007face94ec000)\n\tlibvulkan.so.1 => /lib/x86_64-linux-gnu/libvulkan.so.1 (0x00007face9463000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007face91e5000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007face90fc000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007face90ce000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007face8ebc000)\n\tlibasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007face8db2000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007faceb476000)\n\tlibva.so.2 => /lib/x86_64-linux-gnu/libva.so.2 (0x00007face8d80000)\n\tlibva-drm.so.2 => /lib/x86_64-linux-gnu/libva-drm.so.2 (0x00007face8d7b000)\n\tlibdrm.so.2 => /lib/x86_64-linux-gnu/libdrm.so.2 (0x00007face8d64000)\n"
+    },
+    {
+      "command": [
+        "ldd",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so"
+      ],
+      "returncode": 0,
+      "output": "\tlinux-vdso.so.1 (0x00007f32d214f000)\n\tlibasound.so.2 => /lib/x86_64-linux-gnu/libasound.so.2 (0x00007f32d1576000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f32d1548000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f32d145f000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f32d124d000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f32d2151000)\n"
+    },
+    {
+      "command": [
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/VROSTBridgeClient",
+        "--help"
+      ],
+      "returncode": 0,
+      "output": "VROSTBridge 0.2.14 native Linux client\n--software-decode  Explicit CPU compatibility mode (not a performance path)\n--no-late-frame-catchup  Disable bounded late-frame selection for comparison\n"
+    },
+    {
+      "command": [
+        "nm",
+        "-D",
+        "--defined-only",
+        "/workspace/scratch/647ea6e3ae16/work034/VROSTBridge-0.2.14/dist/client/libvrostbridge_transport.so"
+      ],
+      "returncode": 0,
+      "output": "00000000003399b0 T alvr_create_decoder\n0000000000339be0 T alvr_dbg_client_impl\n0000000000339be0 T alvr_dbg_decoder\n0000000000339bf0 T alvr_destroy\n0000000000339cc0 T alvr_destroy_decoder\n0000000000339d20 T alvr_destroy_opengl\n0000000000339d30 T alvr_get_decoder_config\n0000000000339db0 T alvr_get_frame\n0000000000339e10 T alvr_get_server_version\n0000000000339f40 T alvr_get_settings_json\n000000000033a070 T alvr_hostname\n000000000033a1a0 T alvr_hud_message\n000000000033a380 T alvr_initialize\n000000000033a5b0 T alvr_initialize_logging\n000000000033a5c0 T alvr_initialize_opengl\n000000000033a690 T alvr_log\n000000000033aa00 T alvr_log_time\n000000000033ab60 T alvr_mdns_service\n000000000033ac40 T alvr_path_string_to_id\n000000000033acc0 T alvr_pause\n000000000033ad40 T alvr_pause_opengl\n000000000033ad90 T alvr_poll_event\n000000000033b590 T alvr_protocol_id\n000000000033b6c0 T alvr_render_lobby_opengl\n000000000033b920 T alvr_render_stream_opengl\n000000000033bac0 T alvr_report_compositor_start\n000000000033bc50 T alvr_report_fatal_decoder_error\n000000000033be50 T alvr_report_frame_decoded\n000000000033bf90 T alvr_report_submit\n000000000033c060 T alvr_resume\n000000000033c120 T alvr_resume_opengl\n000000000033c290 T alvr_rotation_delta\n000000000033c320 T alvr_send_active_interaction_profile\n000000000033c4c0 T alvr_send_battery\n000000000033c560 T alvr_send_button\n000000000033c650 T alvr_send_playspace\n000000000033c700 T alvr_send_tracking\n000000000033cd10 T alvr_send_view_params\n000000000033ce10 T alvr_set_decoder_input_callback\n000000000033cee0 T alvr_start_stream_opengl\n000000000033d0c0 T alvr_update_hud_message_opengl\n00000000002d9c60 T vrost_battery\n00000000002d9c80 T vrost_button\n00000000002d9d40 T vrost_buttons\n00000000002d9e10 T vrost_config\n00000000002d9f30 T vrost_create\n00000000002da160 T vrost_decoded\n00000000002da1a0 T vrost_decoder\n00000000002da210 T vrost_destroy\n00000000002da250 T vrost_fail\n00000000002da2d0 T vrost_frame_views\n00000000002da3a0 T vrost_message\n00000000002da510 T vrost_path\n00000000002da580 T vrost_pause\n00000000002da5a0 T vrost_playspace\n00000000002da5e0 T vrost_poll\n00000000002db160 T vrost_prediction_ns\n00000000002db180 T vrost_profile\n00000000002db290 T vrost_proximity\n00000000002db2b0 T vrost_resume\n00000000002db2d0 T vrost_submit\n00000000002db330 T vrost_tracking\n00000000002db370 T vrost_tracking_native\n00000000002de7e0 T vrost_views\n"
+    }
+  ],
+  "ld_environment_override": false,
+  "hardware_execution": false,
+  "contract_tests": {
+    "passed": 9,
+    "failed": 0,
+    "evidence": "native-linux-contracts-0.2.14.txt"
+  },
+  "limitations": [
+    "No physical SteamVR/headset, GPU streaming or Bazzite device execution in this build environment.",
+    "Genuine Win32 completion-event regression compiled separately; Wine execution blocked by managed sandbox socket restrictions."
+  ],
+  "transport_binary_markers": {
+    "vrostbridge-native-1": true
+  },
+  "transport_rebuild": "Includes stateful partial TCP prefix/body receive fix and mDNS announcer cleanup; C ABI unchanged; C++ relink unnecessary.",
+  "transport_source_sha256": {
+    "alvr/audio/src/lib.rs": "9e5ce3bd20262d95060cb981401f727f37e6bad8c7f58dc00680cdd79e8ae35d",
+    "alvr/audio/src/linux.rs": "66899a4f5554560b81e8b25ec82f7aed9fe2d611d4b7c4412d62a919c5c21c38",
+    "alvr/audio/src/windows.rs": "221618bee54e05893138fe6154faedc2f6c558acf3900d59896db5fba4763ab2",
+    "alvr/client_core/build.rs": "84a2d0aa36ddf5752c59763fc731ef1fcfc40f2b602edf4c04ae0ca2d79f0596",
+    "alvr/client_core/src/audio.rs": "795a8e675e268c9fff71cb24d05cdf6e408c00eac3dcfaa8a2cdea2e1bdc6657",
+    "alvr/client_core/src/c_api.rs": "75cc95f9233a6d37ad7489227ac18ae4d8f334f984527a60e78e1f38bcac34df",
+    "alvr/client_core/src/connection.rs": "8c42f2f1d38d422c3839b9ca6da5e9cdca3a9e665a6246fa7715d3b9f51d48f7",
+    "alvr/client_core/src/lib.rs": "4c9faa26744bc0fea4005f30db770648529d6ab329e4afb3e5a7edb93b0a3ce4",
+    "alvr/client_core/src/logging_backend.rs": "bf230223c61ea7fd3d6aa5d28a22d9f97f1506266d2ea8433ea63a46a8f85951",
+    "alvr/client_core/src/sockets.rs": "5ac1370efe5fbb42001407ecb6878e62f7bea4b5c33975e222598817be80c400",
+    "alvr/client_core/src/statistics.rs": "5c77b93f48663467fa3fb3eaab3efa7f67d64167f707b6fbe0b69f0611a54753",
+    "alvr/client_core/src/storage.rs": "4b054a04bd8e9f14b23072f54694bc6c9252c699c1383b5a510746156cc3f8cc",
+    "alvr/client_core/src/video_decoder/android.rs": "5553d87f2900acf92909408d467dde31b2fa98e207eede63c16a731c306c344b",
+    "alvr/client_core/src/video_decoder/mod.rs": "4ddb0aae59472a20e5b2545715c6068cb2645844064ea0ff44e43e8323e0c383",
+    "alvr/common/src/average.rs": "1eefcc36dc01b0e4a14379960e35747a3565196172546ff0571cf4a4c1883f59",
+    "alvr/common/src/c_api.rs": "8e77c9331769c6668efd006802d937e9d3cebfbb01936dbcb72c148fb7de17aa",
+    "alvr/common/src/connection_result.rs": "da14e3ca0cbaa47b9f1f06c7f6efaaa22bfac4a402c858648f02484b0228b5ae",
+    "alvr/common/src/inputs.rs": "286ff17e8f3dd095afa8822622dae3604b9ec32c6f86b5ef8410ef7852ef3457",
+    "alvr/common/src/lib.rs": "82f93b086ab32c3ff242f1d2d06df0908f0ccc88fd1c13f548478de6d1d05509",
+    "alvr/common/src/logging.rs": "4be5bbe6a802f9d73d7eb78510c0fc7c0ebedd9ea385e50e089c8108e43db927",
+    "alvr/common/src/primitives.rs": "02ac970de907965bbba350247dd56db7a0afcc2e1dd76da21990b72c25bb94cf",
+    "alvr/common/src/version.rs": "4e9412336ce3d6cd2eed0f31eb71f819c1393b4c986be1031671eea3ebee61e2",
+    "alvr/events/src/lib.rs": "0e3f60c8c10909cec00c08cbc1a383a9fedde13d2b4c88951c684138156a110d",
+    "alvr/filesystem/build.rs": "601ae15a732a6539f1472f7d3569679b59766e82ac18ccc2fbff692ab6a45f93",
+    "alvr/filesystem/src/lib.rs": "dcda24be7ec1fce92010530f84bda899d806ba5209b04dc8bb2126b370e284e9",
+    "alvr/graphics/src/lib.rs": "0535de79940668fcf6c7b136a0d581edf4ece9867d0b8e01c2bd1552a2b8671b",
+    "alvr/graphics/src/lobby.rs": "83238f5ece56bd278179d4562dedefb2b087215ddc0bbff512f3dd0abd1c9e53",
+    "alvr/graphics/src/staging.rs": "488c8628b6e1f75338933f555d7da945a1d42fd8080cde0e8cec779d359dea86",
+    "alvr/graphics/src/stream.rs": "4e927476b3594e515d65447e73eb1c1cb83926b02f89b16d6ac969ca454cce07",
+    "alvr/packets/src/lib.rs": "b302ef84a245a34d6bbaef7d66e2825e0035b7a67e4317531845b6fdb72e0cea",
+    "alvr/session/build.rs": "a0566dd94eb72740be3f0262a86b95d19dc45f8bdf7d5221ffe389571c349044",
+    "alvr/session/src/lib.rs": "a438cd93aaae132eb63fc1474c97aa078c5dd0a463792f580451973e0ab1b270",
+    "alvr/session/src/settings.rs": "35950f9594bea6c9ebe80ecb5aa9b21dfc2e3efa392d5d6ec18b7f5af5092218",
+    "alvr/sockets/src/control_socket.rs": "d26009b41c26caab4032bd8c3774750834769e67e5d837b53244e24786733e92",
+    "alvr/sockets/src/vrostbridge_liveness.rs": "7431cc1e967a7d936ba6b66e271943ef19a79f577ad2d53d4bd8f0bc748d716b",
+    "alvr/sockets/src/lib.rs": "d348f82493a2e6f09699386bdd1b060abc605d512104245743d7d182e9dfd195",
+    "alvr/sockets/src/stream_socket/mod.rs": "1a560fec6a7b272cfcd5b88d325615bc2272962b880cd53ee3fa6eb7ef103160",
+    "alvr/sockets/src/stream_socket/tcp.rs": "350c1731dd7c65bc533c160296c6985b08f4b0f55ea8dadb438eaf9c23a64510",
+    "alvr/sockets/src/stream_socket/udp.rs": "19f4d701ca9fa32e536913d64939751b537b271ab7e1f7621ed417d591245875",
+    "client/transport/defaults.rs": "1ceed289acf7be218e91d9f295372f64da68f9543cbd4aa905c0105b55140f28",
+    "client/transport/lib.rs": "27a294f3350aee1451bd89710b655298c48ffb709164fbe2da60fa573a33fc52"
+  },
+  "transport_rebuild_evidence": "native-linux-transport-0.2.14.txt",
+  "transport_clean_evidence": "native-linux-transport-clean-0.2.14.txt"
+}

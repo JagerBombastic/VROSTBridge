@@ -1,0 +1,13 @@
+{
+  "release": "0.2.9",
+  "native_build": "C++17 rebuilt from current source and pinned FFmpeg 6.1.4 public headers; original shared libraries retained",
+  "native_compiler_flags": "-O2 -pthread; basename-only shared-library dependencies; RUNPATH=$ORIGIN:$ORIGIN/lib",
+  "python": "178 passed, 2 skipped (180 total)",
+  "cpp": "5 contract groups passed",
+  "desktop_js": "passed",
+  "linux_package": "12 lifecycle groups passed including real 0.2.8 upgrade",
+  "limits": [
+    "No Windows execution or Explorer visual validation",
+    "No headset streaming or physical IPD validation"
+  ]
+}

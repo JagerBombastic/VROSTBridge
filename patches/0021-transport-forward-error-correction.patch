@@ -1,0 +1,913 @@
+diff --git a/alvr/client_core/src/vrostbridge_stream.rs b/alvr/client_core/src/vrostbridge_stream.rs
+index 37ea789e..dd7bf5cf 100644
+--- a/alvr/client_core/src/vrostbridge_stream.rs
++++ b/alvr/client_core/src/vrostbridge_stream.rs
+@@ -34,6 +34,10 @@ pub struct StreamCounterSnapshot {
+     pub idr_requests: u64,
+     pub decoder_saturation: u64,
+     pub skipped_until_idr: u64,
++    /// Video frames and game-audio packets rebuilt from parity (patch 0021), since the client
++    /// started: each one would otherwise have been lost.
++    pub fec_video_recovered: u64,
++    pub fec_audio_recovered: u64,
+ }
+ 
+ impl StreamCounters {
+@@ -44,6 +48,8 @@ impl StreamCounters {
+             idr_requests: self.idr_requests.load(Ordering::Relaxed),
+             decoder_saturation: self.decoder_saturation.load(Ordering::Relaxed),
+             skipped_until_idr: self.skipped_until_idr.load(Ordering::Relaxed),
++            fec_video_recovered: alvr_sockets::fec_recovered_packets(alvr_packets::VIDEO),
++            fec_audio_recovered: alvr_sockets::fec_recovered_packets(alvr_packets::AUDIO),
+         }
+     }
+ 
+diff --git a/alvr/server_core/src/connection.rs b/alvr/server_core/src/connection.rs
+index 6ffb5292..f444dbcd 100644
+--- a/alvr/server_core/src/connection.rs
++++ b/alvr/server_core/src/connection.rs
+@@ -936,7 +936,7 @@ fn connection_pipeline(
+     statistics.configure_vsync_lock(lock_enabled, lock_margin_ms);
+     // VROSTBridge: pacing, intra-refresh and gaze foveation options (vrostbridge-stream.json).
+     let vrost_session_file = crate::FILESYSTEM_LAYOUT.get().map(|layout| layout.session());
+-    crate::vrostbridge_stream::load_and_apply(vrost_session_file.as_deref(), VIDEO);
++    crate::vrostbridge_stream::load_and_apply(vrost_session_file.as_deref(), VIDEO, AUDIO);
+     crate::vrostbridge_gaze::clear();
+     *ctx.statistics_manager.write() = Some(statistics);
+     *ctx.bitrate_manager.lock() =
+diff --git a/alvr/server_core/src/vrostbridge_stream.rs b/alvr/server_core/src/vrostbridge_stream.rs
+index acb46466..c36744cc 100644
+--- a/alvr/server_core/src/vrostbridge_stream.rs
++++ b/alvr/server_core/src/vrostbridge_stream.rs
+@@ -27,6 +27,10 @@
+ //!   gaze stays within this fraction of the region's half-size from its middle, and moves
+ //!   (centred on the gaze) once the gaze leaves that zone. 0 moves it with every change
+ //!   larger than `gaze_deadband`, as before.
++//! - `fec_video_group` and `fec_audio_group` (VROSTBridge 1.0.0.9, patch 0021): send a parity
++//!   shard for every this many data shards of a video frame or a game-audio packet, so the client
++//!   rebuilds a lost shard instead of losing the frame (a keyframe request and a short freeze) or a
++//!   piece of sound. 0 (or absent) sends none, as before. See alvr_sockets' vrostbridge_fec.rs.
+ 
+ use alvr_common::{info, parking_lot::RwLock};
+ use std::path::Path;
+@@ -51,6 +55,9 @@ pub struct StreamConfig {
+     /// Comfort zone, a fraction of the region's half-size, inside which gaze does not move
+     /// the region (patch 0019).
+     pub gaze_comfort: f32,
++    /// Data shards per parity shard for video and game audio; 0 sends no parity (patch 0021).
++    pub fec_video_group: u32,
++    pub fec_audio_group: u32,
+ }
+ 
+ impl Default for StreamConfig {
+@@ -65,6 +72,8 @@ impl Default for StreamConfig {
+             host_prediction: true,
+             gaze_hold_ms: DEFAULT_GAZE_HOLD_MS,
+             gaze_comfort: DEFAULT_GAZE_COMFORT,
++            fec_video_group: 0,
++            fec_audio_group: 0,
+         }
+     }
+ }
+@@ -84,6 +93,8 @@ static CONFIG: RwLock<StreamConfig> = RwLock::new(StreamConfig {
+     host_prediction: true,
+     gaze_hold_ms: DEFAULT_GAZE_HOLD_MS,
+     gaze_comfort: DEFAULT_GAZE_COMFORT,
++    fec_video_group: 0,
++    fec_audio_group: 0,
+ });
+ 
+ pub fn parse(text: &str) -> StreamConfig {
+@@ -123,12 +134,21 @@ pub fn parse(text: &str) -> StreamConfig {
+     {
+         config.gaze_comfort = comfort as f32;
+     }
++    let fec_group = |key: &str| {
++        value
++            .get(key)
++            .and_then(|v| v.as_u64())
++            .filter(|group| (u64::from(alvr_sockets::MIN_FEC_GROUP)..=u64::from(alvr_sockets::MAX_FEC_GROUP)).contains(group))
++            .map_or(0, |group| group as u32)
++    };
++    config.fec_video_group = fec_group("fec_video_group");
++    config.fec_audio_group = fec_group("fec_audio_group");
+     config
+ }
+ 
+-/// Reads the companion's file (absent → defaults), applies pacing to the video stream and keeps
+-/// the options for the encoder and foveation code.
+-pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16) -> StreamConfig {
++/// Reads the companion's file (absent → defaults), applies pacing to the video stream and parity
++/// to the video and game-audio streams, and keeps the options for the encoder and foveation code.
++pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16, audio_stream: u16) -> StreamConfig {
+     let config = session_file
+         .map(|path| path.with_file_name(CONFIG_FILE))
+         .and_then(|path| std::fs::read_to_string(path).ok())
+@@ -136,8 +156,10 @@ pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16) -> StreamC
+         .unwrap_or_default();
+     *CONFIG.write() = config;
+     let paced = alvr_sockets::set_stream_pacing(video_stream, config.pacing_mbps);
++    alvr_sockets::set_stream_fec(video_stream, config.fec_video_group);
++    alvr_sockets::set_stream_fec(audio_stream, config.fec_audio_group);
+     info!(
+-        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={} gaze_hold_ms={} gaze_comfort={:.2} optical_centre={} host_prediction={}",
++        "VROST_STREAM_CONFIG pacing_mbps={} paced={} intra_refresh={} gaze_foveation={} gaze_deadband={:.3} gaze_stale_ms={} gaze_hold_ms={} gaze_comfort={:.2} optical_centre={} host_prediction={} fec_video_group={} fec_audio_group={}",
+         config.pacing_mbps,
+         u8::from(paced),
+         u8::from(config.intra_refresh),
+@@ -147,7 +169,9 @@ pub fn load_and_apply(session_file: Option<&Path>, video_stream: u16) -> StreamC
+         config.gaze_hold_ms,
+         config.gaze_comfort,
+         u8::from(config.optical_centre),
+-        u8::from(config.host_prediction)
++        u8::from(config.host_prediction),
++        config.fec_video_group,
++        config.fec_audio_group
+     );
+     config
+ }
+@@ -190,6 +214,18 @@ mod tests {
+         assert_eq!(config.gaze_stale_ms, 120);
+     }
+ 
++    #[test]
++    fn parity_groups_default_off_and_bounded() {
++        // Patch 0021: no parity unless the companion asks; out-of-range values are off.
++        assert_eq!(parse("{}").fec_video_group, 0);
++        assert_eq!(parse("not json").fec_audio_group, 0);
++        let config = parse(r#"{"fec_video_group": 10, "fec_audio_group": 1}"#);
++        assert_eq!((config.fec_video_group, config.fec_audio_group), (10, 1));
++        assert_eq!(parse(r#"{"fec_video_group": 65}"#).fec_video_group, 0);
++        assert_eq!(parse(r#"{"fec_video_group": 0}"#).fec_video_group, 0);
++        assert_eq!(parse(r#"{"fec_video_group": "10"}"#).fec_video_group, 0);
++    }
++
+     #[test]
+     fn gaze_hold_defaults_and_bounds() {
+         // Patch 0017: a companion that does not write it gets the one-second hold.
+diff --git a/alvr/sockets/src/lib.rs b/alvr/sockets/src/lib.rs
+index 68954a0c..976663f3 100644
+--- a/alvr/sockets/src/lib.rs
++++ b/alvr/sockets/src/lib.rs
+@@ -4,6 +4,8 @@ mod vrostbridge_liveness;
+ pub use vrostbridge_liveness::*;
+ mod vrostbridge_pacing;
+ pub use vrostbridge_pacing::*;
++mod vrostbridge_fec;
++pub use vrostbridge_fec::*;
+ 
+ use alvr_common::{AnyhowToCon, ConResult, ToCon, anyhow::Result, con_bail, info};
+ use alvr_packets::{ClientControlPacket, ServerControlPacket};
+diff --git a/alvr/sockets/src/stream_socket/udp.rs b/alvr/sockets/src/stream_socket/udp.rs
+index 82897138..525544be 100644
+--- a/alvr/sockets/src/stream_socket/udp.rs
++++ b/alvr/sockets/src/stream_socket/udp.rs
+@@ -62,6 +62,9 @@ pub struct MultiplexedUdpWriter {
+     max_packet_size: usize,
+     // VROSTBridge: optional send-rate pacing (see vrostbridge_pacing.rs).
+     pacer: crate::Pacer,
++    // VROSTBridge: parity per interleaved group (see vrostbridge_fec.rs), reused between packets.
++    parity: Vec<u8>,
++    parity_datagram: Vec<u8>,
+ }
+ 
+ impl MultiplexedSocketWriter for MultiplexedUdpWriter {
+@@ -76,12 +79,31 @@ impl MultiplexedSocketWriter for MultiplexedUdpWriter {
+         let shards_count = payload_size.div_ceil(max_shard_size);
+         let pacing = crate::stream_pacing(stream_id);
+ 
++        // VROSTBridge: parity groups. A shard's payload is XORed into its group before the next
++        // shard's prefix is written over the end of it.
++        let groups = crate::stream_fec_group(stream_id)
++            .map(|group| crate::fec_groups(shards_count, group))
++            .unwrap_or(0);
++        let parity_len = usize::min(max_shard_size, payload_size);
++        if groups > 0 {
++            self.parity.clear();
++            self.parity.resize(groups * parity_len, 0);
++        }
++
+         for shard_idx in 0..shards_count {
+             // this overlaps with the previous shard, this is intended behavior and allows to
+             // reduce allocations
+             let shard_start_position = shard_idx * max_shard_size;
+             let shard_size = usize::min(max_shard_size, payload_size - shard_start_position);
+ 
++            if groups > 0 {
++                let group = shard_idx % groups;
++                crate::xor_into(
++                    &mut self.parity[group * parity_len..][..shard_size],
++                    &buffer[SHARD_PREFIX_SIZE + shard_start_position..][..shard_size],
++                );
++            }
++
+             let shard_view = &mut buffer[shard_start_position..][..SHARD_PREFIX_SIZE + shard_size];
+ 
+             shard_view[0..2].copy_from_slice(&stream_id.to_le_bytes());
+@@ -95,6 +117,26 @@ impl MultiplexedSocketWriter for MultiplexedUdpWriter {
+             self.inner.send(shard_view)?;
+         }
+ 
++        for group in 0..groups {
++            let datagram = &mut self.parity_datagram;
++            datagram.clear();
++            datagram.extend_from_slice(&(stream_id | crate::FEC_STREAM_FLAG).to_le_bytes());
++            datagram.extend_from_slice(&packet_index.to_le_bytes());
++            datagram.extend_from_slice(&(shards_count as u32).to_le_bytes());
++            datagram.extend_from_slice(&(group as u32).to_le_bytes());
++            datagram.extend_from_slice(&(payload_size as u32).to_le_bytes());
++            datagram.extend_from_slice(&(groups as u32).to_le_bytes());
++            datagram.extend_from_slice(&self.parity[group * parity_len..][..parity_len]);
++
++            if let Some(rate) = pacing {
++                self.pacer.pace(datagram.len(), rate);
++            }
++            // Parity is best effort: a failed send must not fail the packet it protects.
++            if self.inner.send(datagram).is_ok() {
++                crate::count_parity_sent(stream_id);
++            }
++        }
++
+         Ok(())
+     }
+ }
+@@ -109,12 +151,219 @@ struct InProgressPacket {
+     buffer_size: usize, // size of the packet counting prefix
+     shards_count: usize,
+     received_shard_indices: HashSet<usize>,
++    // VROSTBridge FEC (vrostbridge_fec.rs): parity received so far, by group.
++    fec_groups: usize,
++    payload_size: usize,
++    parity: HashMap<usize, Vec<u8>>,
++    recovered_shards: u64,
++}
++
++impl InProgressPacket {
++    /// Rebuilds the one missing data shard of `group` from its parity, if exactly one is missing.
++    fn recover(&mut self, group: usize, max_shard: usize) -> bool {
++        let (groups, shards) = (self.fec_groups, self.shards_count);
++        if groups == 0 || group >= groups {
++            return false;
++        }
++        let Some(parity) = self.parity.get(&group) else {
++            return false;
++        };
++        let mut missing = None;
++        for index in (group..shards).step_by(groups) {
++            if !self.received_shard_indices.contains(&index) {
++                if missing.is_some() {
++                    return false;
++                }
++                missing = Some(index);
++            }
++        }
++        let Some(missing) = missing else {
++            return false;
++        };
++
++        let mut rebuilt = parity.clone();
++        let base = self.buffer.as_ptr();
++        for index in (group..shards).step_by(groups) {
++            if index != missing {
++                let len = crate::shard_len(index, self.payload_size, max_shard);
++                // Safety: a received shard's payload was written into the reserved capacity at
++                // this offset (see the receive path), so these bytes are initialised.
++                let data = unsafe {
++                    std::slice::from_raw_parts(base.add(SHARD_PREFIX_SIZE + index * max_shard), len)
++                };
++                crate::xor_into(&mut rebuilt, data);
++            }
++        }
++
++        let len = crate::shard_len(missing, self.payload_size, max_shard);
++        let start = SHARD_PREFIX_SIZE + missing * max_shard;
++        let spare = self.buffer.spare_capacity_mut();
++        if len > rebuilt.len() || start + len > spare.len() {
++            return false;
++        }
++        for (target, byte) in spare[start..start + len].iter_mut().zip(&rebuilt[..len]) {
++            target.write(*byte);
++        }
++        if missing == 0 {
++            // The first shard also brings the (never read) prefix area: keep it initialised.
++            for target in &mut spare[..SHARD_PREFIX_SIZE] {
++                target.write(0);
++            }
++        }
++        self.buffer_size = usize::max(self.buffer_size, start + len);
++        self.received_shard_indices.insert(missing);
++        self.recovered_shards += 1;
++        true
++    }
++}
++
++/// Sends a packet that has every shard on to its stream, then drops older unfinished ones.
++fn finish_if_complete(
++    in_progress_packets: &mut HashMap<u32, InProgressPacket>,
++    packet_index: u32,
++    queues: &StreamRecvQueues,
++    stream_id: u16,
++    last_finished: &mut u32,
++) {
++    let complete = in_progress_packets
++        .get(&packet_index)
++        .is_some_and(|packet| packet.received_shard_indices.len() == packet.shards_count);
++    if !complete {
++        return;
++    }
++
++    if let Some(mut packet) = in_progress_packets.remove(&packet_index) {
++        // All writing was done to uninit capacity, here we set the final buffer length
++        unsafe { packet.buffer.set_len(packet.buffer_size) };
++
++        if packet.recovered_shards > 0 {
++            crate::count_recovered(stream_id, packet.recovered_shards);
++        }
++        if super::wrapping_cmp(packet_index, *last_finished) == Ordering::Greater {
++            *last_finished = packet_index;
++        }
++
++        queues
++            .packet_queue
++            .send(ReconstructedPacket {
++                index: packet_index,
++                buffer: packet.buffer,
++            })
++            .ok();
++    }
++
++    // Discard older in-progress packets
++    while let Some((idx, _)) = in_progress_packets
++        .iter()
++        .find(|(idx, _)| super::wrapping_cmp(**idx, packet_index) == Ordering::Less)
++    {
++        let idx = *idx; // fix borrow rule
++        let packet = in_progress_packets.remove(&idx).unwrap();
++
++        // Recycle buffer
++        queues.used_buffer_sender.send(packet.buffer).ok();
++    }
+ }
+ 
+ pub struct MultiplexedUdpReader {
+     inner: Socket,
+     max_packet_size: usize,
+     in_progress_packets: HashMap<u16, HashMap<u32, InProgressPacket>>,
++    // VROSTBridge FEC: one parity datagram at a time, and each stream's newest finished packet.
++    parity_scratch: Vec<u8>,
++    last_finished: HashMap<u16, u32>,
++}
++
++impl MultiplexedUdpReader {
++    /// VROSTBridge FEC: a parity datagram for `stream_id`'s packet `packet_index`. It is kept while
++    /// that packet is unfinished and may rebuild the one missing shard of its group. A packet
++    /// newer than the last one finished whose data shards were all lost starts from its parity
++    /// (with one shard per group, every shard can come back that way).
++    fn recv_parity(
++        &mut self,
++        stream_id: u16,
++        packet_index: u32,
++        shards_count: usize,
++        group: usize,
++        stream_queues: &HashMap<u16, StreamRecvQueues>,
++    ) -> ConResult {
++        let max_shard = self.max_packet_size - SHARD_PREFIX_SIZE;
++
++        let Some(queues) = stream_queues.get(&stream_id) else {
++            self.inner.recv(&mut []).ok();
++            return alvr_common::try_again();
++        };
++
++        self.parity_scratch
++            .resize(SHARD_PREFIX_SIZE + crate::PARITY_HEADER_SIZE + max_shard + 64, 0);
++        // Safety: u8 and MaybeUninit<u8> have the same layout, and the bytes are initialised.
++        let scratch = unsafe {
++            &mut *(ptr::from_mut(self.parity_scratch.as_mut_slice()) as *mut [MaybeUninit<u8>])
++        };
++        let size = self.inner.recv(scratch).to_con()?;
++        let header_end = SHARD_PREFIX_SIZE + crate::PARITY_HEADER_SIZE;
++        if size <= header_end {
++            return alvr_common::try_again();
++        }
++        let datagram = &self.parity_scratch[..size];
++        let payload_size =
++            u32::from_le_bytes(datagram[SHARD_PREFIX_SIZE..][..4].try_into().unwrap()) as usize;
++        let groups =
++            u32::from_le_bytes(datagram[SHARD_PREFIX_SIZE + 4..][..4].try_into().unwrap()) as usize;
++        let parity = &datagram[header_end..];
++        if payload_size == 0
++            || payload_size.div_ceil(max_shard) != shards_count
++            || groups == 0
++            || groups > shards_count
++            || group >= groups
++            || parity.len() != usize::min(max_shard, payload_size)
++        {
++            return alvr_common::try_again();
++        }
++
++        let in_progress_packets = self.in_progress_packets.entry(stream_id).or_default();
++        if !in_progress_packets.contains_key(&packet_index) {
++            // Finished already (nothing was lost) or older: nothing to do. Newer: every data
++            // shard was lost so far, so the packet starts here.
++            let newer = self.last_finished.get(&stream_id).is_none_or(|last| {
++                super::wrapping_cmp(packet_index, *last) == Ordering::Greater
++            });
++            let Some(mut buffer) = newer.then(|| queues.used_buffer_receiver.try_recv().ok()).flatten() else {
++                return alvr_common::try_again();
++            };
++            buffer.clear();
++            buffer.reserve(SHARD_PREFIX_SIZE + max_shard * shards_count);
++            in_progress_packets.insert(
++                packet_index,
++                InProgressPacket {
++                    buffer,
++                    buffer_size: 0,
++                    shards_count,
++                    received_shard_indices: HashSet::with_capacity(shards_count),
++                    fec_groups: 0,
++                    payload_size: 0,
++                    parity: HashMap::new(),
++                    recovered_shards: 0,
++                },
++            );
++        }
++        let packet = in_progress_packets.get_mut(&packet_index).unwrap();
++        if packet.shards_count != shards_count
++            || (packet.fec_groups != 0
++                && (packet.fec_groups != groups || packet.payload_size != payload_size))
++        {
++            return alvr_common::try_again();
++        }
++
++        packet.fec_groups = groups;
++        packet.payload_size = payload_size;
++        packet.parity.entry(group).or_insert_with(|| parity.to_vec());
++        packet.recover(group, max_shard);
++        let last_finished = self.last_finished.entry(stream_id).or_insert(packet_index.wrapping_sub(1));
++        finish_if_complete(in_progress_packets, packet_index, queues, stream_id, last_finished);
++
++        Ok(())
++    }
+ }
+ 
+ impl MultiplexedSocketReader for MultiplexedUdpReader {
+@@ -150,6 +399,16 @@ impl MultiplexedSocketReader for MultiplexedUdpReader {
+             return discard_and_try_again(&self.inner);
+         }
+ 
++        if stream_id & crate::FEC_STREAM_FLAG != 0 {
++            return self.recv_parity(
++                stream_id & !crate::FEC_STREAM_FLAG,
++                packet_index,
++                maybe_shards_count,
++                shard_index,
++                stream_queues,
++            );
++        }
++
+         let Some(queues) = stream_queues.get(&stream_id) else {
+             return discard_and_try_again(&self.inner);
+         };
+@@ -178,6 +437,10 @@ impl MultiplexedSocketReader for MultiplexedUdpReader {
+                     shards_count: maybe_shards_count,
+                     // todo: find a way to skipping this allocation
+                     received_shard_indices: HashSet::with_capacity(maybe_shards_count),
++                    fec_groups: 0,
++                    payload_size: 0,
++                    parity: HashMap::new(),
++                    recovered_shards: 0,
+                 })
+         } else {
+             // This branch may be hit in case the thread related to the stream hangs for some reason
+@@ -220,34 +483,16 @@ impl MultiplexedSocketReader for MultiplexedUdpReader {
+             .received_shard_indices
+             .insert(shard_index);
+ 
+-        // Check if packet is complete (and not dummy) and send
+-        if in_progress_packet.received_shard_indices.len() == in_progress_packet.shards_count {
+-            if let Some(mut packet) = in_progress_packets.remove(&packet_index) {
+-                // All writing was done to uninit capacity, here we set the final buffer length
+-                unsafe { packet.buffer.set_len(packet.buffer_size) };
+-
+-                queues
+-                    .packet_queue
+-                    .send(ReconstructedPacket {
+-                        index: packet_index,
+-                        buffer: packet.buffer,
+-                    })
+-                    .ok();
+-            }
+-
+-            // Discard older in-progress packets
+-            while let Some((idx, _)) = in_progress_packets
+-                .iter()
+-                .find(|(idx, _)| super::wrapping_cmp(**idx, packet_index) == Ordering::Less)
+-            {
+-                let idx = *idx; // fix borrow rule
+-                let packet = in_progress_packets.remove(&idx).unwrap();
+-
+-                // Recycle buffer
+-                queues.used_buffer_sender.send(packet.buffer).ok();
+-            }
++        // VROSTBridge FEC: parity that arrived before this shard may now complete its group.
++        if in_progress_packet.fec_groups > 0 {
++            let group = shard_index % in_progress_packet.fec_groups;
++            in_progress_packet.recover(group, max_shard_data_size);
+         }
+ 
++        // Check if packet is complete (and not dummy) and send
++        let last_finished = self.last_finished.entry(stream_id).or_insert(packet_index.wrapping_sub(1));
++        finish_if_complete(in_progress_packets, packet_index, queues, stream_id, last_finished);
++
+         Ok(())
+     }
+ }
+@@ -263,13 +508,227 @@ pub fn split_multiplexed(
+         inner: socket.try_clone()?,
+         max_packet_size,
+         pacer: crate::Pacer::default(),
++        parity: vec![],
++        parity_datagram: vec![],
+     };
+ 
+     let reader = MultiplexedUdpReader {
+         inner: socket.into(),
+         max_packet_size,
+         in_progress_packets: HashMap::new(),
++        parity_scratch: vec![],
++        last_finished: HashMap::new(),
+     };
+ 
+     Ok((Box::new(writer), Box::new(reader)))
+ }
++
++#[cfg(test)]
++mod vrostbridge_fec_tests {
++    //! VROSTBridge: the parity shards rebuild lost shards end to end over real UDP sockets. A relay
++    //! socket sits between writer and reader and drops chosen datagrams.
++    use super::*;
++    use std::{net::SocketAddr, sync::mpsc};
++
++    const MAX_PACKET: usize = 64; // 50-byte shards keep the test packets small
++
++    struct Link {
++        stream: u16,
++        writer: MultiplexedUdpWriter,
++        reader: MultiplexedUdpReader,
++        relay: UdpSocket,
++        reader_addr: SocketAddr,
++        queues: HashMap<u16, StreamRecvQueues>,
++        packets: mpsc::Receiver<ReconstructedPacket>,
++    }
++
++    fn make_link(stream: u16) -> Link {
++        let relay = UdpSocket::bind("127.0.0.1:0").unwrap();
++        relay.set_read_timeout(Some(Duration::from_millis(100))).unwrap();
++        let sender = UdpSocket::bind("127.0.0.1:0").unwrap();
++        sender.connect(relay.local_addr().unwrap()).unwrap();
++        let receiver = UdpSocket::bind("127.0.0.1:0").unwrap();
++        receiver.set_read_timeout(Some(Duration::from_millis(30))).unwrap();
++        let reader_addr = receiver.local_addr().unwrap();
++
++        let (packet_queue, packets) = mpsc::channel();
++        let (used_buffer_sender, used_buffer_receiver) = mpsc::channel();
++        for _ in 0..4 {
++            used_buffer_sender.send(vec![]).unwrap();
++        }
++        let mut queues = HashMap::new();
++        queues.insert(stream, StreamRecvQueues { used_buffer_sender, used_buffer_receiver, packet_queue });
++
++        Link {
++            stream,
++            writer: MultiplexedUdpWriter {
++                inner: sender,
++                max_packet_size: MAX_PACKET,
++                pacer: crate::Pacer::default(),
++                parity: vec![],
++                parity_datagram: vec![],
++            },
++            reader: MultiplexedUdpReader {
++                inner: receiver.into(),
++                max_packet_size: MAX_PACKET,
++                in_progress_packets: HashMap::new(),
++                parity_scratch: vec![],
++                last_finished: HashMap::new(),
++            },
++            relay,
++            reader_addr,
++            queues,
++            packets,
++        }
++    }
++
++    fn payload(len: usize, seed: u8) -> Vec<u8> {
++        (0..len).map(|i| (i as u8).wrapping_mul(31).wrapping_add(seed)).collect()
++    }
++
++    /// Sends one packet, forwards the datagrams `keep` accepts (in order, or reordered by
++    /// `order`), and returns what the reader delivered for that packet.
++    fn transfer(
++        link: &mut Link,
++        index: u32,
++        data: &[u8],
++        keep: impl Fn(&[u8]) -> bool,
++        reorder: bool,
++    ) -> Option<Vec<u8>> {
++        let mut buffer = vec![0; SHARD_PREFIX_SIZE];
++        buffer.extend_from_slice(data);
++        link.writer.send(link.stream, index, &mut buffer).unwrap();
++
++        let mut datagrams = vec![];
++        let mut scratch = [0u8; 2048];
++        while let Ok(size) = link.relay.recv(&mut scratch) {
++            datagrams.push(scratch[..size].to_vec());
++        }
++        if reorder {
++            datagrams.reverse();
++        }
++        for datagram in datagrams.iter().filter(|d| keep(d)) {
++            link.relay.send_to(datagram, link.reader_addr).unwrap();
++        }
++        for _ in 0..(datagrams.len() + 4) {
++            let _ = link.reader.recv(&link.queues);
++        }
++        let mut delivered = None;
++        while let Ok(packet) = link.packets.try_recv() {
++            if packet.index == index {
++                delivered = Some(packet.buffer[SHARD_PREFIX_SIZE..].to_vec());
++            }
++        }
++        delivered
++    }
++
++    fn is_parity(datagram: &[u8]) -> bool {
++        u16::from_le_bytes([datagram[0], datagram[1]]) & crate::FEC_STREAM_FLAG != 0
++    }
++
++    fn shard(datagram: &[u8]) -> usize {
++        u32::from_le_bytes(datagram[10..14].try_into().unwrap()) as usize
++    }
++
++    #[test]
++    fn one_lost_shard_per_group_is_rebuilt() {
++        let mut link = make_link(11);
++        crate::set_stream_fec(11, 4);
++        let data = payload(50 * 9 + 17, 3); // 10 shards, the last one short: 3 groups
++        let before = crate::fec_recovered_packets(11);
++        // Shards 1, 2 and 6 are in three different groups (i mod 3).
++        let got = transfer(&mut link, 1, &data, |d| is_parity(d) || ![1, 2, 6].contains(&shard(d)), false);
++        assert_eq!(got.as_deref(), Some(&data[..]));
++        assert_eq!(crate::fec_recovered_packets(11), before + 1);
++
++        // The short last shard (9) and the first shard (0, group 0) are rebuilt too.
++        let got = transfer(&mut link, 2, &data, |d| is_parity(d) || ![9].contains(&shard(d)), false);
++        assert_eq!(got.as_deref(), Some(&data[..]));
++        let got = transfer(&mut link, 3, &data, |d| is_parity(d) || shard(d) != 0, false);
++        assert_eq!(got.as_deref(), Some(&data[..]));
++        crate::set_stream_fec(11, 0);
++    }
++
++    #[test]
++    fn two_lost_shards_in_one_group_stay_lost_and_parity_alone_changes_nothing() {
++        let mut link = make_link(12);
++        crate::set_stream_fec(12, 4);
++        let data = payload(50 * 9 + 17, 5);
++        // Shards 0 and 3 are both in group 0 of 3: the packet cannot be rebuilt.
++        assert_eq!(transfer(&mut link, 1, &data, |d| is_parity(d) || ![0, 3].contains(&shard(d)), false), None);
++        // Losing only parity costs nothing; a later packet still arrives whole.
++        assert_eq!(transfer(&mut link, 2, &data, |d| !is_parity(d), false).as_deref(), Some(&data[..]));
++        assert_eq!(transfer(&mut link, 3, &data, |_| true, false).as_deref(), Some(&data[..]));
++        crate::set_stream_fec(12, 0);
++    }
++
++    #[test]
++    fn single_shard_packets_and_reordered_datagrams() {
++        let mut link = make_link(13);
++        crate::set_stream_fec(13, 2);
++        // One short shard: its parity is a copy, so losing the data still delivers it.
++        let small = payload(20, 9);
++        assert_eq!(transfer(&mut link, 1, &small, |d| is_parity(d), false).as_deref(), Some(&small[..]));
++        // Parity arriving before the data shards (reversed order) still rebuilds a lost one.
++        let data = payload(50 * 4 + 1, 11); // 5 shards, group size 2: 3 groups
++        assert_eq!(transfer(&mut link, 2, &data, |d| is_parity(d) || shard(d) != 2, true).as_deref(), Some(&data[..]));
++        crate::set_stream_fec(13, 0);
++    }
++
++    #[test]
++    fn duplicated_shards_survive_losing_all_data_and_late_parity_makes_no_duplicate() {
++        let mut link = make_link(14);
++        crate::set_stream_fec(14, 1); // one parity per shard: a copy (game audio)
++        let data = payload(50 + 30, 13); // two shards
++        assert_eq!(transfer(&mut link, 1, &data, |d| is_parity(d), false).as_deref(), Some(&data[..]));
++        // Everything arrives: the packet is delivered once, and its parity, arriving after it
++        // was finished, does not deliver it again.
++        let mut buffer = vec![0; SHARD_PREFIX_SIZE];
++        buffer.extend_from_slice(&data);
++        link.writer.send(14, 2, &mut buffer).unwrap();
++        let mut scratch = [0u8; 2048];
++        while let Ok(size) = link.relay.recv(&mut scratch) {
++            link.relay.send_to(&scratch[..size], link.reader_addr).unwrap();
++        }
++        for _ in 0..8 {
++            let _ = link.reader.recv(&link.queues);
++        }
++        let delivered: Vec<u32> = link.packets.try_iter().map(|packet| packet.index).collect();
++        assert_eq!(delivered, vec![2]);
++        crate::set_stream_fec(14, 0);
++    }
++
++    #[test]
++    fn without_parity_the_wire_format_is_unchanged() {
++        let mut link = make_link(15);
++        crate::set_stream_fec(15, 0);
++        let data = payload(50 * 3, 1);
++        let mut buffer = vec![0; SHARD_PREFIX_SIZE];
++        buffer.extend_from_slice(&data);
++        link.writer.send(15, 1, &mut buffer).unwrap();
++        let mut scratch = [0u8; 2048];
++        let mut sizes = vec![];
++        while let Ok(size) = link.relay.recv(&mut scratch) {
++            assert!(!is_parity(&scratch[..size]));
++            sizes.push(size);
++        }
++        assert_eq!(sizes, vec![MAX_PACKET; 3]);
++        // A receiver for whom the parity stream is unknown (an older client) discards parity.
++        crate::set_stream_fec(15, 3);
++        let mut other = make_link(15);
++        other.queues.clear();
++        let mut buffer = vec![0; SHARD_PREFIX_SIZE];
++        buffer.extend_from_slice(&data);
++        other.writer.send(15, 1, &mut buffer).unwrap();
++        let mut forwarded = 0;
++        while let Ok(size) = other.relay.recv(&mut scratch) {
++            other.relay.send_to(&scratch[..size], other.reader_addr).unwrap();
++            forwarded += 1;
++        }
++        assert_eq!(forwarded, 4); // 3 data shards and 1 parity shard
++        for _ in 0..forwarded {
++            assert!(other.reader.recv(&other.queues).is_err());
++        }
++        crate::set_stream_fec(15, 0);
++    }
++}
+diff --git a/alvr/sockets/src/vrostbridge_fec.rs b/alvr/sockets/src/vrostbridge_fec.rs
+new file mode 100644
+index 00000000..269a5b7b
+--- /dev/null
++++ b/alvr/sockets/src/vrostbridge_fec.rs
+@@ -0,0 +1,155 @@
++//! VROSTBridge: forward error correction for unreliable streams (video and game audio).
++//!
++//! The pinned stream socket drops a whole packet when one of its shards is lost, and a lost
++//! video packet costs a keyframe request: the picture freezes for several frames while the
++//! keyframe is asked for, encoded and sent. On a wired home network single shards go missing
++//! now and then (a few in a million on a healthy path), and every one of them showed up as a
++//! short stutter. A lost game-audio packet made the audio break up in the same way.
++//!
++//! With FEC the sender adds parity shards after each packet: the data shards are dealt into
++//! interleaved groups (shard i belongs to group i mod groups) and each parity shard is the XOR
++//! of one group, so the receiver rebuilds any one missing shard per group. Interleaving makes a
++//! burst of up to `groups` consecutive lost shards recoverable too.
++//!
++//! Parity travels on its own stream ID (the data stream's ID with the top bit set). A receiver
++//! without this code has no queue for that ID and discards those datagrams, exactly as it
++//! discards any unknown stream, so either side can be older than the other. Parity is off
++//! unless the embedding application turns it on for a stream.
++//!
++//! Parity datagram: the usual 14-byte shard prefix (stream ID | FEC_STREAM_FLAG, packet index,
++//! data shard count, group index), then the packet's payload size (u32 LE) and the number of
++//! groups (u32 LE), then the XOR of the group's shards (each zero-padded), as long as the
++//! longest shard: min(max shard size, payload size).
++
++use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
++
++/// Set on the stream ID of a parity datagram.
++pub const FEC_STREAM_FLAG: u16 = 0x8000;
++/// Payload size (u32) and group count (u32) before the parity bytes.
++pub const PARITY_HEADER_SIZE: usize = 8;
++/// Accepted group sizes (data shards per parity shard). 1 duplicates every shard.
++pub const MIN_FEC_GROUP: u32 = 1;
++pub const MAX_FEC_GROUP: u32 = 64;
++
++const STREAMS: usize = 16;
++
++static GROUP: [AtomicU32; STREAMS] = [const { AtomicU32::new(0) }; STREAMS];
++static PARITY_SENT: [AtomicU64; STREAMS] = [const { AtomicU64::new(0) }; STREAMS];
++static RECOVERED_PACKETS: [AtomicU64; STREAMS] = [const { AtomicU64::new(0) }; STREAMS];
++static RECOVERED_SHARDS: [AtomicU64; STREAMS] = [const { AtomicU64::new(0) }; STREAMS];
++
++/// Sends parity for `stream_id` with `group` data shards per parity shard; 0 (or an
++/// out-of-range value) turns it off. Returns whether parity is on.
++pub fn set_stream_fec(stream_id: u16, group: u32) -> bool {
++    let Some(slot) = GROUP.get(usize::from(stream_id)) else {
++        return false;
++    };
++    let on = (MIN_FEC_GROUP..=MAX_FEC_GROUP).contains(&group);
++    slot.store(if on { group } else { 0 }, Ordering::Relaxed);
++    on
++}
++
++/// Data shards per parity shard for this stream, when parity is on.
++pub fn stream_fec_group(stream_id: u16) -> Option<usize> {
++    let group = GROUP.get(usize::from(stream_id))?.load(Ordering::Relaxed);
++    (group > 0).then_some(group as usize)
++}
++
++/// Number of interleaved groups for a packet of `shards` data shards.
++pub fn fec_groups(shards: usize, group: usize) -> usize {
++    if shards == 0 || group == 0 {
++        0
++    } else {
++        shards.div_ceil(group)
++    }
++}
++
++/// Size of data shard `index` of a packet with `payload_size` bytes cut into `max_shard`-byte shards.
++pub fn shard_len(index: usize, payload_size: usize, max_shard: usize) -> usize {
++    payload_size.saturating_sub(index * max_shard).min(max_shard)
++}
++
++/// `dst ^= src` over the shorter of the two.
++pub fn xor_into(dst: &mut [u8], src: &[u8]) {
++    for (d, s) in dst.iter_mut().zip(src) {
++        *d ^= *s;
++    }
++}
++
++/// Parity datagrams sent for this stream (sender side).
++pub fn fec_parity_sent(stream_id: u16) -> u64 {
++    PARITY_SENT.get(usize::from(stream_id)).map_or(0, |c| c.load(Ordering::Relaxed))
++}
++
++/// Packets of this stream completed only thanks to parity (receiver side).
++pub fn fec_recovered_packets(stream_id: u16) -> u64 {
++    RECOVERED_PACKETS.get(usize::from(stream_id)).map_or(0, |c| c.load(Ordering::Relaxed))
++}
++
++/// Shards of this stream rebuilt from parity (receiver side).
++pub fn fec_recovered_shards(stream_id: u16) -> u64 {
++    RECOVERED_SHARDS.get(usize::from(stream_id)).map_or(0, |c| c.load(Ordering::Relaxed))
++}
++
++pub(crate) fn count_parity_sent(stream_id: u16) {
++    if let Some(c) = PARITY_SENT.get(usize::from(stream_id)) {
++        c.fetch_add(1, Ordering::Relaxed);
++    }
++}
++
++pub(crate) fn count_recovered(stream_id: u16, shards: u64) {
++    if let Some(c) = RECOVERED_PACKETS.get(usize::from(stream_id)) {
++        c.fetch_add(1, Ordering::Relaxed);
++    }
++    if let Some(c) = RECOVERED_SHARDS.get(usize::from(stream_id)) {
++        c.fetch_add(shards, Ordering::Relaxed);
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn configuration_is_bounded_and_per_stream() {
++        assert!(set_stream_fec(9, 10));
++        assert_eq!(stream_fec_group(9), Some(10));
++        assert_eq!(stream_fec_group(8), None);
++        assert!(!set_stream_fec(9, 0));
++        assert_eq!(stream_fec_group(9), None);
++        assert!(!set_stream_fec(9, 65));
++        assert_eq!(stream_fec_group(9), None);
++        assert!(!set_stream_fec(200, 10));
++        assert_eq!(stream_fec_group(200), None);
++    }
++
++    #[test]
++    fn groups_and_shard_sizes() {
++        assert_eq!(fec_groups(0, 10), 0);
++        assert_eq!(fec_groups(1, 10), 1);
++        assert_eq!(fec_groups(10, 10), 1);
++        assert_eq!(fec_groups(11, 10), 2);
++        assert_eq!(fec_groups(48, 10), 5);
++        assert_eq!(shard_len(0, 3000, 1386), 1386);
++        assert_eq!(shard_len(2, 3000, 1386), 228);
++        assert_eq!(shard_len(3, 3000, 1386), 0);
++    }
++
++    #[test]
++    fn xor_rebuilds_a_missing_shard() {
++        let shards: [&[u8]; 3] = [&[1, 2, 3, 4], &[9, 8, 7, 6], &[5, 5]];
++        let mut parity = vec![0; 4];
++        for shard in shards {
++            xor_into(&mut parity, shard);
++        }
++        let mut rebuilt = parity.clone();
++        xor_into(&mut rebuilt, shards[0]);
++        xor_into(&mut rebuilt, shards[2]);
++        assert_eq!(rebuilt, shards[1]);
++        let mut last = parity;
++        xor_into(&mut last, shards[0]);
++        xor_into(&mut last, shards[1]);
++        assert_eq!(&last[..2], shards[2]);
++        assert_eq!(&last[2..], &[0, 0]);
++    }
++}

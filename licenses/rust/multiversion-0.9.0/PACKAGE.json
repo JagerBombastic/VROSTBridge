@@ -1,0 +1,44 @@
+{
+  "crate": "multiversion",
+  "version": "0.9.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/calebzulawski/multiversion",
+  "authors": [
+    "Caleb Zulawski <caleb.zulawski@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "3c92a19e541755a97e51b4c963aa4335bbf93b64574dfbc36a5636c2899f3ab9",
+      "bytes": 1054,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "b4ca4bea16ffc3f443cf7d866912118196bfef4c6a1556ca00f9f9b00bb43f7c",
+    "windows_client": "b4ca4bea16ffc3f443cf7d866912118196bfef4c6a1556ca00f9f9b00bb43f7c"
+  },
+  "source_url": "https://crates.io/crates/multiversion/0.9.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "357638046dd3834815b34df80403d1050c30e1c7"
+    },
+    "path_in_vcs": "multiversion"
+  }
+}

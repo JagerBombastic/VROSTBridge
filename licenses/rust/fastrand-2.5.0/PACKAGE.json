@@ -1,0 +1,44 @@
+{
+  "crate": "fastrand",
+  "version": "2.5.0",
+  "license": "Apache-2.0 OR MIT",
+  "repository": "https://github.com/smol-rs/fastrand",
+  "authors": [
+    "Stjepan Glavina <stjepang@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223",
+    "windows_client": "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
+  },
+  "source_url": "https://crates.io/crates/fastrand/2.5.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7a1cc2c69ebde6cb3442809213db3fe19a2cb0ba"
+    },
+    "path_in_vcs": ""
+  }
+}

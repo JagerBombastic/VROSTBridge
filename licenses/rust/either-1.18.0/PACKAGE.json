@@ -1,0 +1,40 @@
+{
+  "crate": "either",
+  "version": "1.18.0",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rayon-rs/either",
+  "authors": [],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "7576269ea71f767b99297934c0b2367532690f8c4badc695edf8e04ab6a1e545",
+      "bytes": 1043,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34"
+  },
+  "source_url": "https://crates.io/crates/either/1.18.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "ce6f07fc3d56d6a56ecfc32256d2c33bd0b4ad09"
+    },
+    "path_in_vcs": ""
+  }
+}

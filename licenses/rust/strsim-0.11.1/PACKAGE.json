@@ -1,0 +1,40 @@
+{
+  "crate": "strsim",
+  "version": "0.11.1",
+  "license": "MIT",
+  "repository": "https://github.com/rapidfuzz/strsim-rs",
+  "authors": [
+    "Danny Guo <danny@dannyguo.com>",
+    "maxbachmann <oss@maxbachmann.de>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE",
+      "sha256": "1e697ce8d21401fbf1bddd9b5c3fd4c4c79ae1e3bdf51f81761c85e11d5a89cd",
+      "bytes": 1166,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f",
+    "linux_client": "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f",
+    "windows_client": "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+  },
+  "source_url": "https://crates.io/crates/strsim/0.11.1",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "76c5a900e6e12cfc605eee5ab6e36300384c8682"
+    },
+    "path_in_vcs": ""
+  }
+}

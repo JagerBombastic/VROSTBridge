@@ -1,0 +1,23 @@
+
+7-Zip (z) 25.01 (x64) : Copyright (c) 1999-2025 Igor Pavlov : 2025-08-03
+ 64-bit locale=C.UTF-8 Threads:9 OPEN_MAX:16384, ASM
+
+Scanning the drive for archives:
+1 file, 103323537 bytes (99 MiB)
+
+Testing archive: release-0.2.4/VROSTBridge-Host-Setup-0.2.4.exe
+--
+Path = release-0.2.4/VROSTBridge-Host-Setup-0.2.4.exe
+Type = Nsis
+Physical Size = 103323537
+Method = LZMA:23
+Solid = +
+Headers Size = 70558
+Embedded Stub Size = 115712
+SubType = NSIS-3 Unicode
+
+Everything is Ok
+
+Files: 540
+Size:       291927926
+Compressed: 103323537

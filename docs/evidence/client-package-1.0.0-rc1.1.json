@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0-rc1.1",
+  "checks": {
+    "frozen_launcher_resource_selftest": true,
+    "managed_rc1_layout_upgrade": true,
+    "same_version_reinstall": true,
+    "old_managed_file_cleanup": true,
+    "state_file_retention": true,
+    "installed_probe_executable": true,
+    "installed_missing_runtime_probe_returns_wait": true,
+    "web_ui_version": true,
+    "authenticated_client_report_fields": true,
+    "background_companion_clean_quit": true,
+    "zip_crc_and_sha256_manifest": true
+  },
+  "limitations": [
+    "Upgrade used a managed RC1 directory fixture, not a running physical SteamVR session.",
+    "No attached GPU headset, Bazzite graphical desktop or Game Mode rendering was available.",
+    "This update does not claim the Beyond display readiness fault is fixed."
+  ]
+}

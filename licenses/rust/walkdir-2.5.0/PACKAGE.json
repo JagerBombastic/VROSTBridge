@@ -1,0 +1,46 @@
+{
+  "crate": "walkdir",
+  "version": "2.5.0",
+  "license": "Unlicense/MIT",
+  "repository": "https://github.com/BurntSushi/walkdir",
+  "authors": [
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host",
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "COPYING",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "COPYING",
+      "sha256": "01c266bced4a434da0051174d6bee16a4c82cf634e2679b6155d40d75012390f",
+      "bytes": 126,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "0f96a83840e146e43c0ec96a22ec1f392e0680e6c1226e6f3ba87e0740af850f",
+      "bytes": 1081,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b",
+    "linux_client": "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b",
+    "windows_client": "29790946404f91d9c5d06f9874efddea1dc06c5efe94541a7d6863108e3a5e4b"
+  },
+  "source_url": "https://crates.io/crates/walkdir/2.5.0",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4f26be4d450910916ea11533b2efc52b9a6483bc"
+    },
+    "path_in_vcs": ""
+  }
+}

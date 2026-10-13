@@ -1,0 +1,42 @@
+{
+  "crate": "sha1",
+  "version": "0.10.6",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/RustCrypto/hashes",
+  "authors": [
+    "RustCrypto Developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a9040321c3712d8fd0b09cf52b17445de04a23a10165049ae187cd39e5c86be5",
+      "bytes": 10849,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "b4eb00df6e2a4d22518fcaa6a2b4646f249b3a3c9814509b22bd2091f1392ff1",
+      "bytes": 1138,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "e3bf829a2d51ab4a5ddf1352d8470c140cadc8301b2ae1789db023f01cedd6ba"
+  },
+  "source_url": "https://crates.io/crates/sha1/0.10.6",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "7aba4b52715f9cb17a90303bab55bd59471d65ae"
+    },
+    "path_in_vcs": "sha1"
+  }
+}

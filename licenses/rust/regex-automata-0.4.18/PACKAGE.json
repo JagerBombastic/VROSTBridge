@@ -1,0 +1,45 @@
+{
+  "crate": "regex-automata",
+  "version": "0.4.18",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/regex",
+  "authors": [
+    "The Rust Project Developers",
+    "Andrew Gallant <jamslam@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "linux_client",
+    "windows_client"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "6485b8ed310d3f0340bf1ad1f47645069ce4069dcc6bb46c7d5c6faf41de1fdb",
+      "bytes": 1071,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "linux_client": "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2",
+    "windows_client": "ad8553b9b26413251cbf30e620595c7a41b3887f03da04579c0e6b0d6a06b4b2"
+  },
+  "source_url": "https://crates.io/crates/regex-automata/0.4.18",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "e6ad938198e68339a593f85d228f2d44cb54718f"
+    },
+    "path_in_vcs": "regex-automata"
+  }
+}

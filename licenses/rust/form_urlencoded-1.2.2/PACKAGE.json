@@ -1,0 +1,43 @@
+{
+  "crate": "form_urlencoded",
+  "version": "1.2.2",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/servo/rust-url",
+  "authors": [
+    "The rust-url developers"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "a60eea817514531668d7e00765731449fe14d059d3249e0bc93b36de45f759f2",
+      "bytes": 10847,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "20c7855c364d57ea4c97889a5e8d98470a9952dade37bd9248b9a54431670e5e",
+      "bytes": 1072,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
+  },
+  "source_url": "https://crates.io/crates/form_urlencoded/1.2.2",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "91377f48bf35011d042aa5abef9e7f2a0a625aaa",
+      "dirty": true
+    },
+    "path_in_vcs": "form_urlencoded"
+  }
+}

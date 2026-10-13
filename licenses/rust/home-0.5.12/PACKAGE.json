@@ -1,0 +1,42 @@
+{
+  "crate": "home",
+  "version": "0.5.12",
+  "license": "MIT OR Apache-2.0",
+  "repository": "https://github.com/rust-lang/cargo",
+  "authors": [
+    "Brian Anderson <andersrb@gmail.com>"
+  ],
+  "declared_license_file": null,
+  "graphs": [
+    "windows_host"
+  ],
+  "notice_files": [
+    "LICENSE-APACHE",
+    "LICENSE-MIT"
+  ],
+  "notice_details": [
+    {
+      "file": "LICENSE-APACHE",
+      "sha256": "8ada45cd9f843acf64e4722ae262c622a2b3b3007c7310ef36ac1061a30f6adb",
+      "bytes": 10860,
+      "origin": "resolved Cargo package"
+    },
+    {
+      "file": "LICENSE-MIT",
+      "sha256": "23f18e03dc49df91622fe2a76176497404e46ced8a715d9d2b67a7446571cca3",
+      "bytes": 1023,
+      "origin": "resolved Cargo package"
+    }
+  ],
+  "source": "registry+https://github.com/rust-lang/crates.io-index",
+  "cargo_package_checksums": {
+    "windows_host": "cc627f471c528ff0c4a49e1d5e60450c8f6461dd6d10ba9dcd3a61d3dff7728d"
+  },
+  "source_url": "https://crates.io/crates/home/0.5.12",
+  "cargo_vcs_info": {
+    "git": {
+      "sha1": "4f15cc8882fb34bf70c945e9c8ae91d6c8c91757"
+    },
+    "path_in_vcs": "crates/home"
+  }
+}

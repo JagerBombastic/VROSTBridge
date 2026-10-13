@@ -1,0 +1,10 @@
+[package]
+name="vrostbridge-native-hand-contracts"
+version="0.2.14"
+edition="2024"
+[lib]
+path="lib.rs"
+[dependencies]
+alvr_packets={path="../../upstream/ALVR/alvr/packets"}
+alvr_common={path="../../upstream/ALVR/alvr/common"}
+bincode={version="2",features=["serde"]}

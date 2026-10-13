@@ -1,0 +1,661 @@
+--- a/alvr/client_core/src/connection.rs
++++ b/alvr/client_core/src/connection.rs
+@@ -20,7 +20,7 @@
+ };
+ use alvr_session::{SocketProtocol, settings_schema::Switch};
+ use alvr_sockets::{
+-    ControlSocketSender, KEEPALIVE_INTERVAL, KEEPALIVE_TIMEOUT, PeerType, ProtoControlSocket,
++    ControlSocketSender, KEEPALIVE_INTERVAL, HeartbeatDecision, heartbeat_decision, PeerType, ProtoControlSocket,
+     StreamSender, StreamSocketBuilder,
+ };
+ use std::{
+@@ -154,6 +154,7 @@
+ 
+     let mut connection_state_lock = ctx.state.write();
+     let disconnect_notif = Arc::new(Condvar::new());
++    let last_media = Arc::new(Mutex::new(None::<Instant>));
+ 
+     *connection_state_lock = ConnectionState::Connecting;
+ 
+@@ -280,6 +281,7 @@
+ 
+     let video_receive_thread = thread::spawn({
+         let ctx = Arc::clone(&ctx);
++        let last_media = Arc::clone(&last_media);
+         move || {
+             let mut stream_corrupted = true;
+             while is_streaming(&ctx) {
+@@ -292,6 +294,7 @@
+                     return;
+                 };
+ 
++                *last_media.lock() = Some(Instant::now());
+                 if let Some(stats) = &mut *ctx.statistics_manager.lock() {
+                     stats.report_video_packet_received(header.timestamp);
+                 }
+@@ -448,7 +451,10 @@
+                 if Instant::now() > keepalive_deadline
+                     && let Some(sender) = &mut *ctx.control_sender.lock()
+                 {
+-                    sender.send(&ClientControlPacket::KeepAlive).ok();
++                    if let Err(error) = sender.send(&ClientControlPacket::KeepAlive) {
++                        warn!("TRANSPORT_INCIDENT control heartbeat send failed: {error}");
++                        break;
++                    }
+ 
+                     keepalive_deadline = Instant::now() + KEEPALIVE_INTERVAL;
+                 }
+@@ -476,10 +482,12 @@
+ 
+     let control_receive_thread = thread::spawn({
+         let ctx = Arc::clone(&ctx);
++        let last_media = Arc::clone(&last_media);
+         let event_queue = Arc::clone(&event_queue);
+         let disconnect_notif = Arc::clone(&disconnect_notif);
+         move || {
+-            let mut disconnection_deadline = Instant::now() + KEEPALIVE_TIMEOUT;
++            let mut last_control = Instant::now();
++            let mut media_grace = false;
+             while is_streaming(&ctx) {
+                 let maybe_packet = control_receiver.recv(STREAMING_RECV_TIMEOUT);
+ 
+@@ -496,6 +504,7 @@
+                         info!("{SERVER_RESTART_MESSAGE}");
+                         set_hud_message(&event_queue, SERVER_RESTART_MESSAGE);
+                         disconnect_notif.notify_one();
++                        break;
+                     }
+                     Ok(ServerControlPacket::RealTimeConfig(config)) => {
+                         event_queue
+@@ -510,22 +519,34 @@
+                         ServerControlPacket::Reserved(_) | ServerControlPacket::ReservedBuffer(_),
+                     ) => {}
+                     Err(ConnectionError::TryAgain(_)) => {
+-                        if Instant::now() > disconnection_deadline {
+-                            info!("{CONNECTION_TIMEOUT_MESSAGE}");
+-                            set_hud_message(&event_queue, CONNECTION_TIMEOUT_MESSAGE);
+-                            disconnect_notif.notify_one();
+-                        } else {
+-                            continue;
++                        let now = Instant::now();
++                        let media_time = *last_media.lock();
++                        match heartbeat_decision(now, last_control, media_time) {
++                            HeartbeatDecision::Healthy => continue,
++                            HeartbeatDecision::MediaGrace => {
++                                if !media_grace { warn!("TRANSPORT_INCIDENT control stalled; live video continues, bounded recovery grace"); }
++                                media_grace = true;
++                                continue;
++                            }
++                            HeartbeatDecision::Disconnect => {
++                                warn!("TRANSPORT_INCIDENT control timeout silence_ms={} media_age_ms={:?}", now.duration_since(last_control).as_millis(), media_time.map(|time| now.duration_since(time).as_millis()));
++                                set_hud_message(&event_queue, CONNECTION_TIMEOUT_MESSAGE);
++                                disconnect_notif.notify_one();
++                                break;
++                            }
+                         }
+                     }
+                     Err(e) => {
+                         info!("{SERVER_DISCONNECTED_MESSAGE} Cause: {e}");
+                         set_hud_message(&event_queue, SERVER_DISCONNECTED_MESSAGE);
+                         disconnect_notif.notify_one();
+-                    }
+-                }
+-
+-                disconnection_deadline = Instant::now() + KEEPALIVE_TIMEOUT;
++                        break;
++                    }
++                }
++
++                if media_grace { info!("TRANSPORT control recovered after {} ms; stream preserved", last_control.elapsed().as_millis()); }
++                media_grace = false;
++                last_control = Instant::now();
+             }
+         }
+     });
+--- a/alvr/client_core/src/lib.rs
++++ b/alvr/client_core/src/lib.rs
+@@ -92,10 +92,12 @@
+     pub fn new(capabilities: ClientCapabilities) -> Self {
+         dbg_client_core!("Create");
+ 
+-        // Make sure to reset config in case of version compat mismatch.
+-        if Config::load().protocol_id != alvr_common::protocol_id() {
+-            // NB: Config::default() sets the current protocol ID
+-            Config::default().store();
++        // VROSTBridge protocol upgrades keep this physical client's identity
++        // so host trust and manual addressing do not accumulate ghost devices.
++        let mut config = Config::load();
++        if config.protocol_id != alvr_common::protocol_id() {
++            config.protocol_id = alvr_common::protocol_id();
++            config.store();
+         }
+ 
+         #[cfg(target_os = "android")]
+--- a/alvr/client_core/src/sockets.rs
++++ b/alvr/client_core/src/sockets.rs
+@@ -3,6 +3,7 @@
+ 
+ pub struct AnnouncerSocket {
+     hostname: String,
++    instance: String,
+     daemon: ServiceDaemon,
+ }
+ 
+@@ -13,18 +14,20 @@
+         Ok(Self {
+             daemon,
+             hostname: hostname.to_owned(),
++            instance: format!("alvr{}", rand::random::<u64>()),
+         })
+     }
+ 
+     pub fn announce(&self) -> Result<()> {
+-        let local_ip = alvr_system_info::local_ip();
++        let requested_ip = alvr_sockets::local_bind_ip()?;
++        let local_ip = if requested_ip.is_unspecified() { alvr_system_info::local_ip() } else { requested_ip };
+         if local_ip.is_unspecified() {
+             bail!("IP is unspecified");
+         }
+ 
+         self.daemon.register(ServiceInfo::new(
+             alvr_sockets::MDNS_SERVICE_TYPE,
+-            &format!("alvr{}", rand::random::<u16>()),
++            &self.instance,
+             &self.hostname,
+             local_ip,
+             5353,
+@@ -37,3 +40,38 @@
+         Ok(())
+     }
+ }
++
++impl Drop for AnnouncerSocket {
++    fn drop(&mut self) {
++        // ServiceDaemon is only a clonable handle; dropping it does not stop
++        // its worker. Each reconnect must release its advertisements and thread.
++        let fullname = format!("{}.{}", self.instance, alvr_sockets::MDNS_SERVICE_TYPE);
++        self.daemon.unregister(&fullname).ok();
++        self.daemon.shutdown().ok();
++    }
++}
++
++#[cfg(test)]
++mod vrostbridge_tests {
++    use super::*;
++    use std::time::{Duration, Instant};
++
++    #[test]
++    fn announcer_drop_releases_daemon_without_waiting_on_it() {
++        let announcer = AnnouncerSocket::new("vrostbridge-test.client.local.").unwrap();
++        let observer = announcer.daemon.clone();
++        let started = Instant::now();
++        drop(announcer);
++        assert!(started.elapsed() < Duration::from_millis(250));
++        let deadline = Instant::now() + Duration::from_secs(2);
++        while Instant::now() < deadline {
++            if let Ok(reply) = observer.status() {
++                if matches!(reply.recv_timeout(Duration::from_millis(50)), Ok(mdns_sd::DaemonStatus::Shutdown)) {
++                    return;
++                }
++            }
++            std::thread::sleep(Duration::from_millis(10));
++        }
++        panic!("announcer's mDNS daemon remained alive after its owner was dropped");
++    }
++}
+--- a/alvr/server_core/src/connection.rs
++++ b/alvr/server_core/src/connection.rs
+@@ -30,7 +30,7 @@
+     SocketProtocol, SteamvrHmdInitConfig,
+ };
+ use alvr_sockets::{
+-    CONTROL_PORT, KEEPALIVE_INTERVAL, KEEPALIVE_TIMEOUT, ProtoControlSocket, SocketConnection,
++    CONTROL_PORT, KEEPALIVE_INTERVAL, HeartbeatDecision, heartbeat_decision, ProtoControlSocket, SocketConnection,
+     StreamSocketConfig, WIRED_CLIENT_HOSTNAME,
+ };
+ use std::{
+@@ -899,6 +899,7 @@
+     dbg_connection!("connection_pipeline: Handshake successful, spawning threads");
+ 
+     let disconnect_notif = Arc::new(Condvar::new());
++    let last_media = Arc::new(Mutex::new(None::<Instant>));
+ 
+     *ctx.statistics_manager.write() = Some(StatisticsManager::new(
+         initial_settings.connection.statistics_history_size,
+@@ -1124,6 +1125,7 @@
+ 
+     let statistics_thread = thread::spawn({
+         let ctx = Arc::clone(&ctx);
++        let last_media = Arc::clone(&last_media);
+         let client_hostname = client_hostname.clone();
+         move || {
+             while is_streaming(&client_hostname) {
+@@ -1136,6 +1138,7 @@
+                     return;
+                 };
+ 
++                *last_media.lock() = Some(Instant::now());
+                 if let Some(stats) = &mut *ctx.statistics_manager.write() {
+                     let timestamp = client_stats.target_timestamp;
+                     let decoder_latency = client_stats.video_decode;
+@@ -1206,6 +1209,7 @@
+ 
+     let control_receive_thread = thread::spawn({
+         let ctx = Arc::clone(&ctx);
++        let last_media = Arc::clone(&last_media);
+ 
+         let controllers_config = session_manager_lock
+             .settings()
+@@ -1233,16 +1237,25 @@
+         let control_sender = Arc::clone(&control_sender);
+         let client_hostname = client_hostname.clone();
+         move || {
+-            let mut disconnection_deadline = Instant::now() + KEEPALIVE_TIMEOUT;
++            let mut last_control = Instant::now();
++            let mut media_grace = false;
+             while is_streaming(&client_hostname) {
+                 let packet = match control_receiver.recv(STREAMING_RECV_TIMEOUT) {
+                     Ok(packet) => packet,
+                     Err(ConnectionError::TryAgain(_)) => {
+-                        if Instant::now() > disconnection_deadline {
+-                            info!("Client disconnected. Timeout");
+-                            break;
+-                        } else {
+-                            continue;
++                        let now = Instant::now();
++                        let media_time = *last_media.lock();
++                        match heartbeat_decision(now, last_control, media_time) {
++                            HeartbeatDecision::Healthy => continue,
++                            HeartbeatDecision::MediaGrace => {
++                                if !media_grace { warn!("TRANSPORT_INCIDENT control stalled; client presentation statistics continue, bounded recovery grace"); }
++                                media_grace = true;
++                                continue;
++                            }
++                            HeartbeatDecision::Disconnect => {
++                                warn!("TRANSPORT_INCIDENT control timeout silence_ms={} media_age_ms={:?}", now.duration_since(last_control).as_millis(), media_time.map(|time| now.duration_since(time).as_millis()));
++                                break;
++                            }
+                         }
+                     }
+                     Err(e) => {
+@@ -1370,7 +1383,9 @@
+                     ClientControlPacket::Reserved(_) | ClientControlPacket::ReservedBuffer(_) => (),
+                 }
+ 
+-                disconnection_deadline = Instant::now() + KEEPALIVE_TIMEOUT;
++                if media_grace { info!("TRANSPORT control recovered after {} ms; stream preserved", last_control.elapsed().as_millis()); }
++                media_grace = false;
++                last_control = Instant::now();
+             }
+ 
+             disconnect_notif.notify_one()
+--- a/alvr/sockets/src/lib.rs
++++ b/alvr/sockets/src/lib.rs
+@@ -1,5 +1,7 @@
+ mod control_socket;
+ mod stream_socket;
++mod vrostbridge_liveness;
++pub use vrostbridge_liveness::*;
+ 
+ use alvr_common::{AnyhowToCon, ConResult, ToCon, anyhow::Result, con_bail, info};
+ use alvr_packets::{ClientControlPacket, ServerControlPacket};
+@@ -16,6 +18,48 @@
+ pub use stream_socket::*;
+ 
+ pub const LOCAL_IP: IpAddr = IpAddr::V4(Ipv4Addr::UNSPECIFIED);
++/// Optional per-process source selected by the VROSTBridge companion. Invalid
++/// requests fail closed instead of silently returning to a different adapter.
++pub fn local_bind_ip() -> Result<IpAddr> {
++    match std::env::var("VROSTBRIDGE_BIND_IP") {
++        Ok(value) => {
++            let ip: Ipv4Addr = value.parse()?;
++            if !ip.is_private() || ip.is_unspecified() || ip.is_multicast() {
++                alvr_common::anyhow::bail!("VROSTBRIDGE_BIND_IP must be an assigned private IPv4 address");
++            }
++            Ok(IpAddr::V4(ip))
++        }
++        Err(std::env::VarError::NotPresent) => Ok(LOCAL_IP),
++        Err(error) => Err(error.into()),
++    }
++}
++
++/// IP_UNICAST_IF selects outgoing IPv4 packets without CAP_NET_RAW or
++/// changing host routing tables. Source-address binding alone is insufficient
++/// on Linux when two adapters occupy the same subnet (weak-host routing).
++pub fn configure_client_interface(socket: &socket2::Socket) -> Result<()> {
++    #[cfg(target_os = "linux")]
++    if let Ok(interface) = std::env::var("VROSTBRIDGE_INTERFACE") {
++        use std::{ffi::{CString, c_char, c_int, c_void}, os::fd::AsRawFd};
++        unsafe extern "C" {
++            fn if_nametoindex(name: *const c_char) -> u32;
++            fn setsockopt(fd: c_int, level: c_int, option: c_int, value: *const c_void, length: u32) -> c_int;
++        }
++        if interface.is_empty() { return Ok(()); }
++        let name = CString::new(interface.as_bytes())?;
++        let index = unsafe { if_nametoindex(name.as_ptr()) };
++        if index == 0 { return Err(std::io::Error::last_os_error().into()); }
++        let network_index = index.to_be();
++        // Linux IPPROTO_IP=0, IP_UNICAST_IF=50; option value is network order.
++        let result = unsafe { setsockopt(socket.as_raw_fd(), 0, 50, (&network_index as *const u32).cast(), 4) };
++        if result != 0 { return Err(std::io::Error::last_os_error().into()); }
++        info!("TRANSPORT selected interface={interface} ifindex={index}");
++    }
++    #[cfg(not(target_os = "linux"))]
++    let _ = socket;
++    Ok(())
++}
++
+ pub const CONTROL_PORT: u16 = 9943;
+ pub const HANDSHAKE_PACKET_SIZE_BYTES: usize = 56; // this may change in future protocols
+ pub const KEEPALIVE_INTERVAL: Duration = Duration::from_millis(500);
+--- a/alvr/sockets/src/control_socket.rs
++++ b/alvr/sockets/src/control_socket.rs
+@@ -1,18 +1,20 @@
+-use crate::{CONTROL_PORT, LOCAL_IP};
+-use alvr_common::{ConResult, HandleTryAgain, ToCon, anyhow::Result, con_bail};
++use crate::CONTROL_PORT;
++use alvr_common::{AnyhowToCon, ConResult, HandleTryAgain, ToCon, anyhow::Result, con_bail};
+ use alvr_session::{DscpTos, SocketBufferConfig};
+ use bincode::config;
+ use serde::{Serialize, de::DeserializeOwned};
+ use std::{
+-    io::{Read, Write},
++    io::{Read, Write, ErrorKind},
+     marker::PhantomData,
+     mem,
+-    net::{IpAddr, SocketAddr, TcpListener, TcpStream},
++    net::{IpAddr, Shutdown, SocketAddr, TcpListener, TcpStream},
+     time::{Duration, Instant},
+ };
+ 
+ // This corresponds to the length of the payload
+ const FRAMED_PREFIX_LENGTH: usize = mem::size_of::<u32>();
++const MAX_CONTROL_PAYLOAD: usize = 16 * 1024 * 1024;
++const CONTROL_WRITE_TIMEOUT: Duration = Duration::from_millis(750);
+ 
+ pub fn bind(
+     timeout: Duration,
+@@ -20,8 +22,9 @@
+     dscp: Option<DscpTos>,
+     buffer_config: SocketBufferConfig,
+ ) -> Result<TcpListener> {
+-    let socket = TcpListener::bind((LOCAL_IP, port))?.into();
+-
++    let socket = TcpListener::bind((crate::local_bind_ip()?, port))?.into();
++
++    crate::configure_client_interface(&socket)?;
+     crate::set_socket_buffers(&socket, buffer_config).ok();
+ 
+     crate::set_dscp(&socket, dscp);
+@@ -48,8 +51,11 @@
+         );
+     }
+ 
++    crate::configure_client_interface(&socket2::Socket::from(socket.try_clone().to_con()?)).to_con()?;
+     socket.set_read_timeout(Some(timeout)).to_con()?;
+     socket.set_nodelay(true).to_con()?;
++    socket.set_write_timeout(Some(CONTROL_WRITE_TIMEOUT)).to_con()?;
++    alvr_common::info!("TRANSPORT control local={:?} peer={:?}", socket.local_addr(), socket.peer_addr());
+ 
+     Ok((socket.try_clone().to_con()?, socket))
+ }
+@@ -79,6 +85,8 @@
+     let socket = TcpStream::from(socket);
+ 
+     socket.set_nodelay(true).to_con()?;
++    socket.set_write_timeout(Some(CONTROL_WRITE_TIMEOUT)).to_con()?;
++    alvr_common::info!("TRANSPORT control local={:?} peer={:?}", socket.local_addr(), socket.peer_addr());
+ 
+     Ok((socket.try_clone().to_con()?, socket))
+ }
+@@ -94,7 +102,36 @@
+ 
+     buffer[0..FRAMED_PREFIX_LENGTH].copy_from_slice(&(encoded_size as u32).to_le_bytes());
+ 
+-    socket.write_all(buffer)?;
++    let started = Instant::now();
++    if encoded_size > MAX_CONTROL_PAYLOAD { alvr_common::anyhow::bail!("Control frame exceeds payload limit"); }
++    let deadline = started + CONTROL_WRITE_TIMEOUT;
++    let mut cursor = 0;
++    while cursor < buffer.len() {
++        let remaining = deadline.saturating_duration_since(Instant::now());
++        let write = if remaining.is_zero() {
++            Err(std::io::Error::new(ErrorKind::TimedOut, "control frame write deadline"))
++        } else {
++            socket.set_write_timeout(Some(remaining))?;
++            socket.write(&buffer[cursor..])
++        };
++        match write {
++            Ok(0) => {
++                socket.shutdown(Shutdown::Both).ok();
++                alvr_common::anyhow::bail!("Control peer closed during write");
++            }
++            Ok(count) => cursor += count,
++            Err(error) if error.kind() == ErrorKind::Interrupted => continue,
++            Err(error) => {
++                // A partially sent frame cannot be retried as a new packet.
++                socket.shutdown(Shutdown::Both).ok();
++                alvr_common::warn!("TRANSPORT_INCIDENT control send failed elapsed_ms={} sent_bytes={} local={:?} peer={:?} error={error}", started.elapsed().as_millis(), cursor, socket.local_addr(), socket.peer_addr());
++                return Err(error.into());
++            }
++        }
++    }
++    if started.elapsed() >= Duration::from_millis(100) {
++        alvr_common::warn!("TRANSPORT_INCIDENT control send blocked elapsed_ms={} bytes={}", started.elapsed().as_millis(), buffer.len());
++    }
+ 
+     Ok(())
+ }
+@@ -107,34 +144,31 @@
+ ) -> ConResult<R> {
+     let deadline = Instant::now() + timeout;
+ 
+-    let recv_cursor_ref = if let Some(cursor) = recv_cursor {
+-        cursor
+-    } else {
+-        let mut payload_size_bytes = [0; FRAMED_PREFIX_LENGTH];
+-
+-        loop {
+-            let count = socket.peek(&mut payload_size_bytes).handle_try_again()?;
+-            if count == FRAMED_PREFIX_LENGTH {
+-                break;
+-            } else if Instant::now() > deadline {
+-                return alvr_common::try_again();
++    // Prefix and payload use the same cursor. Reading a partial prefix (rather
++    // than repeatedly peeking it) makes EOF observable immediately and lets a
++    // subsequent recv() continue correctly after a normal read timeout.
++    if recv_cursor.is_none() {
++        buffer.clear();
++        buffer.resize(FRAMED_PREFIX_LENGTH, 0);
++        *recv_cursor = Some(0);
++    }
++    let cursor = recv_cursor.as_mut().unwrap();
++    loop {
++        if *cursor == buffer.len() {
++            if buffer.len() == FRAMED_PREFIX_LENGTH {
++                let mut prefix = [0_u8; FRAMED_PREFIX_LENGTH];
++                prefix.copy_from_slice(&buffer[..FRAMED_PREFIX_LENGTH]);
++                let payload_size = u32::from_le_bytes(prefix) as usize;
++                if payload_size > MAX_CONTROL_PAYLOAD { con_bail!("Control frame exceeds payload limit"); }
++                buffer.resize(FRAMED_PREFIX_LENGTH + payload_size, 0);
++                if payload_size != 0 { continue; }
+             }
++            break;
+         }
+-
+-        let size = FRAMED_PREFIX_LENGTH + u32::from_le_bytes(payload_size_bytes) as usize;
+-        buffer.resize(size, 0);
+-
+-        recv_cursor.insert(0)
+-    };
+-
+-    loop {
+-        *recv_cursor_ref += socket
+-            .read(&mut buffer[*recv_cursor_ref..])
+-            .handle_try_again()?;
+-
+-        if *recv_cursor_ref == buffer.len() {
+-            break;
+-        } else if Instant::now() > deadline {
++        let count = socket.read(&mut buffer[*cursor..]).handle_try_again()?;
++        if count == 0 { con_bail!("Control peer closed during frame (EOF)"); }
++        *cursor += count;
++        if *cursor < buffer.len() && Instant::now() >= deadline {
+             return alvr_common::try_again();
+         }
+     }
+@@ -238,3 +272,66 @@
+         ))
+     }
+ }
++
++#[cfg(test)]
++mod vrostbridge_control_tests {
++    use super::*;
++
++    fn pair() -> (TcpStream, TcpStream) {
++        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
++        let writer = TcpStream::connect(listener.local_addr().unwrap()).unwrap();
++        (writer, listener.accept().unwrap().0)
++    }
++
++    #[test]
++    fn eof_is_a_terminal_error_without_waiting_for_heartbeat() {
++        let (writer, mut reader) = pair();
++        drop(writer);
++        reader.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
++        let start = Instant::now();
++        let result = framed_recv::<u32>(&mut reader, &mut vec![], &mut None, Duration::from_secs(1));
++        assert!(matches!(result, Err(alvr_common::ConnectionError::Other(_))));
++        assert!(start.elapsed() < Duration::from_millis(200));
++    }
++
++    #[test]
++    fn partial_prefix_is_preserved_across_read_deadlines() {
++        let (mut writer, mut reader) = pair();
++        reader.set_read_timeout(Some(Duration::from_millis(20))).unwrap();
++        let packet = bincode::serde::encode_to_vec(1000_u32, config::standard()).unwrap();
++        let prefix = (packet.len() as u32).to_le_bytes();
++        writer.write_all(&prefix[..2]).unwrap();
++        let (mut buffer, mut cursor) = (vec![], None);
++        let result = framed_recv::<u32>(&mut reader, &mut buffer, &mut cursor, Duration::from_millis(25));
++        assert!(matches!(result, Err(alvr_common::ConnectionError::TryAgain(_))));
++        writer.write_all(&prefix[2..]).unwrap();
++        writer.write_all(&packet).unwrap();
++        assert_eq!(framed_recv::<u32>(&mut reader, &mut buffer, &mut cursor, Duration::from_secs(1)).ok().unwrap(), 1000);
++    }
++
++    #[test]
++    fn eof_after_a_partial_prefix_is_terminal_too() {
++        let (mut writer, mut reader) = pair();
++        writer.write_all(&[20, 0]).unwrap();
++        drop(writer);
++        reader.set_read_timeout(Some(Duration::from_secs(1))).unwrap();
++        let start = Instant::now();
++        let result = framed_recv::<u32>(&mut reader, &mut vec![], &mut None, Duration::from_secs(1));
++        assert!(matches!(result, Err(alvr_common::ConnectionError::Other(_))));
++        assert!(start.elapsed() < Duration::from_millis(200));
++    }
++
++    #[test]
++    fn blocked_writer_has_a_deadline_and_invalidates_partial_framing() {
++        let (mut writer, reader) = pair();
++        let small = socket2::Socket::from(writer.try_clone().unwrap());
++        small.set_send_buffer_size(4096).unwrap();
++        let small = socket2::Socket::from(reader.try_clone().unwrap());
++        small.set_recv_buffer_size(4096).unwrap();
++        let start = Instant::now();
++        let result = framed_send(&mut writer, &mut vec![], &vec![1_u8; 4*1024*1024]);
++        assert!(result.is_err());
++        assert!(start.elapsed() < Duration::from_secs(3));
++        assert!(writer.write_all(&[0, 0, 0, 0]).is_err());
++    }
++}
+--- a/alvr/sockets/src/stream_socket/tcp.rs
++++ b/alvr/sockets/src/stream_socket/tcp.rs
+@@ -1,8 +1,7 @@
+ use super::{
+     MultiplexedSocketReader, MultiplexedSocketWriter, ReconstructedPacket, StreamRecvQueues,
+ };
+-use crate::LOCAL_IP;
+-use alvr_common::{ConResult, HandleTryAgain, ToCon, anyhow::Result, con_bail};
++use alvr_common::{AnyhowToCon, ConResult, HandleTryAgain, ToCon, anyhow::Result, con_bail};
+ use alvr_session::{DscpTos, SocketBufferConfig};
+ use socket2::Socket;
+ use std::{
+@@ -23,8 +22,9 @@
+     dscp: Option<DscpTos>,
+     buffer_config: SocketBufferConfig,
+ ) -> Result<TcpListener> {
+-    let socket = TcpListener::bind((LOCAL_IP, port))?.into();
+-
++    let socket = TcpListener::bind((crate::local_bind_ip()?, port))?.into();
++
++    crate::configure_client_interface(&socket)?;
+     crate::set_socket_buffers(&socket, buffer_config).ok();
+ 
+     crate::set_dscp(&socket, dscp);
+@@ -51,6 +51,7 @@
+         );
+     }
+ 
++    crate::configure_client_interface(&socket2::Socket::from(socket.try_clone().to_con()?)).to_con()?;
+     socket.set_read_timeout(Some(timeout)).to_con()?;
+     socket.set_nodelay(true).to_con()?;
+ 
+--- a/alvr/sockets/src/stream_socket/udp.rs
++++ b/alvr/sockets/src/stream_socket/udp.rs
+@@ -1,7 +1,6 @@
+ use super::{
+     MultiplexedSocketReader, MultiplexedSocketWriter, ReconstructedPacket, StreamRecvQueues,
+ };
+-use crate::LOCAL_IP;
+ use alvr_common::{ConResult, HandleTryAgain, ToCon, anyhow::Result};
+ use alvr_session::{DscpTos, SocketBufferConfig};
+ use socket2::{MaybeUninitSlice, Socket};
+@@ -42,8 +41,9 @@
+     dscp: Option<DscpTos>,
+     buffer_config: SocketBufferConfig,
+ ) -> Result<UdpSocket> {
+-    let socket = UdpSocket::bind((LOCAL_IP, port))?.into();
+-
++    let socket = UdpSocket::bind((crate::local_bind_ip()?, port))?.into();
++
++    crate::configure_client_interface(&socket)?;
+     crate::set_socket_buffers(&socket, buffer_config).ok();
+     crate::set_dscp(&socket, dscp);
+ 
+--- /dev/null
++++ b/alvr/sockets/src/vrostbridge_liveness.rs
+@@ -0,0 +1,31 @@
++//! A delayed control heartbeat alone must not discard healthy live media.
++//! Grace is bounded, requires recent complete frames/statistics, and never
++//! applies to EOF, explicit Stop/Restart, socket errors or lifecycle pause.
++use std::time::{Duration, Instant};
++const MEDIA_FRESH: Duration = Duration::from_millis(500);
++const MAX_CONTROL_SILENCE: Duration = Duration::from_secs(6);
++
++#[derive(Debug, PartialEq, Eq)]
++pub enum HeartbeatDecision { Healthy, MediaGrace, Disconnect }
++
++pub fn heartbeat_decision(now: Instant, last_control: Instant, last_media: Option<Instant>) -> HeartbeatDecision {
++    let silence = now.saturating_duration_since(last_control);
++    if silence <= crate::KEEPALIVE_TIMEOUT { return HeartbeatDecision::Healthy; }
++    if silence < MAX_CONTROL_SILENCE && last_media.is_some_and(|media| now.saturating_duration_since(media) <= MEDIA_FRESH) {
++        HeartbeatDecision::MediaGrace
++    } else { HeartbeatDecision::Disconnect }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn grace_requires_recent_media_and_has_a_hard_ceiling() {
++        let start=Instant::now();
++        assert_eq!(heartbeat_decision(start+Duration::from_secs(1),start,None),HeartbeatDecision::Healthy);
++        assert_eq!(heartbeat_decision(start+Duration::from_secs(3),start,None),HeartbeatDecision::Disconnect);
++        assert_eq!(heartbeat_decision(start+Duration::from_secs(3),start,Some(start+Duration::from_millis(2900))),HeartbeatDecision::MediaGrace);
++        assert_eq!(heartbeat_decision(start+Duration::from_secs(3),start,Some(start+Duration::from_secs(2))),HeartbeatDecision::Disconnect);
++        assert_eq!(heartbeat_decision(start+Duration::from_secs(6),start,Some(start+Duration::from_secs(6))),HeartbeatDecision::Disconnect);
++    }
++}
