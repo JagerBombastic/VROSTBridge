@@ -174,7 +174,7 @@ Baballonia is never included: on Windows too it is downloaded on request (see be
 
 ## The VROSTBridge name and logo
 
-The logo, icons and Steam artwork (`brand/`, `launcher/brand/`, `assets/hud/logo-192.rgba`,
+The logo, icons and Steam artwork (`brand/`, `launcher/brand/`, `client/assets/hud/logo-192.rgba`,
 `launcher/game_ui_assets/background.jpg`) are VROSTBridge's own artwork, made from the
 logo the maintainer supplied (`brand/source/`): the symbol rebuilt as vectors and the wordmark
 traced, so no font is included. The MIT licence

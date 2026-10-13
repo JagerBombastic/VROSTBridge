@@ -24,4 +24,4 @@ for library in libwayland-server.so.0 libSDL2-2.0.so.0; do
     [[ -n "$file" ]] || { echo "Missing runtime library: $library"; exit 1; }
     cp -L -- "$file" "dist/client/lib/$library"
 done
-echo 'Native client built. Launch Start-Client.sh in the desktop session.'
+echo 'Native client built. Launch scripts/Start-Client.sh in the desktop session.'

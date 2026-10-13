@@ -33,15 +33,14 @@ from package_public_source import LIMIT, NAME, private_patterns, public_files  #
 # companion (one Python program for every role, with the host modules it imports), VROSTBridge's patches to ALVR
 # (the host's driver and both clients' transport are built from ALVR with them) and the scripts that fetch the pinned
 # ALVR revision or vendor its crates.
-SHARED = ['LICENSE', 'NOTICE', 'THIRD_PARTY.md', 'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md',
-          'START_HERE.html', '.gitignore', 'rust-toolchain.toml', 'docs/**', 'licenses/**', 'brand/**', 'launcher/**',
+SHARED = ['LICENSE', 'NOTICE', 'THIRD_PARTY.md', 'README.md', 'CHANGELOG.md', '.gitignore', 'rust-toolchain.toml', 'docs/**', 'licenses/**', 'brand/**', 'launcher/**',
           'host/*.py', 'host/default-session.json', 'host/vendor/**', 'patches/**', 'scripts/fetch_upstream.py',
           'scripts/vendor_crates_from_lock.py', 'scripts/build_brand_assets.py', 'scripts/build_fonts.py',
           'packaging/README.md', 'packaging/collect_rust_notices.py']
 # The native client: one source for both headset PCs (the Windows sections are in client/platform/linux/), its tests
 # (the host's hand-protocol test builds in it when the patched ALVR is present), shaders, fonts, action manifest and
 # the third-party code it compiles or ships.
-CLIENT = ['CMakeLists.txt', 'core/**', 'client/**', 'assets/**', 'host/chaperone_geometry.hpp', 'tests/*.cpp',
+CLIENT = ['CMakeLists.txt', 'core/**', 'client/**', 'host/chaperone_geometry.hpp', 'tests/*.cpp',
           'tests/*.hpp', 'tests/fixtures/*.h264', 'tests/make_openvr_stand_in.py', 'tests/transport_smoke.py',
           'tests/check_assets.py', 'scripts/generate_bindings.py', 'third_party/openvr/**', 'third_party/stb/**',
           'third_party/ffmpeg/**']
@@ -58,8 +57,8 @@ PARTS = {
     'host': {
         'title': 'the rendering PC (VROSTBridge Host, Windows)',
         'include': SHARED + [
-            'Build-Host-Windows.cmd', 'Start-Host.cmd', 'host/**', 'core/version.hpp', 'third_party/openvr/**',
-            'scripts/Build-Host-Cross.py', 'scripts/Build-Host.ps1', 'scripts/cross/**', 'scripts/native_build_manifest.py',
+            'scripts/Build-Host-Windows.cmd', 'scripts/Start-Host.cmd', 'host/**', 'core/version.hpp', 'third_party/openvr/**',
+            'scripts/Build-Host-Cross.py', 'scripts/Build-Host.ps1', 'scripts/cross/clang-cl-msvc.cmake', 'scripts/cross/modules/**', 'scripts/native_build_manifest.py',
             'scripts/host_module_tests.py', 'tests/host_color_tests.cpp', 'packaging/build_distributions.py',
             'packaging/repack_host_payload.py', 'packaging/INPUT_SHA256.json', 'packaging/windows-installer.nsi',
             'packaging/build_windows_launcher.py', 'packaging/windows-launcher.c', 'packaging/windows-icon.rc'],
@@ -67,7 +66,7 @@ PARTS = {
         'what': [
             'the companion (`launcher/`, `host/`): the tray program and the page on the rendering PC;',
             "the SteamVR driver's build: ALVR with VROSTBridge's patches, cross-built on Linux "
-            '(`scripts/Build-Host-Cross.py`) or built on Windows (`Build-Host-Windows.cmd`), and the driver\'s own '
+            '(`scripts/Build-Host-Cross.py`) or built on Windows (`scripts/Build-Host-Windows.cmd`), and the driver\'s own '
             'tests (`scripts/host_module_tests.py`, `tests/host_color_tests.cpp`);',
             'the helper programs (`host/vr_helper.cpp`, `host/audio_probe.cpp`), the launcher '
             '(`packaging/windows-launcher.c`) and the installer (`packaging/windows-installer.nsi`, '
@@ -83,7 +82,7 @@ PARTS = {
     'windows-client': {
         'title': 'the Windows headset PC (VROSTBridge Client for Windows)',
         'include': SHARED + CLIENT + [
-            'Build-Windows.cmd', 'cmake/**', 'scripts/Build-Client-Windows.py', 'scripts/Build-Client-Transport-Windows.py',
+            'scripts/Build-Windows.cmd', 'scripts/cross/windows-clang-cl.cmake', 'scripts/Build-Client-Windows.py', 'scripts/Build-Client-Transport-Windows.py',
             'scripts/Build-FFmpeg-Windows.sh', 'packaging/build_windows_client.py', 'packaging/windows-client-installer.nsi',
             'packaging/build_windows_launcher.py', 'packaging/windows-launcher.c', 'packaging/windows-icon.rc'],
         'exclude': HOST_TESTS + [
@@ -111,8 +110,8 @@ PARTS = {
     'bazzite-client': {
         'title': 'the Bazzite headset PC (VROSTBridge Client for Bazzite)',
         'include': SHARED + CLIENT + [
-            'Build-Client-Linux.sh', 'Build-Eye-Camera-Linux.sh', 'Start-Client.sh', 'Install-Client.desktop',
-            'VROSTBridge-Client.desktop', 'config/**', 'third_party/go-bsb-cams/**', 'third_party/wayland/**',
+            'scripts/Build-Eye-Camera-Linux.sh', 'scripts/Start-Client.sh', 'scripts/Install-Client.desktop',
+            'scripts/VROSTBridge-Client.desktop', 'config/**', 'third_party/go-bsb-cams/**', 'third_party/wayland/**',
             'scripts/Build-Client-Linux.sh', 'scripts/Build-FFmpeg-Linux.sh', 'packaging/build_client.py',
             'packaging/build_distributions.py', 'packaging/VROSTBridge-Client.spec', 'packaging/install-bazzite.sh',
             'packaging/uninstall-bazzite.sh'],
@@ -127,8 +126,8 @@ PARTS = {
             "FFmpeg's exact source (`third_party/ffmpeg/`), go-bsb-cams with VROSTBridge's changes (the Beyond 2e "
             'eye-camera helper, `third_party/go-bsb-cams/`), the build scripts and the installer '
             '(`packaging/install-bazzite.sh`, `packaging/build_client.py`);'],
-        'build': ('[docs/BUILDING.md](docs/BUILDING.md#linux-native-client): `Build-Client-Linux.sh` builds and tests '
-                  'the client, and `Start-Client.sh` runs it from this folder. '
+        'build': ('[docs/BUILDING.md](docs/BUILDING.md#linux-native-client): `scripts/Build-Client-Linux.sh` builds and '
+                  'tests the client, and `scripts/Start-Client.sh` runs it from this folder. '
                   '[packaging/README.md](packaging/README.md#client-only-update) makes the installer ZIP '
                   '(`packaging/build_client.py`, after freezing the companion with PyInstaller).'),
         'left_out': ('the Windows-only parts (`client/platform/windows/`, the Windows cross-build scripts, launcher and '

@@ -28,6 +28,6 @@ with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as arch
         archive.write(file, "VROSTBridge-0.1.0/" + file.relative_to(root).as_posix())
 with zipfile.ZipFile(output) as archive:
     assert archive.testzip() is None
-    for required in ("VROSTBridge.exe", "openvr_api.dll", "START_HERE.html", "assets/actions.json", "assets/bindings_index.json", "CMakeLists.txt"):
+    for required in ("VROSTBridge.exe", "openvr_api.dll", "docs/START_HERE.html", "client/assets/actions.json", "client/assets/bindings_index.json", "CMakeLists.txt"):
         assert "VROSTBridge-0.1.0/" + required in archive.namelist()
 print(f"{output}\n{len(files)} files; {output.stat().st_size:,} bytes; archive CRC checks passed")

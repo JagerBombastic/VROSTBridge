@@ -15,7 +15,7 @@ component, file by file, is [THIRD_PARTY.md](../THIRD_PARTY.md); the licence tex
 - **You must** keep the copyright line and the licence text with any copy or substantial part of the code.
 - **No warranty:** it comes as it is. It's a hobby project that drives VR hardware, so read the README's safety note.
 
-Contributions are accepted under the same MIT licence ([CONTRIBUTING.md](../CONTRIBUTING.md)), so the whole project
+Contributions are accepted under the same MIT licence ([CONTRIBUTING.md](../.github/CONTRIBUTING.md)), so the whole project
 stays under one licence.
 
 ## What the packages include from others

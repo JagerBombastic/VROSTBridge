@@ -3,7 +3,7 @@
 # Windows SDK in xwin's layout: crt/include, crt/lib/x86_64, sdk/include/{ucrt,um,shared,winrt} and
 # sdk/lib/{um,ucrt}/x86_64 (a licensed, case-correct copy; xwin adds the case links).
 #
-#   cmake -S . -B build-windows -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/windows-clang-cl.cmake \
+#   cmake -S . -B build-windows -G Ninja -DCMAKE_TOOLCHAIN_FILE=scripts/cross/windows-clang-cl.cmake \
 #     -DVROST_LLVM_BIN=/opt/llvm/bin -DVROST_WINDOWS_SDK=/opt/xwin-sdk -DCMAKE_BUILD_TYPE=Release ...
 #
 # scripts/Build-Client-Windows.py passes these and the client's other inputs (FFmpeg, the transport

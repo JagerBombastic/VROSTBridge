@@ -12,13 +12,13 @@ ALVR is pinned to `f5023f8e78fa14ea57fb1038548d7820289a8524`; OpenVR to `0924064
 
 Use Windows x64 with Visual Studio 2022 Build Tools (Desktop development with C++ and Windows SDK), Git, Python 3, Rust/rustup and CMake on PATH. ALVR dependency preparation also needs its platform SDK/tool packages; the standard script uses Chocolatey. Its package-manager step may require elevation. Install those tools in the development environment, not on an end user's machine.
 
-From the project folder, run **Build-Host-Windows.cmd**. It discovers the Visual Studio x64 environment and invokes `scripts/Build-Host.ps1`. If dependencies have already been prepared, use:
+From the project folder, run **scripts\Build-Host-Windows.cmd**. It discovers the Visual Studio x64 environment and invokes `scripts/Build-Host.ps1`. If dependencies have already been prepared, use:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Host.ps1 -DependenciesReady
 ```
 
-That mode checks `unzip`, `clang` and `pkg-config`, then uses ALVR's CI-style dependency preparation. It is not an offline build guarantee. The script builds the patched ALVR Dashboard/driver to `dist/host/`, writes `dist/host/vrostbridge-build.json`, and builds the VR/audio helpers under `host/` (`VROSTBridgeVRHelper.exe`, `VROSTBridgeAudioProbe.exe`). Transcripts go to `build-evidence/`. After a successful source build, **Start-Host.cmd** launches the companion through your installed Python.
+That mode checks `unzip`, `clang` and `pkg-config`, then uses ALVR's CI-style dependency preparation. It is not an offline build guarantee. The script builds the patched ALVR Dashboard/driver to `dist/host/`, writes `dist/host/vrostbridge-build.json`, and builds the VR/audio helpers under `host/` (`VROSTBridgeVRHelper.exe`, `VROSTBridgeAudioProbe.exe`). Transcripts go to `build-evidence/`. After a successful source build, **scripts\Start-Host.cmd** launches the companion through your installed Python.
 
 ### Cross-building the driver on Linux (the release path of RC3 to RC4.1, 1.0.0.1, 1.0.0.3 to 1.0.0.6 and 1.0.0.9; RC4.2 to 1.0.0 reused the RC4.1 driver, 1.0.0.2 the 1.0.0.1 driver, 1.0.0.7 and 1.0.0.8 the 1.0.0.6 driver, and 1.0.0.10 and 1.0.0.11 the 1.0.0.9 driver)
 
@@ -34,7 +34,7 @@ From 1.0.0.9 three patches change ALVR crates that both sides share: packet repa
 
 `packaging/windows-launcher.c` (no C runtime; it starts the bundled Python with the companion and logs to `%LOCALAPPDATA%\VROSTBridge\host-native.log`) and `packaging/windows-icon.rc` (the app icon `launcher/brand/vrostbridge.ico` and the version resource) make the launcher. `python3 packaging/build_windows_launcher.py --output DIR` builds it with either `--zig PATH` or `--sdk XWIN_DIR` (clang, lld-link and llvm-rc with an xwin-layout Windows SDK; the 1.0.0 and 1.0.0.1 launchers were built this way). Both give a 64-bit GUI program importing only kernel32, user32 and shell32. From 1.0.0.7 the same source also builds the Windows client's launcher, `VROSTBridge Client.exe` (`--role client`, see [Windows headset client](#windows-headset-client-1007)).
 
-The source archive does not include the complete packaged Windows host payload. `Build-Windows.cmd` builds and runs the contract tests on Windows (see [On Windows itself](#on-windows-itself)); it is not the host build. Use the host script above.
+The source archive does not include the complete packaged Windows host payload. `scripts\Build-Windows.cmd` builds and runs the contract tests on Windows (see [On Windows itself](#on-windows-itself)); it is not the host build. Use the host script above.
 
 ## Linux native client
 
@@ -44,17 +44,17 @@ Build in a development environment (for example an Ubuntu 24.04 Distrobox) rathe
 sudo apt-get update
 sudo apt-get install -y build-essential cmake git pkg-config patchelf python3   glslang-tools libvulkan-dev libva-dev libdrm-dev libwayland-dev libsdl2-dev   libasound2-dev libpipewire-0.3-dev libspa-0.2-dev libclang-dev
 rustup toolchain install 1.97.1 --profile minimal
-bash Build-Client-Linux.sh
+bash scripts/Build-Client-Linux.sh
 ```
 
 Install rustup first if it is absent. The script fetches pinned ALVR, builds minimal shared FFmpeg n6.1.4 (H.264, HEVC and AV1 decoders with VA-API), builds the Rust adapter with its lockfile (with `--remap-path-prefix`, so the library carries no build-machine paths), regenerates the default host schema, builds the native client/lease helper/probe/shader, runs native CTest and installs to `dist/client/`, including `libvrosttext.so` (text and shapes for the Game Mode screen), the `convert.spv`, `reaim.spv` and `fused.spv` shaders (1.0.0.7 to 1.0.0.10 also `fused-uniform.spv`) and the fonts under `assets/fonts/`. It copies matching FFmpeg, SDL2 and Wayland runtime libraries. The conversion, re-aim and fused frame pass shader tests (`conversion_shader_contracts`, `reaim_shader_contracts`, `fused_shader_contracts`), from 1.0.0.7 the Windows client's plane upload (`planar_upload_contracts`) and from 1.0.0.11 the client's own frame path with SteamVR stood in for (`video_pass_contracts`: `VulkanVideo` with the frame pass's buffers, the lens area, the clears and the GPU time stamps; `tests/openvr_stand_in.hpp`, written by `tests/make_openvr_stand_in.py` from the OpenVR headers) run on any Vulkan device, normally Mesa's lavapipe in a container (`mesa-vulkan-drivers`), and are skipped when none exists. `software_decode_contracts` (1.0.0.7) decodes small H.264 files from `tests/fixtures/` on the processor as the Windows client's *CPU decoding* does and checks the planes it would upload. `status_card_contracts` renders the in-headset cards with the bundled fonts and writes sample images to the build directory. Do not substitute incompatible FFmpeg major versions or separate the native binary from its matching transport/shader/libraries.
 
-Return to the Bazzite desktop and launch **Start-Client.sh** from the source root. It uses Python 3 and the developer payload. Run outside the container and outside Proton so the client sees the physical SteamVR session, GPU, audio and devices. A clean build in a container is not evidence that physical presentation works.
+Return to the Bazzite desktop and launch **scripts/Start-Client.sh** (or the *VROSTBridge Client* shortcut beside it). It uses Python 3 and the developer payload. Run outside the container and outside Proton so the client sees the physical SteamVR session, GPU, audio and devices. A clean build in a container is not evidence that physical presentation works.
 
 The optional camera helper is separate:
 
 ```sh
-bash Build-Eye-Camera-Linux.sh
+bash scripts/Build-Eye-Camera-Linux.sh
 ```
 
 It uses the included source/vendor tree with Go >=1.24.5, a C compiler, pkg-config and libusb development headers. Output goes to `dist/tools/go-bsb-cams`; build it before the client/install assembly when rebuilding that helper. Baballonia is not bundled. Its tests (1.0.0.5: the frame checks, the frame reader with lost packets and error bits, the `STATS` line, the MJPEG server) run with `CGO_ENABLED=1 go test -mod=vendor -vet=off -race .` in `third_party/go-bsb-cams` (`-vet=off` because of a vet complaint in upstream's unchanged code).
@@ -110,7 +110,7 @@ From the source root, in this order (options in brackets show the defaults).
      [--vulkan-headers /usr/include] [--build build-windows] [--output dist/client-windows] [--test] [--jobs N]
    ```
 
-   It makes the MSVC import libraries (FFmpeg's from its `.def` files, and `vulkan-1.lib` from the Vulkan 1.0–1.3 core commands in the headers), configures CMake with Ninja and the toolchain file `cmake/windows-clang-cl.cmake` (clang-cl, lld-link, llvm-lib, llvm-rc and llvm-mt against the xwin SDK, the C runtime linked statically, `/Brepro`, and the source and build folders mapped out of `__FILE__`), builds, and installs into `--output`:
+   It makes the MSVC import libraries (FFmpeg's from its `.def` files, and `vulkan-1.lib` from the Vulkan 1.0–1.3 core commands in the headers), configures CMake with Ninja and the toolchain file `scripts/cross/windows-clang-cl.cmake` (clang-cl, lld-link, llvm-lib, llvm-rc and llvm-mt against the xwin SDK, the C runtime linked statically, `/Brepro`, and the source and build folders mapped out of `__FILE__`), builds, and installs into `--output`:
    - `VROSTBridgeClient.exe` and `VROSTBridgeRuntimeProbe.exe`, each with its version resource and manifest (UTF-8, Windows 10 and 11, no elevation);
    - beside them `vrostbridge_transport.dll`, `avcodec-60.dll`, `avutil-58.dll`, `swscale-7.dll` and `openvr_api.dll`;
    - `assets/`: the SteamVR action manifest and bindings, the headset logo, `convert.spv`, `reaim.spv` and `fused.spv`, and the fonts with their licences.
@@ -146,7 +146,7 @@ From the source root, in this order (options in brackets show the defaults).
 
 ### On Windows itself
 
-**Build-Windows.cmd** builds and runs the contract tests natively with Visual Studio 2022's CMake: it uses `cmake` and `ctest` from `PATH`, or else the ones Visual Studio installs (found with `vswhere`; install *Desktop development with C++* and its CMake tools), configures `build` for x64 with `-DVROST_BUILD_WINDOWS_CLIENT=OFF`, builds the Release configuration and runs `ctest`. It does not build the Windows client, which needs the inputs above, nor the early Windows diagnostic program (`VROSTBridge.exe`), whose CMake target is gone.
+**scripts\Build-Windows.cmd** builds and runs the contract tests natively with Visual Studio 2022's CMake: it uses `cmake` and `ctest` from `PATH`, or else the ones Visual Studio installs (found with `vswhere`; install *Desktop development with C++* and its CMake tools), configures `build` for x64 with `-DVROST_BUILD_WINDOWS_CLIENT=OFF`, builds the Release configuration and runs `ctest`. It does not build the Windows client, which needs the inputs above, nor the early Windows diagnostic program (`VROSTBridge.exe`), whose CMake target is gone.
 
 ## Fonts and artwork
 
@@ -157,7 +157,7 @@ python3 scripts/build_fonts.py --google-fonts /path/to/google/fonts   # fontTool
 python3 scripts/build_brand_assets.py                                 # rsvg-convert (librsvg), numpy, Pillow
 ```
 
-`build_fonts.py` writes static Inter/Outfit instances (for stb_truetype in the headset cards and the Game Mode screen) and variable subsets (for the pages) to `launcher/fonts/`. `build_brand_assets.py` builds every runtime image from the VROSTBridge logo in `brand/` (see [brand/README.md](../brand/README.md)): the icons, favicons, tray icons, Windows `.ico` and Linux icon theme in `launcher/brand/`, the Steam library artwork in `launcher/brand/steam/`, the headset cards' logo `assets/hud/logo-192.rgba` and the Game Mode background. The 16 to 32 px icons come from `brand/tools/refine_small_icons.py`. The logo itself is never redrawn by hand; `brand/tools/trace_wordmark.py` (Potrace) is only needed to trace the wordmark again, and `brand/tools/set_bridge.py` (fontTools, Pillow with raqm, and the Montserrat file it names) only to set *Bridge* of the headers' one-line wordmark again (1.0.0.3; the outlines are committed in `brand/assets/svg/vrostbridge-bridge.svg`). `third_party/stb/` holds the vendored `stb_truetype.h` and `stb_image.h` (see its `VENDORED.md`).
+`build_fonts.py` writes static Inter/Outfit instances (for stb_truetype in the headset cards and the Game Mode screen) and variable subsets (for the pages) to `launcher/fonts/`. `build_brand_assets.py` builds every runtime image from the VROSTBridge logo in `brand/` (see [brand/README.md](../brand/README.md)): the icons, favicons, tray icons, Windows `.ico` and Linux icon theme in `launcher/brand/`, the Steam library artwork in `launcher/brand/steam/`, the headset cards' logo `client/assets/hud/logo-192.rgba` and the Game Mode background. The 16 to 32 px icons come from `brand/tools/refine_small_icons.py`. The logo itself is never redrawn by hand; `brand/tools/trace_wordmark.py` (Potrace) is only needed to trace the wordmark again, and `brand/tools/set_bridge.py` (fontTools, Pillow with raqm, and the Montserrat file it names) only to set *Bridge* of the headers' one-line wordmark again (1.0.0.3; the outlines are committed in `brand/assets/svg/vrostbridge-bridge.svg`). `third_party/stb/` holds the vendored `stb_truetype.h` and `stb_image.h` (see its `VENDORED.md`).
 
 ## Tests
 

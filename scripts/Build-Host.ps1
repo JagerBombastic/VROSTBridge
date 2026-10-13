@@ -55,5 +55,5 @@ try {
     } finally {Pop-Location}
     Run-Checked 'cl.exe' @('/nologo','/std:c++17','/EHsc','/MT','/D_CRT_SECURE_NO_WARNINGS',('/I'+(Join-Path $root 'third_party/openvr')),(Join-Path $root 'host/vr_helper.cpp'),('/Fe:'+(Join-Path $root 'host/VROSTBridgeVRHelper.exe')),('/Fo:'+(Join-Path $logDirectory 'vr_helper.obj')))
     Run-Checked 'cl.exe' @('/nologo','/std:c++17','/EHsc','/MT',(Join-Path $root 'host/audio_probe.cpp'),('/Fe:'+(Join-Path $root 'host/VROSTBridgeAudioProbe.exe')),('/Fo:'+(Join-Path $logDirectory 'audio_probe.obj')),'ole32.lib','uuid.lib')
-    Write-Output 'Windows host built. Open Start-Host.cmd, run readiness checks, save the profile and register the driver.'
+    Write-Output 'Windows host built. Open scripts\Start-Host.cmd, run readiness checks, save the profile and register the driver.'
 } finally {Stop-Transcript | Out-Null}

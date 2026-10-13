@@ -41,7 +41,7 @@ cup of tea.
 | [Building from source](BUILDING.md) | The native clients for Linux and Windows, the rendering PC's driver from ALVR plus VROSTBridge's patches, the companions, and the tests |
 | [Source overview](SOURCE_OVERVIEW.md) | Where everything lives in the source |
 | [Packaging](../packaging/README.md) | How the installers are assembled and checked |
-| [Contributing](../CONTRIBUTING.md) and [security](../SECURITY.md) | How to report a bug, send a fix or report a vulnerability privately |
+| [Contributing](../.github/CONTRIBUTING.md) and [security](../.github/SECURITY.md) | How to report a bug, send a fix or report a vulnerability privately |
 | [Licences in plain words](LICENSING.md) | What the MIT licence lets you do, what the packages carry from others, and what isn't included on purpose |
 | [Third-party notices](../THIRD_PARTY.md) and [open-source credits](OPEN_SOURCE_CREDITS.md) | Every component, its licence and where its notice is |
 

@@ -3,7 +3,7 @@ rem Builds and runs VROSTBridge's contract tests natively on Windows with Visual
 rem The native Windows client itself (VROSTBridgeClient.exe) is cross-built on Linux with
 rem scripts\Build-Client-Windows.py (docs\BUILDING.md); the historical diagnostic program is no longer built.
 setlocal
-cd /d "%~dp0"
+cd /d "%~dp0.."
 set "VROST_CMAKE=cmake"
 set "VROST_CTEST=ctest"
 where cmake >nul 2>nul

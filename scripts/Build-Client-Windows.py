@@ -3,7 +3,7 @@
 
 One command: makes the MSVC import libraries (FFmpeg's from its .def files, vulkan-1.lib from the
 Vulkan 1.0-1.3 core commands the Windows loader exports), configures CMake with Ninja and
-cmake/windows-clang-cl.cmake, builds, and installs into --output (default dist/client-windows):
+scripts/cross/windows-clang-cl.cmake, builds, and installs into --output (default dist/client-windows):
 
     VROSTBridgeClient.exe, VROSTBridgeRuntimeProbe.exe, vrostbridge_transport.dll,
     avcodec-*.dll, avutil-*.dll, swscale-*.dll, openvr_api.dll,
@@ -127,7 +127,7 @@ def main() -> None:
 
     # 2. Configure and build.
     configure = ["cmake", "-S", ROOT, "-B", build, "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release",
-                 "-DCMAKE_TOOLCHAIN_FILE=" + str(ROOT / "cmake/windows-clang-cl.cmake"),
+                 "-DCMAKE_TOOLCHAIN_FILE=" + str(ROOT / "scripts/cross/windows-clang-cl.cmake"),
                  "-DVROST_LLVM_BIN=" + str(llvm), "-DVROST_WINDOWS_SDK=" + str(sdk),
                  "-DVROST_FFMPEG_DIR=" + str(ffmpeg), "-DVROST_IMPORT_LIBRARY_DIR=" + str(libraries),
                  "-DVROST_TRANSPORT_LIBRARY=" + str(transport), "-DVROST_TRANSPORT_IMPORT_LIBRARY=" + str(implib),

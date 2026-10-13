@@ -10,7 +10,7 @@ decisions below.** What is already in place:
 
 - **Licences:** VROSTBridge's own code is MIT (`LICENSE`, copyright JagerBombastic), with `NOTICE`,
   `THIRD_PARTY.md` and `licenses/` in the source and in all three packages. Contributions come in
-  under MIT (`CONTRIBUTING.md`).
+  under MIT (`.github/CONTRIBUTING.md`).
 - **What it builds on:** ALVR (MIT) is changed only through `patches/`; OpenVR (BSD-3-Clause). Both
   clients decode with FFmpeg (LGPL-2.1-or-later), which ships with its unmodified source in the
   Bazzite package and in the Windows client package. The camera helper go-bsb-cams (GPL-2.0, a
@@ -117,7 +117,7 @@ more thorough: [gitleaks](https://github.com/gitleaks/gitleaks) (`gitleaks detec
 - **Settings → General:** Issues on; Wiki and Projects off unless you want them; Discussions
   optional (good for "does it work with my hardware?" questions). Upload
   `brand/social-preview.png` (1280 × 640) as the **Social preview** so links look nice when shared.
-- **Settings → Code security:** turn on **Private vulnerability reporting** (`SECURITY.md` points
+- **Settings → Code security:** turn on **Private vulnerability reporting** (`.github/SECURITY.md` points
   people there), **Secret scanning** and **Push protection**, and **Dependabot alerts**.
 - **Settings → Branches** (optional for a solo project): protect `main` and require the
   **Checks** workflow to pass before merging pull requests.

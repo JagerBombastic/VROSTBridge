@@ -5,7 +5,7 @@ This is a developer utility; running the packaged application needs no Python.
 import json
 from pathlib import Path
 
-root = Path(__file__).resolve().parents[1] / "assets"
+root = Path(__file__).resolve().parents[1] / "client" / "assets"
 actions = []
 bindings = {"poses": [], "haptics": [], "skeleton": [], "sources": []}
 for side in ("left", "right"):

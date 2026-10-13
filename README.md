@@ -193,7 +193,7 @@ unreliable. Follow your headset maker's safety guidance.
 - Eye-camera pictures never leave the headset PC. Only the direction you look travels, inside the stream, to steer the
   sharp region. Where you looked is never logged: logs and reports keep only how far your gaze reached each way.
 
-Found a security problem? See [SECURITY.md](SECURITY.md).
+Found a security problem? See [SECURITY.md](.github/SECURITY.md).
 
 ## Documentation
 
@@ -214,7 +214,7 @@ node tests/test_desktop_ui.js
 cmake -S . -B build-tests -DVROST_BUILD_LINUX_CLIENT=OFF && cmake --build build-tests && ctest --test-dir build-tests
 ```
 
-[CONTRIBUTING.md](CONTRIBUTING.md) says how to help.
+[CONTRIBUTING.md](.github/CONTRIBUTING.md) says how to help.
 
 ## Thank you
 

@@ -72,7 +72,7 @@ class ArtworkTests(unittest.TestCase):
         for size in (16, 22, 24, 32, 48, 64, 96, 128, 192, 256, 512):
             self.assertTrue((BRAND / 'hicolor' / ('%dx%d' % (size, size)) / 'apps' / 'vrostbridge.png').is_file(), size)
         self.assertTrue((BRAND / 'hicolor/scalable/apps/vrostbridge.svg').is_file())
-        self.assertEqual((ROOT / 'assets/hud/logo-192.rgba').stat().st_size, 192 * 192 * 4)
+        self.assertEqual((ROOT / 'client/assets/hud/logo-192.rgba').stat().st_size, 192 * 192 * 4)
         self.assertTrue((ROOT / 'launcher/game_ui_assets/background.jpg').is_file())
 
     def test_icon_sizes(self):

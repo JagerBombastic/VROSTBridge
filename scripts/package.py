@@ -4,7 +4,7 @@ import hashlib,json,sys,zipfile,io
 root=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(root))
 from launcher.version import CLIENT_VERSION  # noqa: E402
-required=['dist/client/VROSTBridgeClient','dist/client/libvrostbridge_transport.so','dist/client/lib/libavcodec.so.60','dist/client/lib/libavutil.so.58','dist/client/lib/libswscale.so.7','dist/client/assets/convert.spv','dist/client/assets/fused.spv','host/default-session.json','client/transport/Cargo.lock','Build-Host-Windows.cmd']
+required=['dist/client/VROSTBridgeClient','dist/client/libvrostbridge_transport.so','dist/client/lib/libavcodec.so.60','dist/client/lib/libavutil.so.58','dist/client/lib/libswscale.so.7','dist/client/assets/convert.spv','dist/client/assets/fused.spv','host/default-session.json','client/transport/Cargo.lock','scripts/Build-Host-Windows.cmd']
 for name in required:
     if not (root/name).is_file():raise RuntimeError('Missing package component: '+name)
 files=[]

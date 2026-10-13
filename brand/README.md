@@ -58,7 +58,7 @@ build time only) and the results are committed:
   header (`vrostbridge-name.svg`; `vrostbridge-name.png` for Game Mode's header), the logo for About, the Windows icon `vrostbridge.ico`, the tray icons (`vrostbridge-tray-light.ico` for dark taskbars,
   `vrostbridge-tray-dark.ico` for light ones), favicons, the Linux icon theme (`hicolor/`, installed as
   `vrostbridge`) and the Steam library artwork (`steam/`).
-- `assets/hud/logo-192.rgba`: the symbol on the in-headset cards.
+- `client/assets/hud/logo-192.rgba`: the symbol on the in-headset cards.
 - `launcher/game_ui_assets/background.jpg`: the Game Mode screen's background.
 - `brand/social-preview.png` and the exports above.
 

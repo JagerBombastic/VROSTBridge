@@ -2,6 +2,10 @@
 
 Each version in a few lines, newest first. The release notes in `docs/` have the detail, the reasons and a *How to test* list. Every package always shares one version (the host, the Bazzite client and, from 1.0.0.7, the Windows client): install the host and your client of the same release together, over the previous one.
 
+## Unreleased
+
+- **A tidier top level** in the repository: the scripts that build or start each part from the source and the two desktop shortcuts are in `scripts/` (the root's `Build-Client-Linux.sh` wrapper is gone: `scripts/Build-Client-Linux.sh` is the script itself), the Windows client's CMake toolchain is in `scripts/cross/`, the client's runtime assets are in `client/assets/`, `CONTRIBUTING.md` and `SECURITY.md` are in `.github/` and the source's start page is in `docs/`. The programs and the packages are unchanged.
+
 ## 1.0.0.11
 
 - **A lighter frame pass.** The headset PC's one-pass frame shader works out the foveation inverse's terms once per frame instead of for every pixel and gives each eye its own workgroups: about a third less work per pixel by the GPU compiler's own estimate, the same picture. One shader for every GPU.

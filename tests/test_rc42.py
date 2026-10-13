@@ -811,7 +811,7 @@ class PackagingContracts(unittest.TestCase):
         for name in ('Inter-Regular.ttf', 'Inter-Medium.ttf', 'Inter-SemiBold.ttf', 'Outfit-SemiBold.ttf',
                      'Inter-Variable.ttf', 'Outfit-Variable.ttf', 'Inter-OFL.txt', 'Outfit-OFL.txt'):
             self.assertTrue((ROOT / 'launcher/fonts' / name).is_file(), name)
-        self.assertEqual((ROOT / 'assets/hud/logo-192.rgba').stat().st_size, 192 * 192 * 4)
+        self.assertEqual((ROOT / 'client/assets/hud/logo-192.rgba').stat().st_size, 192 * 192 * 4)
         self.assertTrue((ROOT / 'launcher/game_ui_assets/background.jpg').is_file())
         cmake = (ROOT / 'CMakeLists.txt').read_text()
         self.assertIn('reaim.spv', cmake)

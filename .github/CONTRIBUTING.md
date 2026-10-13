@@ -12,8 +12,8 @@ share them privately.
 
 ## Changing the code
 
-- Read the [source overview](docs/SOURCE_OVERVIEW.md) first. The [technical reference](docs/TECHNICAL_REFERENCE.md)
-  explains how the parts work together, and the [specification](docs/PROJECT_SPEC.md) explains why things
+- Read the [source overview](../docs/SOURCE_OVERVIEW.md) first. The [technical reference](../docs/TECHNICAL_REFERENCE.md)
+  explains how the parts work together, and the [specification](../docs/PROJECT_SPEC.md) explains why things
   are the way they are.
 - Run the checks a fresh clone can run before opening a pull request:
 
@@ -29,4 +29,4 @@ share them privately.
 - Use the name VROSTBridge, spelled that way, for the project, its programs and anything people see.
 
 By contributing you agree that your contribution is licensed under the project's
-[MIT licence](LICENSE).
+[MIT licence](../LICENSE).

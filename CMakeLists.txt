@@ -45,7 +45,7 @@ endif()
 add_executable(status_card_tests tests/status_card_tests.cpp)
 target_link_libraries(status_card_tests PRIVATE vrost_ui)
 add_test(NAME status_card_contracts COMMAND status_card_tests "${CMAKE_CURRENT_SOURCE_DIR}/launcher/fonts"
-  "${CMAKE_CURRENT_SOURCE_DIR}/assets/hud/logo-192.rgba" "${CMAKE_CURRENT_BINARY_DIR}")
+  "${CMAKE_CURRENT_SOURCE_DIR}/client/assets/hud/logo-192.rgba" "${CMAKE_CURRENT_BINARY_DIR}")
 add_executable(reaim_tests tests/reaim_tests.cpp)
 target_include_directories(reaim_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 add_test(NAME reaim_contracts COMMAND reaim_tests)
@@ -194,7 +194,7 @@ if(UNIX AND NOT APPLE AND VROST_BUILD_LINUX_CLIENT)
   endif()
   install(TARGETS VROSTBridgeClient RUNTIME DESTINATION .)
   install(FILES "${VROST_TRANSPORT_LIBRARY}" third_party/openvr/libopenvr_api.so DESTINATION .)
-  install(DIRECTORY assets DESTINATION .)
+  install(DIRECTORY client/assets DESTINATION .)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/convert.spv" "${CMAKE_CURRENT_BINARY_DIR}/reaim.spv"
           "${CMAKE_CURRENT_BINARY_DIR}/fused.spv" DESTINATION assets)
   install(DIRECTORY launcher/fonts/ DESTINATION assets/fonts FILES_MATCHING PATTERN "*.ttf" PATTERN "*-OFL.txt")
@@ -204,12 +204,12 @@ if(UNIX AND NOT APPLE AND VROST_BUILD_LINUX_CLIENT)
     FILES_MATCHING PATTERN "*.py" PATTERN "*.json" PATTERN "VENDORED.md"
     PATTERN "__pycache__" EXCLUDE)
   install(FILES licenses/websockets-BSD.txt DESTINATION licenses)
-  install(FILES Start-Client.sh DESTINATION . PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+  install(FILES scripts/Start-Client.sh DESTINATION . PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
 endif()
 # 1.0.0.7: the native Windows streaming client, the same program as the Linux one (its sources under
 # client/platform/linux with Windows sections, and client/platform/windows): SteamVR as a Vulkan scene
 # app on this PC, D3D11VA (or CPU) decoding uploaded into the fused frame pass. Cross-built on Linux
-# with cmake/windows-clang-cl.cmake by scripts/Build-Client-Windows.py, which prepares these inputs.
+# with scripts/cross/windows-clang-cl.cmake by scripts/Build-Client-Windows.py, which prepares these inputs.
 option(VROST_BUILD_WINDOWS_CLIENT "Build native Windows streaming client" ON)
 if(WIN32 AND VROST_BUILD_WINDOWS_CLIENT)
   set(VROST_FFMPEG_DIR "" CACHE PATH "FFmpeg 6.1 for Windows: include/ and bin/ (avcodec, avutil and swscale DLLs)")
@@ -306,7 +306,7 @@ if(WIN32 AND VROST_BUILD_WINDOWS_CLIENT)
   endif()
   install(TARGETS VROSTBridgeClient RUNTIME DESTINATION .)
   install(FILES "${VROST_TRANSPORT_LIBRARY}" ${VROST_FFMPEG_DLLS} third_party/openvr/openvr_api.dll DESTINATION .)
-  install(DIRECTORY assets DESTINATION .)
+  install(DIRECTORY client/assets DESTINATION .)
   install(FILES "${CMAKE_CURRENT_BINARY_DIR}/convert.spv" "${CMAKE_CURRENT_BINARY_DIR}/reaim.spv"
           "${CMAKE_CURRENT_BINARY_DIR}/fused.spv" DESTINATION assets)
   install(DIRECTORY launcher/fonts/ DESTINATION assets/fonts FILES_MATCHING PATTERN "*.ttf" PATTERN "*-OFL.txt")

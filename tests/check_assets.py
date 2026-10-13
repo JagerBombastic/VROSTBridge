@@ -2,8 +2,8 @@
 import json
 from pathlib import Path
 root = Path(__file__).resolve().parents[1]
-manifest = json.loads((root / "assets/actions.json").read_text())
-binding = json.loads((root / "assets/bindings_index.json").read_text())
+manifest = json.loads((root / "client/assets/actions.json").read_text())
+binding = json.loads((root / "client/assets/bindings_index.json").read_text())
 actions = {a["name"]: a for a in manifest["actions"]}
 assert len(actions) == len(manifest["actions"])
 assert binding["controller_type"] == "knuckles"

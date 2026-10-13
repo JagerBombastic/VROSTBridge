@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
+cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 command -v go >/dev/null || { echo 'Install Go 1.24.5 or later in your development container.'; exit 1; }
 pkg-config --exists libusb-1.0 || { echo 'Install libusb-1.0 development files in the development container.'; exit 1; }
 mkdir -p dist/tools

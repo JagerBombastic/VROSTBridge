@@ -30,7 +30,7 @@ Products:
     hicolor/                   Linux icon theme payload (Icon=vrostbridge)
     steam/                     Steam library artwork: capsule.jpg 600x900, header.jpg 920x430,
                                hero.jpg 3840x1240, logo.png 1280x480 (transparent), icon.png 256x256
-- assets/hud/logo-192.rgba     in-headset cards (192 x 192 straight RGBA8, no header)
+- client/assets/hud/logo-192.rgba  in-headset cards (192 x 192 straight RGBA8, no header)
 - launcher/game_ui_assets/background.jpg   Game Mode screen background, 1920 x 1200
 - brand/social-preview.png     GitHub social preview, 1280 x 640 (the logo on the background)
 
@@ -225,7 +225,7 @@ def main():
     title.save(steam / 'logo.png', optimize=True)
     app_icon(256).save(steam / 'icon.png', optimize=True)
 
-    hud = ROOT / 'assets' / 'hud' / 'logo-192.rgba'
+    hud = ROOT / 'client' / 'assets' / 'hud' / 'logo-192.rgba'
     hud.write_bytes(app_icon(192).tobytes())
     glow_background(1920, 1200).save(ROOT / 'launcher' / 'game_ui_assets' / 'background.jpg', quality=90, optimize=True)
     social = BRAND / 'social-preview.png'

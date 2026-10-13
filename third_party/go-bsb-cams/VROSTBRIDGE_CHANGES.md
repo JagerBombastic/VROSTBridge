@@ -87,7 +87,7 @@ libusb-1.0 development files (cgo):
 
     CGO_ENABLED=1 go build -mod=vendor -buildvcs=false -trimpath -o go-bsb-cams .
 
-`Build-Eye-Camera-Linux.sh` in the repository root runs the same command.
+`scripts/Build-Eye-Camera-Linux.sh` runs the same command.
 
 ## Modules compiled into the program
 - github.com/google/gousb v1.1.3: Apache-2.0

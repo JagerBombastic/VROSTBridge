@@ -20,7 +20,7 @@ Current baseline: VROSTBridge Windows host, Bazzite client and Windows client **
 | Fix a problem | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) |
 | Know what changed | [CHANGELOG](../CHANGELOG.md), then the release notes below |
 | Know what hardware it has met | [HARDWARE_ACCEPTANCE.md](HARDWARE_ACCEPTANCE.md) |
-| Report a bug or send a fix | [CONTRIBUTING](../CONTRIBUTING.md), [SECURITY](../SECURITY.md) |
+| Report a bug or send a fix | [CONTRIBUTING](../.github/CONTRIBUTING.md), [SECURITY](../.github/SECURITY.md) |
 | Know what the licences allow, and what isn't included on purpose | [LICENSING.md](LICENSING.md) |
 | Understand how it works, or how it differs from ALVR, Baballonia and SteamVR | [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md) ([PDF](TECHNICAL_REFERENCE.pdf)) |
 | Read or change the code | [SOURCE_OVERVIEW.md](SOURCE_OVERVIEW.md), [BUILDING.md](BUILDING.md), [TECHNICAL_REFERENCE.md](TECHNICAL_REFERENCE.md), [PROJECT_SPEC.md](PROJECT_SPEC.md) |

@@ -6,7 +6,7 @@ Use them unchanged to refer to VROSTBridge, with credit to JagerBombastic. Modif
 software should use their own name and logo.
 
 This covers the pictures and drawings in this folder (`assets/`, `previews/`, `source/` and `social-preview.png`)
-and the artwork built from them: `launcher/brand/`, `assets/hud/logo-192.rgba` and
+and the artwork built from them: `launcher/brand/`, `client/assets/hud/logo-192.rgba` and
 `launcher/game_ui_assets/background.jpg`. The tools that build them (`tools/` and `scripts/build_brand_assets.py`)
 are code, under the project's MIT licence (`LICENSE`) like the rest of the source.
 

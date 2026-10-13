@@ -70,8 +70,8 @@ def broken_links(text, base):
 
 
 def documents():
-    paths = [ROOT / name for name in ('README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'SECURITY.md', 'THIRD_PARTY.md',
-                                      'START_HERE.html', 'packaging/README.md', 'brand/README.md')]
+    paths = [ROOT / name for name in ('README.md', 'CHANGELOG.md', 'THIRD_PARTY.md', 'docs/START_HERE.html',
+                                      'packaging/README.md', 'brand/README.md')]
     paths += [path for path in sorted((ROOT / 'docs').rglob('*.md')) if 'evidence' not in path.relative_to(ROOT).parts]
     paths += sorted((ROOT / '.github').rglob('*.md'))
     return [path for path in paths if path.is_file()]
@@ -178,7 +178,7 @@ class ComponentSourceTests(unittest.TestCase):
                 self.assertIn(name, chosen)
             self.assertEqual([name for name in chosen if split.matches(name, ['tests/test_*', '.github/**'])], [])
         # The rendering PC: the driver's build and the helpers, and nothing of the headset PCs' native client.
-        for name in ('scripts/Build-Host-Cross.py', 'Build-Host-Windows.cmd', 'host/vr_helper.cpp',
+        for name in ('scripts/Build-Host-Cross.py', 'scripts/Build-Host-Windows.cmd', 'host/vr_helper.cpp',
                      'packaging/windows-installer.nsi', 'tests/host_color_tests.cpp'):
             self.assertIn(name, host)
         self.assertEqual([name for name in host if name.startswith(('client/', 'third_party/ffmpeg/',
@@ -191,13 +191,13 @@ class ComponentSourceTests(unittest.TestCase):
                          'third_party/ffmpeg/ffmpeg-n6.1.4-source.tar.xz', 'third_party/ffmpeg/LICENSE.md'):
                 self.assertIn(name, chosen)
         for name in ('client/platform/windows/d3d11_video.cpp', 'scripts/Build-Client-Windows.py',
-                     'packaging/windows-client-installer.nsi', 'cmake/windows-clang-cl.cmake'):
+                     'packaging/windows-client-installer.nsi', 'scripts/cross/windows-clang-cl.cmake'):
             self.assertIn(name, windows)
             self.assertNotIn(name, bazzite)
         # go-bsb-cams is GPL 2: its complete source goes with the Bazzite package's camera helper.
         for name in ('client/platform/linux/lease.cpp', 'third_party/go-bsb-cams/main.go',
                      'third_party/go-bsb-cams/VROSTBRIDGE_CHANGES.md', 'packaging/install-bazzite.sh',
-                     'packaging/build_client.py', 'Build-Client-Linux.sh'):
+                     'packaging/build_client.py', 'scripts/Build-Client-Linux.sh'):
             self.assertIn(name, bazzite)
             self.assertNotIn(name, windows)
 
