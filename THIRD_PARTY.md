@@ -1,9 +1,10 @@
 # Third-party software and notices
 
-For VROSTBridge 1.0.0.11: the host, the Bazzite client and the Windows client. No third-party
+For VROSTBridge 1.0.0.12: the host, the Bazzite client and the Windows client. No third-party
 component has been added or changed since 1.0.0.7, which added the Windows client's package
 (1.0.0.9's patches 0021 to 0023 are VROSTBridge's own changes to ALVR, under ALVR's MIT terms).
-Reviewed 2026-10-12. In plain words: [docs/LICENSING.md](docs/LICENSING.md).
+Reviewed 2026-10-14, file by file against the packages and the source. In plain words:
+[docs/LICENSING.md](docs/LICENSING.md).
 
 VROSTBridge's own code is MIT-licensed (see [LICENSE](LICENSE)). It stands on other people's
 work, which keeps its own licences; this file lists what is used, what each package ships and
@@ -42,11 +43,13 @@ where the notices are. Every package carries `LICENSE`, `NOTICE`, this file, `li
   (`VROSTBridge Host.exe`) has no C runtime and contains only VROSTBridge's own code, its icon
   and version information.
 - **Microsoft Visual C++ Redistributable** (`runtime/vc_redist.x64.exe`): Microsoft's own
-  runtime under Microsoft's terms, not open source.
+  runtime under Microsoft's terms, not open source. Intel's libvpl dispatcher needs it; the setup
+  offers to install it.
 
-No FFmpeg is included on Windows since 1.0.0-rc4: the driver is built without ALVR's optional
-`gpl` feature (a CPU x264 fallback). Host packages RC1 to RC3 did include a GPL FFmpeg build
-and must not be republished.
+The host package has included no FFmpeg since 1.0.0-rc4: the driver is built without ALVR's
+optional `gpl` feature (a CPU x264 fallback). Host packages RC1 to RC3 did include a GPL FFmpeg
+build and must not be republished. The Windows client's FFmpeg (below) is a separate LGPL build,
+shipped with its source.
 
 ## Bazzite client package
 

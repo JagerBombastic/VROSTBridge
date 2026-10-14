@@ -2,9 +2,16 @@
 
 Each version in a few lines, newest first. The release notes in `docs/` have the detail, the reasons and a *How to test* list. Every package always shares one version (the host, the Bazzite client and, from 1.0.0.7, the Windows client): install the host and your client of the same release together, over the previous one.
 
-## Unreleased
+## 1.0.0.12
 
-- **A tidier top level** in the repository: the scripts that build or start each part from the source and the two desktop shortcuts are in `scripts/` (the root's `Build-Client-Linux.sh` wrapper is gone: `scripts/Build-Client-Linux.sh` is the script itself), the Windows client's CMake toolchain is in `scripts/cross/`, the client's runtime assets are in `client/assets/`, `CONTRIBUTING.md` and `SECURITY.md` are in `.github/` and the source's start page is in `docs/`. The programs and the packages are unchanged.
+What 1.0.0.11's first session on real hardware showed (Beat Saber at Native with eye-tracked foveation, a handheld headset PC on Bazzite): it streamed well, with three things to put right.
+
+- **The automatic bitrate forgives.** It went from 65 to 30 Mbit/s in the first 80 seconds, while the headset PC's GPU sat at a low clock and the game was starting, and never came back. When the companion holds the headset PC's GPU clock higher, the bitrate now goes back to where the session started; and a second in which frames never arrived at all (the rendering PC sent nothing for a moment) no longer counts against it, since a lower bitrate would not have sent them sooner.
+- **The headset PC remembers its GPU clock.** The clock a session ended up holding is held from the next session's start, instead of being found again minutes in. It is learned per PC, used only while the GPU's level is automatic, and forgotten when a session has to set it back down.
+- **The host's add-on warning** lists only add-ons registered from outside SteamVR. It used to call SteamVR's own drivers (the Index controllers' among them) third-party and suggest turning them off.
+- **A tidier top level** in the repository: the build and start scripts and the two desktop shortcuts are in `scripts/` (the root's `Build-Client-Linux.sh` wrapper is gone), the Windows client's CMake toolchain in `scripts/cross/`, the client's runtime assets in `client/assets/`, `CONTRIBUTING.md` and `SECURITY.md` in `.github/` and the source's start page in `docs/`.
+- Version 1.0.0.12 for every package. The native programs are 1.0.0.11's with the new version label; the host's driver is 1.0.0.9's.
+- [Release notes](docs/RELEASE_1.0.0.12.md)
 
 ## 1.0.0.11
 
@@ -15,7 +22,7 @@ Each version in a few lines, newest first. The release notes in `docs/` have the
 - The Beyond's 2560 size is called **Native** (it was High).
 - **Ready to share:** the first public release. A documentation home (`docs/README.md`), troubleshooting, the licences in plain words, the older records in `docs/history/`, and the source offered split by part (rendering PC, Windows headset PC, Bazzite headset PC) as well as whole. The logo and icons are licensed CC BY-ND 4.0.
 - Version 1.0.0.11 for every package; the host's driver is 1.0.0.9's.
-- [Release notes](docs/RELEASE_1.0.0.11.md)
+- [Release notes](docs/history/RELEASE_1.0.0.11.md)
 
 ## 1.0.0.10
 

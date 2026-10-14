@@ -1,6 +1,6 @@
-# Quick start — VROSTBridge 1.0.0.11
+# Quick start — VROSTBridge 1.0.0.12
 
-These steps use the installable release packages. The source ZIP is for developers; see [BUILDING.md](BUILDING.md) to build it. Coming from a test build (1.0.0 or earlier)? Remove it first: from 1.0.0.1 VROSTBridge installs fresh over test builds ([release notes](history/RELEASE_1.0.0.1.md#before-you-install-remove-earlier-test-builds)). On the rendering PC and on Bazzite, 1.0.0.11 installs over 1.0.0.10, 1.0.0.9, 1.0.0.8, 1.0.0.7, 1.0.0.6, 1.0.0.5, 1.0.0.4, 1.0.0.3, 1.0.0.2 and 1.0.0.1 ([release notes](RELEASE_1.0.0.11.md)), and on Windows headset PCs over 1.0.0.7 to 1.0.0.10; install it over the previous version rather than uninstalling first, which keeps Baballonia and its calibration.
+These steps use the installable release packages. The source ZIP is for developers; see [BUILDING.md](BUILDING.md) to build it. Coming from a test build (1.0.0 or earlier)? Remove it first: from 1.0.0.1 VROSTBridge installs fresh over test builds ([release notes](history/RELEASE_1.0.0.1.md#before-you-install-remove-earlier-test-builds)). On the rendering PC and on Bazzite, 1.0.0.12 installs over 1.0.0.11, 1.0.0.10, 1.0.0.9, 1.0.0.8, 1.0.0.7, 1.0.0.6, 1.0.0.5, 1.0.0.4, 1.0.0.3, 1.0.0.2 and 1.0.0.1 ([release notes](RELEASE_1.0.0.12.md)), and on Windows headset PCs over 1.0.0.7 to 1.0.0.11; install it over the previous version rather than uninstalling first, which keeps Baballonia and its calibration.
 
 The headset PC runs Bazzite or, new in 1.0.0.7, Windows 10 or 11 (64-bit). Install the same version on both PCs. The Windows client has not run on real hardware yet: expect first-run problems, and send reports (see [If it fails](#if-it-fails)).
 
@@ -9,14 +9,14 @@ The headset PC runs Bazzite or, new in 1.0.0.7, Windows 10 or 11 (64-bit). Insta
 ### Rendering PC (Windows)
 
 1. Install Steam/SteamVR and the graphics driver. No physical headset is required on the rendering host. The trusted home connection must be a Windows **Private** network. For waking the host from the headset PC, connect it by Ethernet and enable *Wake on Magic Packet* for that adapter (the host page says what to change).
-2. Install **VROSTBridge-Host-Setup-1.0.0.11.exe** (a later version installs over it). It is not code-signed, so Windows may say *Windows protected your PC*: choose **More info**, then **Run anyway**.
+2. Install **VROSTBridge-Host-Setup-1.0.0.12.exe** (a later version installs over it). It is not code-signed, so Windows may say *Windows protected your PC*: choose **More info**, then **Run anyway**.
 3. Open **VROSTBridge Host**. Approve the scoped home-network firewall setup if requested. Leave the host waiting in its tray, and turn on *Launch at Windows sign-in* if the host should be ready after a restart.
 4. For the headset microphone in Discord or games on Windows, open the host page's **Headset microphone** card. If it says *Not set up*, select **Set up headset microphone**: VROSTBridge downloads VB-CABLE (a free virtual audio cable by VB-Audio Software, donationware) from VB-Audio and opens its setup; select *Install Driver* and restart Windows if asked. Then choose **CABLE Output (VB-Audio Virtual Cable)** as the microphone in your apps.
 
 ### Headset PC with Bazzite
 
 1. On the Bazzite desktop, confirm the powered headset displays local SteamVR correctly and that both controllers work. Complete local room setup before room-scale use. The physical HMD, USB, DisplayPort and drivers belong on this computer.
-2. Extract the whole **VROSTBridge-Bazzite-Installer-1.0.0.11.zip** and open **Install VROSTBridge.desktop**, keeping its adjacent payload folder. Later versions install over it; do not manually delete its state.
+2. Extract the whole **VROSTBridge-Bazzite-Installer-1.0.0.12.zip** and open **Install VROSTBridge.desktop**, keeping its adjacent payload folder. Later versions install over it; do not manually delete its state.
 3. Open **VROSTBridge Client**. Approve the scoped home-network firewall setup if requested (**Allow home-network connection**; Bazzite may ask for your password).
 4. If the client page offers **Fix SteamVR reprojection**, use it once with SteamVR closed (it may ask for your password; again after a SteamVR update).
 5. For Steam Game Mode, select **Add to Steam** under *This PC → Steam Game Mode* in Desktop Mode. Steam restarts and VROSTBridge appears in your library with its artwork.
@@ -24,8 +24,8 @@ The headset PC runs Bazzite or, new in 1.0.0.7, Windows 10 or 11 (64-bit). Insta
 ### Headset PC with Windows (new in 1.0.0.7)
 
 1. Install Steam, SteamVR and the graphics driver. Connect the headset, run SteamVR once, complete its room setup and check that both controllers work, then close SteamVR. SteamVR records where it is installed when it first runs; until then **Start session** says SteamVR is not set up on this PC yet.
-2. Run **VROSTBridge-Client-Setup-1.0.0.11.exe**. It installs for your Windows account only and needs no administrator rights. It is not code-signed, so Windows may say *Windows protected your PC*: choose **More info**, then **Run anyway**. Tick *Start when I sign in* if the client should wait in the tray after every sign-in.
-3. Open **VROSTBridge Client** from the Start menu. Its page says *VROSTBridge Client 1.0.0.11* at the bottom, and the client also waits in the system tray.
+2. Run **VROSTBridge-Client-Setup-1.0.0.12.exe**. It installs for your Windows account only and needs no administrator rights. It is not code-signed, so Windows may say *Windows protected your PC*: choose **More info**, then **Run anyway**. Tick *Start when I sign in* if the client should wait in the tray after every sign-in.
+3. Open **VROSTBridge Client** from the Start menu. Its page says *VROSTBridge Client 1.0.0.12* at the bottom, and the client also waits in the system tray.
 4. Select **Allow home-network connection** on the page and accept Windows' administrator (UAC) prompt once. It adds firewall rules for the ports the client uses, for private networks and the local subnet only. Windows must treat the home network as **Private**; the page warns when it does not.
 5. Pairing needs nothing more: the client finds the host on the home network, and the host accepts it while *Allow home-network clients* is on (the default). If you turned that off, choose **Allow & connect** for this client on the host page once.
 6. Optionally select **Test network now** on the *Headset & stream* card to run the network test (about 15 seconds) before the first session; otherwise the first **Start session** runs it.

@@ -1,6 +1,6 @@
 # Building host and client from source
 
-Current code baseline: **VROSTBridge 1.0.0.11, Windows host, Bazzite client and Windows client**. Documentation revision: 2026-10-12. End users normally install packages and do not need compilers; see [INSTALL_PACKAGES.md](INSTALL_PACKAGES.md).
+Current code baseline: **VROSTBridge 1.0.0.12, Windows host, Bazzite client and Windows client**. Documentation revision: 2026-10-13. End users normally install packages and do not need compilers; see [INSTALL_PACKAGES.md](INSTALL_PACKAGES.md).
 
 ## Source and pinned inputs
 
@@ -20,7 +20,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/Build-Host.ps1 -Depe
 
 That mode checks `unzip`, `clang` and `pkg-config`, then uses ALVR's CI-style dependency preparation. It is not an offline build guarantee. The script builds the patched ALVR Dashboard/driver to `dist/host/`, writes `dist/host/vrostbridge-build.json`, and builds the VR/audio helpers under `host/` (`VROSTBridgeVRHelper.exe`, `VROSTBridgeAudioProbe.exe`). Transcripts go to `build-evidence/`. After a successful source build, **scripts\Start-Host.cmd** launches the companion through your installed Python.
 
-### Cross-building the driver on Linux (the release path of RC3 to RC4.1, 1.0.0.1, 1.0.0.3 to 1.0.0.6 and 1.0.0.9; RC4.2 to 1.0.0 reused the RC4.1 driver, 1.0.0.2 the 1.0.0.1 driver, 1.0.0.7 and 1.0.0.8 the 1.0.0.6 driver, and 1.0.0.10 and 1.0.0.11 the 1.0.0.9 driver)
+### Cross-building the driver on Linux (the release path of RC3 to RC4.1, 1.0.0.1, 1.0.0.3 to 1.0.0.6 and 1.0.0.9; RC4.2 to 1.0.0 reused the RC4.1 driver, 1.0.0.2 the 1.0.0.1 driver, 1.0.0.7 and 1.0.0.8 the 1.0.0.6 driver, and 1.0.0.10 to 1.0.0.12 the 1.0.0.9 driver)
 
 `scripts/Build-Host-Cross.py` builds only the patched driver (`alvr_server_openvr`) for `x86_64-pc-windows-msvc` from a Linux workspace: Rust 1.97.1 with the Windows target, Clang/LLD 19 (`clang-cl`, `lld-link`, `llvm-lib`), a licensed Microsoft CRT/SDK in xwin layout (for example from `xwin splat`), and libvpl 2.15 built static under `deps/windows/libvpl/alvr_build` (`scripts/cross/clang-cl-msvc.cmake`). Release drivers are built **without** ALVR's `gpl` feature, so no FFmpeg is needed or shipped; pass `--gpl` only to include the x264 CPU encoder fallback (then FFmpeg 8.1 import libraries and Vulkan headers are required). The script writes `vrostbridge-build.json` with the compiler, Rust and patch hashes. `packaging/repack_host_payload.py --native-overlay … --drop-ffmpeg` places it over a verified previous host payload and removes the FFmpeg runtime after checking the driver does not import it. The Microsoft SDK/CRT are build inputs only and must not be redistributed or committed.
 
@@ -115,7 +115,7 @@ From the source root, in this order (options in brackets show the defaults).
    - beside them `vrostbridge_transport.dll`, `avcodec-60.dll`, `avutil-58.dll`, `swscale-7.dll` and `openvr_api.dll`;
    - `assets/`: the SteamVR action manifest and bindings, the headset logo, `convert.spv`, `reaim.spv` and `fused.spv`, and the fonts with their licences.
 
-   `vulkan-1.dll` comes with the GPU driver and is loaded when first needed, so a PC without Vulkan gets the client's own message rather than Windows refusing to start it. With `--test` the C++ contract tests run under Wine before the install (`ctest` with Wine as the emulator, a Wine prefix of its own in the build folder): 27 programs in the 1.0.0.11 build, among them the fused pass, the plane upload, the client's own frame path with CPU-decoded frames through its upload (`video_pass_contracts`), CPU decoding with the FFmpeg DLLs just built, gaze over loopback UDP and the command pipe and console events. The Vulkan ones run on Mesa's lavapipe through winevulkan (skipped without it), on a virtual display through `xvfb-run` when there is none; `--wine` and `--lavapipe` choose another Wine or Vulkan driver file. Wine has no D3D11 video decoder, so the D3D11VA path is built but not run. Finally the script refuses programs that contain a build-machine path (a supplied DLL that does is only reported) and lists each program's imports. A clean rebuild gives the same programs.
+   `vulkan-1.dll` comes with the GPU driver and is loaded when first needed, so a PC without Vulkan gets the client's own message rather than Windows refusing to start it. With `--test` the C++ contract tests run under Wine before the install (`ctest` with Wine as the emulator, a Wine prefix of its own in the build folder): 27 programs in the 1.0.0.12 build, among them the fused pass, the plane upload, the client's own frame path with CPU-decoded frames through its upload (`video_pass_contracts`), CPU decoding with the FFmpeg DLLs just built, gaze over loopback UDP and the command pipe and console events. The Vulkan ones run on Mesa's lavapipe through winevulkan (skipped without it), on a virtual display through `xvfb-run` when there is none; `--wine` and `--lavapipe` choose another Wine or Vulkan driver file. Wine has no D3D11 video decoder, so the D3D11VA path is built but not run. Finally the script refuses programs that contain a build-machine path (a supplied DLL that does is only reported) and lists each program's imports. A clean rebuild gives the same programs.
 
 4. **The launcher:**
 
@@ -193,7 +193,7 @@ The source archives come from one file list: what git tracks plus new files it d
 `docs/PROJECT_SPEC.md` is canonical. With ReportLab and the DejaVu Sans/Mono fonts installed at `/usr/share/fonts/truetype/dejavu/` on Linux, run:
 
 ```sh
-python3 scripts/render_spec.py /absolute/output/path/VROSTBridge-Project-Specification-1.0.0.11.pdf
+python3 scripts/render_spec.py /absolute/output/path/VROSTBridge-Project-Specification-1.0.0.12.pdf
 ```
 
 The resulting PDF needs a rendered-page layout check before distribution. The render script is documentation tooling, not a runtime dependency.

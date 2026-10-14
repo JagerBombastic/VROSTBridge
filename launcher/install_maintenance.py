@@ -19,7 +19,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 PIN = 'f5023f8e78fa14ea57fb1038548d7820289a8524'
-VERSION = '1.0.0.11'  # mirrors launcher/version.HOST_VERSION (standalone script)
+VERSION = '1.0.0.12'  # mirrors launcher/version.HOST_VERSION (standalone script)
 UNINSTALL_KEY = r'Software\Microsoft\Windows\CurrentVersion\Uninstall\VROSTBridgeHost'
 # The Windows client (packaging/windows-client-installer.nsi) sits beside the host on one PC: its own folder,
 # uninstall key, sign-in value and state files (client-*), never the host's.

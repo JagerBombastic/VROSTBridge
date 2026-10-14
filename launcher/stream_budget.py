@@ -32,6 +32,20 @@ the bitrate before it; when they arrive no more evenly, the bitrate goes back up
 uneven arrival no longer counts for this session. Seconds in which too few frames arrived
 at all (cadence source_limited: the host or the network, as while a game loads) do not
 count as uneven arrival.
+
+1.0.0.12: two causes that are not the bitrate's no longer hold it down. In the 1.0.0.11
+test (Beat Saber, Native 2560 per eye) the bitrate stepped from 65 to 30 Mbit/s in the
+first 80 seconds, while the headset PC's GPU sat at 800 MHz and the game was starting, and
+stayed at 30 for the 8 minutes after the companion held the GPU at 1300 MHz: three steps
+down meant 160 clean seconds before a step up, and the rendering PC's own stalls (its
+capture timing out on SteamVR's frame, 40-80 ms with no frame sent) broke every run of
+them. So:
+- when the companion holds this PC's GPU clock higher, the steps down so far may have been
+  the graphics', not the bitrate's: fresh_start() goes back to the bitrate the session
+  started with, after the warm-up, with the first step's patience again;
+- a second in which frames never arrived at all (at least SOURCE_MISSING of them, with no
+  frame lost on the network) does not count as late or uneven: those frames were never
+  sent, so a lower bitrate would not have brought them sooner.
 """
 from collections import deque
 import math
@@ -68,6 +82,7 @@ DECODE_MEAN_SHARE = 0.42  # the decoder's mean time per frame
 DECODE_P95_SHARE = 0.65   # its slowest frames
 ARRIVAL_P95_SHARE = 1.45  # gaps between arriving frames (1.0 is perfectly even)
 LATE_TIMEOUTS = 3         # frames given up on in one second
+SOURCE_MISSING = 1.5      # 1.0.0.12: frames of a second that never arrived, for the second to be the source's
 STREAMING = ('full', 'late_or_paired', 'client_throttled', 'source_limited')
 LATE = ('late_or_paired', 'client_throttled')
 
@@ -78,6 +93,16 @@ def _number(value, default=None):
     except (TypeError, ValueError):
         return default
     return number if math.isfinite(number) else default
+
+
+def frames_missing(timings, refresh_hz=None):
+    """1.0.0.12: how many frames of one second never arrived at all: the refresh rate less the complete frames
+    received (the TIMING line's packet_fps). A late frame still arrives, in this second or the next."""
+    refresh = _number(timings.get('refresh_hz')) or _number(refresh_hz)
+    received = _number(timings.get('packet_fps'))
+    if not refresh or refresh <= 0 or received is None:
+        return 0.0
+    return max(0.0, refresh - received)
 
 
 def quality_ceiling_mbps(codec, encoded_width, encoded_height, fps):
@@ -117,6 +142,7 @@ class BitrateGovernor:
             start = min(start, ceiling)
         self.active = start is not None
         self.mbps, self.ceiling = start, ceiling
+        self.start = start         # 1.0.0.12: where fresh_start() goes back to
         self.floor = floor_mbps(ceiling) if ceiling else None
         if self.active and self.floor > self.mbps:
             self.floor = self.mbps
@@ -128,6 +154,8 @@ class BitrateGovernor:
         self.window = deque(maxlen=WINDOW_S)
         self.previous = None
         self.steps_down = self.steps_up = 0
+        self.streak_down = 0       # 1.0.0.12: steps down since the start or the last fresh start (the patience)
+        self.fresh_starts = 0
         self.reason = ''
         self.history = deque(maxlen=12)
         self.up_after = CLEAN_UP_S
@@ -165,12 +193,16 @@ class BitrateGovernor:
         arrival_p95 = _number(timings.get('packet_interval_p95_ms'), 0.0)
         decode_slow = (not self.decode_bound and (decode_mean > DECODE_MEAN_SHARE * self.interval_ms
                                                   or decode_p95 > DECODE_P95_SHARE * self.interval_ms))
+        # 1.0.0.12: frames that never came at all (the rendering PC sent nothing for a moment) explain the late
+        # frames of their second, and the gap they leave is not frames bunching up: no lower bitrate sends them.
+        source_gap = not lost and frames_missing(timings, 1000.0 / self.interval_ms) >= SOURCE_MISSING
         # 1.0.0.10: not while it is known to be the network's timing, nor in a second with too few frames.
-        uneven = (not self.arrival_bound and cadence != 'source_limited'
+        uneven = (not self.arrival_bound and not source_gap and cadence != 'source_limited'
                   and arrival_p95 > ARRIVAL_P95_SHARE * self.interval_ms)
-        late = cadence in LATE or timeouts >= LATE_TIMEOUTS
-        return {'lost': lost, 'decode_slow': decode_slow, 'uneven': uneven, 'late': late,
-                'decode_ms': decode_mean, 'arrival_ms': arrival_p95 if cadence != 'source_limited' else 0.0,
+        late = not source_gap and (cadence in LATE or timeouts >= LATE_TIMEOUTS)
+        return {'lost': lost, 'decode_slow': decode_slow, 'uneven': uneven, 'late': late, 'source_gap': source_gap,
+                'decode_ms': decode_mean,
+                'arrival_ms': arrival_p95 if cadence != 'source_limited' and not source_gap else 0.0,
                 'trouble': bool(lost) or decode_slow or (late and uneven)}
 
     def observe(self, timings):
@@ -272,14 +304,33 @@ class BitrateGovernor:
         self.clean = 0
         if direction == 'down':
             self.steps_down += 1
+            self.streak_down += 1
             self.hold = HOLD_DOWN_S
-            self.up_after = min(CLEAN_UP_MAX_S, CLEAN_UP_S * 2 ** max(0, self.steps_down - 1))
+            self.up_after = min(CLEAN_UP_MAX_S, CLEAN_UP_S * 2 ** max(0, self.streak_down - 1))
         else:
             self.steps_up += 1
             self.hold = HOLD_UP_S
         return mbps
 
+    def fresh_start(self, reason):
+        """1.0.0.12: this PC's graphics were just given more room (the companion held its GPU clock higher), so the
+        steps down so far may have been theirs rather than the bitrate's. Back to the bitrate the session started
+        with, judged afresh after the warm-up and with the first step's patience. The new bitrate when it changed,
+        else None (nothing was stepped down)."""
+        if not self.active or self.start is None or self.mbps is None or self.mbps >= self.start:
+            return None
+        self.check = self.arrival_check = None  # their comparisons straddle the clock change
+        changed = self._change(self.start, 'up', reason)
+        if changed is not None:
+            self.fresh_starts += 1
+            self.streak_down = 0
+            self.up_after = CLEAN_UP_S
+            self.hold = 0
+            self.warmup = WARMUP_S
+        return changed
+
     def snapshot(self):
         return {'active': self.active, 'mbps': self.mbps, 'ceiling': self.ceiling, 'floor': self.floor,
                 'steps_down': self.steps_down, 'steps_up': self.steps_up, 'reason': self.reason,
-                'decode_bound': self.decode_bound, 'arrival_bound': self.arrival_bound, 'history': list(self.history)}
+                'decode_bound': self.decode_bound, 'arrival_bound': self.arrival_bound,
+                'fresh_starts': self.fresh_starts, 'history': list(self.history)}

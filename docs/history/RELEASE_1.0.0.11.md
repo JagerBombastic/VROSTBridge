@@ -11,7 +11,7 @@ So 1.0.0.11:
 - measures the frame pass and the plane copy on the GPU, so the reports say what the picture costs;
 - calls the Beyond's 2560 size **Native** (it was *High*).
 
-Every package carries **1.0.0.11**. Everything in the [1.0.0.10](history/RELEASE_1.0.0.10.md) and earlier notes still applies.
+Every package carries **1.0.0.11**. Everything in the [1.0.0.10](RELEASE_1.0.0.10.md) and earlier notes still applies.
 
 **Install:**
 - **Rendering PC:** install `VROSTBridge-Host-Setup-1.0.0.11.exe` over 1.0.0.10 or 1.0.0.9. Its driver is 1.0.0.9's, unchanged.
@@ -57,4 +57,4 @@ Install 1.0.0.11 on both PCs. Choose **Native** with eye-tracked foveation (or S
 - **AV1** is unchanged: where both PCs have it, AV1 needs fewer bits than HEVC for the same picture; choose it in the stream settings.
 - The Windows client has still not run on real hardware (see 1.0.0.7).
 
-Build and test evidence: [evidence/vrostbridge-build-1.0.0.11.json](evidence/vrostbridge-build-1.0.0.11.json).
+Build and test evidence: [evidence/vrostbridge-build-1.0.0.11.json](../evidence/vrostbridge-build-1.0.0.11.json).

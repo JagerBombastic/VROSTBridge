@@ -163,7 +163,8 @@ class HostAddonTests(unittest.TestCase):
             registry.write_text(json.dumps({'runtime': [str(runtime)], 'config': [str(config)],
                                              'external_drivers': [str(own), str(beyond), str(disabled)]}))
             found = detect(registry=registry, own_driver='alvr_server', own_directory=own)
-            self.assertEqual([item['name'] for item in found], ['bigscreen_beyond', 'vendorx'])
+            # 1.0.0.12: drivers in SteamVR's own folder ship with SteamVR (vendorx too); only registered ones count.
+            self.assertEqual([item['name'] for item in found], ['bigscreen_beyond'])
             self.assertIn('client PC', found[0]['advice'])
         self.assertEqual(detect(registry=Path('/nonexistent/openvrpaths.vrpath')), [])
 

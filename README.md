@@ -76,7 +76,7 @@ Bridge. That is about as loose as an acronym gets, and we're keeping it.
 
 | | Status |
 | --- | --- |
-| **Bazzite headset PC, Desktop Mode** | Used on the maintainer's setup with a Valve Index and a Bigscreen Beyond 2e: picture, tracking, Index controllers, game audio, eye-tracked foveation and the headset microphone. The newest changes (1.0.0.10 and 1.0.0.11) have passed their tests in software and await their first session. |
+| **Bazzite headset PC, Desktop Mode** | Used on the maintainer's setup with a Valve Index and a Bigscreen Beyond 2e: picture, tracking, Index controllers, game audio, eye-tracked foveation and the headset microphone, and 1.0.0.11 at Native (2560 per eye) with eye-tracked foveation. 1.0.0.12's changes (the automatic bitrate, the headset PC's GPU clock, the host's add-on warning) have passed their tests in software and await their first session. |
 | **Steam Game Mode on Bazzite** | Included, but starting a session from Game Mode hasn't worked yet on the tested setup. Use Desktop Mode for now. |
 | **Windows headset PC** | Built and tested in software only (its installer, page and frame path run in the tests under Wine); it has never met a real Windows headset PC. Brave volunteers wanted. |
 | **Rendering PC** | Tested with an AMD Radeon (its AMF encoder). NVIDIA and Intel encoders should work through ALVR but haven't been tried. |

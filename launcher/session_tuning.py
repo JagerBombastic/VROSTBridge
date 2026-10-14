@@ -24,6 +24,16 @@ systems that use it for Steam's Performance menu); nothing else is touched:
 
 A PC without steamos-manager, or one that does not offer a setting, simply streams as
 before. The only inputs are the PC's own reported clocks, power and the stream's timing.
+
+1.0.0.12: each session used to find the clock afresh. In the 1.0.0.11 test the GPU sat at
+800 MHz for the first four and a half minutes, while frames ran late and the bitrate
+stepped down, before it was held at 1300 MHz. The clock a session ends up holding is now
+remembered for this PC (MEMORY_NAME in the state folder, with the GPU's maximum clock and
+whether it was on the charger) and held as soon as the next session's video is up, when
+the GPU's level is automatic. A session that has to set it back down (the processor or
+eye tracking squeezed), or in which it is changed elsewhere, forgets it. Frames that never
+arrived (the rendering PC sent nothing for a moment) no longer count as frames running
+late here: no GPU clock on this PC would have shown them.
 """
 from collections import deque
 import json
@@ -37,8 +47,10 @@ import time
 
 from launcher.client_network import system_run
 from launcher.power_balance import CpuClocks, GPU_INTERFACE, OBJECT, SERVICE, TDP_INTERFACE
+from launcher.stream_budget import SOURCE_MISSING, frames_missing
 
 RECEIPT_NAME = 'session-tuning.json'
+MEMORY_NAME = 'gpu-clock.json'  # 1.0.0.12: the clock the last session needed held, for the next session's start
 LOW_CLOCK_SHARE = 0.5     # the GPU counts as held low at or below this share of its maximum clock...
 BUSY_MIN = 35             # ...while at least this busy (percent)
 FIRST_CLOCK_SHARE = 0.45  # the first held clock, as a share of the maximum (rounded up to 100 MHz)
@@ -98,6 +110,8 @@ class SessionTuning:
         self.applied = {}       # what this session set and still owns
         self.limits = {}
         self.raise_count = self.lower_count = 0
+        self.raises = 0         # 1.0.0.12: clocks raised this session (the bitrate's fresh start follows each)
+        self.charger = None
         self.first_clock = None
         self.gaze_baseline = None
         self.late.clear()
@@ -195,6 +209,68 @@ class SessionTuning:
             return None
         return value
 
+    # ------------------------------------------------------------------ the clock the last session needed (1.0.0.12)
+    def _memory_path(self):
+        return (self.state_directory / MEMORY_NAME) if self.state_directory else None
+
+    def _remembered(self):
+        """The clock to hold from the start: the last session's, found on this GPU (the same maximum clock) on the
+        same power source, and within what a session may hold now; else None."""
+        path = self._memory_path()
+        try:
+            value = json.loads(path.read_text(encoding='utf-8')) if path and path.is_file() else None
+        except (OSError, ValueError):
+            return None
+        if not isinstance(value, dict):
+            return None
+        clock, maximum = _int(value.get('clock_mhz')), _int(value.get('clock_max_mhz'))
+        if not clock or not maximum or maximum != self.limits.get('clock_max_mhz') or value.get('charger') != self.charger:
+            return None
+        if clock > int(MAX_CLOCK_SHARE * maximum) or clock < (self.limits.get('clock_min_mhz') or 0):
+            return None
+        return clock
+
+    def _remember(self, clock):
+        path = self._memory_path()
+        if path is None or not self.limits.get('clock_max_mhz'):
+            return
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            temporary = path.with_name('.' + path.name + '.tmp')
+            temporary.write_text(json.dumps({'version': 1, 'clock_mhz': int(clock),
+                                             'clock_max_mhz': self.limits['clock_max_mhz'],
+                                             'charger': self.charger}) + '\n', encoding='utf-8')
+            os.replace(temporary, path)
+        except OSError as error:
+            self.log('PERFORMANCE GPU clock not remembered: ' + str(error)[:160])
+
+    def _forget_clock(self):
+        path = self._memory_path()
+        if path is not None:
+            try:
+                path.unlink()
+            except FileNotFoundError:
+                pass
+            except OSError as error:
+                self.log('PERFORMANCE remembered GPU clock not removed: ' + str(error)[:160])
+
+    def _hold(self, target):
+        """Hold the GPU at target MHz (steamos-manager's manual level); '' when it worked, else what went wrong."""
+        if self.original.get('gpu_level') != 'manual' and 'gpu_level' not in self.applied:
+            problem = self._put(GPU_INTERFACE, 'GpuPerformanceLevel', 's', 'manual')
+            if problem:
+                return problem
+            self.applied['gpu_level'] = 'manual'
+        problem = self._put(GPU_INTERFACE, 'ManualGpuClock', 'u', target)
+        if problem:
+            self._restore_level()
+            return problem
+        self.applied['manual_clock_mhz'] = target
+        if self.first_clock is None:
+            self.first_clock = target
+        self._write_receipt()
+        return ''
+
     # ------------------------------------------------------------------ session
     def status(self):
         with self.lock:
@@ -221,7 +297,7 @@ class SessionTuning:
             self.limits = {key: current[key] for key in ('clock_min_mhz', 'clock_max_mhz', 'tdp_min_w', 'tdp_max_w')
                            if key in current}
             notes = []
-            charger = on_charger(sample)
+            charger = self.charger = on_charger(sample)
             tdp, highest = current.get('tdp_w'), current.get('tdp_max_w')
             if tdp is not None and highest and tdp < highest:
                 if charger:
@@ -235,6 +311,12 @@ class SessionTuning:
                     notes.append('on battery the power limit stays at ' + str(tdp) + ' W')
             elif tdp is not None:
                 notes.append('power limit ' + str(tdp) + ' W (its maximum)')
+            # 1.0.0.12: the clock the last session needed, at once, unless the GPU's level was set by hand.
+            remembered = self._remembered() if current.get('gpu_level') == 'auto' else None
+            if remembered:
+                problem = self._hold(remembered)
+                notes.append(('GPU held at ' + str(remembered) + ' MHz from the start, as the last session needed')
+                             if not problem else 'the GPU clock could not be held (' + problem + ')')
             if self.applied:
                 self._write_receipt()
             self._say('active', 'Balancing this PC for the session: ' + ('; '.join(notes) if notes else
@@ -260,7 +342,11 @@ class SessionTuning:
         def delta(name):
             now, before = counters.get(name), previous.get(name)
             return now - before if now is not None and before is not None and now >= before else 0
-        late = cadence in LATE_CADENCES or delta('late_frame_timeouts') >= 3 or delta('fused_skipped') >= 1
+        # 1.0.0.12: frames that never arrived explain that second's late frames, and no clock here shows them; a
+        # throttled compositor or a frame this PC could not show still counts.
+        missing = frames_missing(timings) >= SOURCE_MISSING
+        late = (cadence == 'client_throttled' or delta('fused_skipped') >= 1 or
+                (not missing and (cadence in LATE_CADENCES or delta('late_frame_timeouts') >= 3)))
         self.previous_counters = counters
         with self.lock:
             self.late.append(bool(late))
@@ -311,6 +397,7 @@ class SessionTuning:
                                                    or current.get('manual_clock_mhz') != self.applied['manual_clock_mhz']):
             self.applied.pop('manual_clock_mhz', None)
             self.applied.pop('gpu_level', None)
+            self._forget_clock()  # 1.0.0.12: set by hand now; not ours to bring back next time
             dropped.append('GPU clock')
         if 'tdp_w' in self.applied and current.get('tdp_w') != self.applied['tdp_w']:
             self.applied.pop('tdp_w', None)
@@ -334,21 +421,12 @@ class SessionTuning:
         target = min(cap, max(target, low or 0))
         if current is not None and target <= current:
             return None
-        if self.original.get('gpu_level') != 'manual' and 'gpu_level' not in self.applied:
-            problem = self._put(GPU_INTERFACE, 'GpuPerformanceLevel', 's', 'manual')
-            if problem:
-                self._say('active', 'The GPU clock could not be held higher (' + problem + ').')
-                return None
-            self.applied['gpu_level'] = 'manual'
-        problem = self._put(GPU_INTERFACE, 'ManualGpuClock', 'u', target)
+        problem = self._hold(target)
         if problem:
             self._say('active', 'The GPU clock could not be held higher (' + problem + ').')
-            self._restore_level()
             return None
-        self.applied['manual_clock_mhz'] = target
-        if self.first_clock is None:
-            self.first_clock = target
-        self._write_receipt()
+        self.raises += 1
+        self._remember(target)
         self._say('active', 'Frames were running late with the GPU at ' + (str(int(gpu)) + ' MHz' if gpu else 'a low clock')
                   + ': GPU held at ' + str(target) + ' MHz for the rest of the session.')
         return target
@@ -357,6 +435,7 @@ class SessionTuning:
         target = clock - STEP_MHZ
         if self.first_clock is None or target < self.first_clock:
             self._restore_clock()
+            self._forget_clock()  # 1.0.0.12: this PC needed it lower after all; the next session finds it afresh
             self._say('active', 'GPU clock set back to ' + str(self.original.get('gpu_level', 'automatic')) + ' (' +
                       reason + ').')
             return 0
@@ -364,6 +443,7 @@ class SessionTuning:
         if problem:
             return None
         self.applied['manual_clock_mhz'] = target
+        self._remember(target)
         self._write_receipt()
         self._say('active', 'GPU held at ' + str(target) + ' MHz (' + reason + ').')
         return target

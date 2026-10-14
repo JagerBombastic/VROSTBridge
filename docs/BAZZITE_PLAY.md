@@ -1,4 +1,4 @@
-# Bazzite Game Mode — VROSTBridge Client 1.0.0.11
+# Bazzite Game Mode — VROSTBridge Client 1.0.0.12
 
 Updated 2026-10-12. Physical Game Mode acceptance remains pending; see [PROJECT_SPEC.md](PROJECT_SPEC.md).
 

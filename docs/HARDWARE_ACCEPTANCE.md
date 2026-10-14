@@ -1,4 +1,4 @@
-# Physical acceptance — VROSTBridge 1.0.0.11
+# Physical acceptance — VROSTBridge 1.0.0.12
 
 ## Tested so far
 
@@ -15,9 +15,15 @@ Not tried: a headset PC running Windows (the Windows client is new in 1.0.0.7, a
 
 ## What to check
 
-Use **1.0.0.11** on both PCs ([release notes](RELEASE_1.0.0.11.md)); over Wi-Fi, turn off Wi-Fi power saving on the client page and run the network test again first. Check:
+Use **1.0.0.12** on both PCs ([release notes](RELEASE_1.0.0.12.md)); over Wi-Fi, turn off Wi-Fi power saving on the client page and run the network test again first. Check:
 
-- **Native with eye-tracked foveation (Beyond):** the stream holds the headset's refresh, and the page's *Fresh video* line shows *Frame pass … ms on the GPU*. Record `frame_pass_gpu` and `plane_copy_gpu` from the client's `TIMING` lines with SteamVR's `gpu_ms` and `compositor_gpu_ms`, at Native and at Standard (for comparison with earlier reports).
+- **The bitrate after a slow start:** with *Use recommended settings*, a bitrate that steps down early in a session goes back to where it started once the headset PC's GPU clock is held higher (the bitrate line ends *Last change: back to the start: the GPU clock was raised*), and short stalls from the rendering PC no longer step it down.
+- **The GPU clock from the start (Bazzite):** the next session on the same headset PC says *GPU held at … MHz from the start, as the last session needed*; Steam's Performance menu shows your own setting after Stop.
+- **The add-on warning:** the rendering PC's page names only add-ons installed from outside SteamVR (a headset maker's helper, for instance), or nothing.
+- **The rendering PC's stalls:** in a game, play five minutes with eye tracking on and five with it off, with reports from both PCs: the host report's `VROST_HOST_ACQUIRE` lines and SteamVR's `WaitForAcquire` warnings say whether the stalls follow the game or the gaze.
+
+Then 1.0.0.11's checks still open (its frame pass ran at Native with eye-tracked foveation in its first session, at 1.9 ms of GPU time a frame):
+
 - **The picture's edges:** nothing at the edges of the view looks cut off or dark, also while turning the head quickly; the client log's `VISIBLE_AREA` line gives each eye's share of computed pixels, and its `STATUS Lens area` line whether the headset's mesh was used as given, turned, used both ways up or left out. If the edges look wrong, compare with *Skip what the lenses never show* off.
 - **Keeping the frame rate:** where the headset PC cannot hold the refresh at Native, the page shows *Shown at 90 %* (or 80 %) beside the frame rate instead of the stream dropping to half rate, the log has a `SCALE` line with the reason, and the full size comes back once there is room; with *Keep the frame rate when this PC falls behind* off, the size stays at 100 %.
 

@@ -41,33 +41,12 @@ def second(cadence='full', gpu_ms=8.0, refresh=75.0):
 
 # ------------------------------------------------------------------------------------------------ version
 class VersionTests(unittest.TestCase):
-    def test_every_program_is_1_0_0_11(self):
+    def test_every_program_shares_one_version_from_1_0_0_11_on(self):
+        # The exact numbers of the current release: tests/test_vrostbridge_1012.py and later.
         from launcher.version import CLIENT_VERSION, HOST_VERSION
-        self.assertEqual((CLIENT_VERSION, HOST_VERSION), ('1.0.0.11', '1.0.0.11'))
-        version = read('core/version.hpp')
-        self.assertIn('#define VROSTBRIDGE_CLIENT_VERSION "1.0.0.11"', version)
-        self.assertIn('#define VROSTBRIDGE_HOST_VERSION "1.0.0.11"', version)
-        self.assertIn('project(VROSTBridge VERSION 1.0.0.11 ', read('CMakeLists.txt'))
-        self.assertIn('version=1.0.0.11\n', read('packaging/install-bazzite.sh'))
-        nsi = read('packaging/windows-installer.nsi')
-        for line in ('Name "VROSTBridge Host 1.0.0.11"', 'VIProductVersion "1.0.0.11"', '"DisplayVersion" "1.0.0.11"',
-                     'InstallDir "$LOCALAPPDATA\\VROSTBridge\\Host\\1.0.0.11"'):
-            self.assertIn(line, nsi)
-        self.assertNotIn('1.0.0.10', nsi)
-        resource = read('packaging/windows-icon.rc')
-        self.assertIn('FILEVERSION 1,0,0,11', resource)
-        self.assertIn('PRODUCTVERSION 1,0,0,11', resource)
-        self.assertIn('native launcher 1.0.0.11 ---', read('packaging/windows-launcher.c'))
-        self.assertIn("VERSION = '1.0.0.11'", read('launcher/install_maintenance.py'))
-        self.assertIn("'VROSTBridge 1.0.0.11 / ALVR'", read('host/profile.py'))
-        sys.path.insert(0, str(ROOT / 'packaging'))
-        import build_distributions
-        import build_windows_client
-        self.assertEqual(build_distributions.client_archive_name(), 'VROSTBridge-Bazzite-Installer-1.0.0.11.zip')
-        self.assertEqual(build_distributions.host_setup_name(), 'VROSTBridge-Host-Setup-1.0.0.11.exe')
-        self.assertEqual(build_windows_client.client_version(), '1.0.0.11')
-        self.assertEqual(build_windows_client.setup_name(), 'VROSTBridge-Client-Setup-1.0.0.11.exe')
-        self.assertEqual(build_windows_client.portable_name(), 'VROSTBridge-Client-Portable-1.0.0.11.zip')
+        self.assertEqual(CLIENT_VERSION, HOST_VERSION)
+        self.assertGreaterEqual(tuple(int(part) for part in HOST_VERSION.split('.')), (1, 0, 0, 11))
+        self.assertIn('#define VROSTBRIDGE_CLIENT_VERSION "' + CLIENT_VERSION + '"', read('core/version.hpp'))
         from launcher import install_maintenance
         self.assertTrue(install_maintenance._RELEASE_VERSION.fullmatch('1.0.0.11'))
 

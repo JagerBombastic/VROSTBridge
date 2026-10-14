@@ -3,7 +3,7 @@
 A checklist for putting VROSTBridge on GitHub as a public open-source project, written for its
 maintainer (JagerBombastic). Do it once; later releases only need the *Each release* part.
 
-## 0. Is it ready? (reviewed for 1.0.0.11, 2026-10-12)
+## 0. Is it ready? (reviewed for 1.0.0.11, 2026-10-12; done: 1.0.0.11 is published)
 
 **Yes, as source and as a release, once you have tried 1.0.0.11 on your PCs and made the two
 decisions below.** What is already in place:
@@ -35,13 +35,10 @@ decisions below.** What is already in place:
 
 **Still yours to decide or do:**
 
-- [ ] **Try 1.0.0.11 first.** Nothing new in it or in 1.0.0.10 has met real hardware yet (1.0.0.11
-      makes the picture lighter for the headset PC; 1.0.0.10 answers the 1.0.0.9 test's menu button,
-      Game Mode and bitrate on Wi-Fi), Game Mode has never started a session yet, and the Windows
-      client has never run on a Windows PC at all; the release notes list the checks. If it goes
-      well, change the line in the README's *What works today* (and the same line in
-      `GITHUB_RELEASE_1.0.0.11.md`) that says 1.0.0.10 and 1.0.0.11 await their first session. If you
-      publish first, mark the release as a pre-release (step 6).
+- [x] **The first release.** 1.0.0.11 was published as a full release on 2026-10-13 and tried on
+      your PCs the same day; 1.0.0.12 answers what that session showed. For each later release,
+      try it on your PCs first and update the README's *What works today*, or mark it a pre-release
+      (step 6).
 - [x] **The artwork licence:** CC BY-ND 4.0 for the logo, icons and other artwork (`brand/LICENSE.md`).
 - [ ] **GitHub account privacy and two-factor authentication** (step 1).
 - [ ] Optional: a `CODE_OF_CONDUCT.md` with a contact address you are happy to make public; code signing later (step 6).
@@ -127,22 +124,22 @@ more thorough: [gitleaks](https://github.com/gitleaks/gitleaks) (`gitleaks detec
 ## 6. Each release
 
 1. Build and check the packages (see [packaging/README.md](../packaging/README.md)), then try
-   them on your own PCs with the release notes' *How to test*. For 1.0.0.11 that is worth doing
-   before publishing: 1.0.0.9 ran well on your PCs, with clean game audio, apart from the menu button,
-   Game Mode, the bitrate stepping down on Wi-Fi and a base station that would not wake; 1.0.0.10's
-   answers to those and 1.0.0.11's lighter picture have only been tested in software. The
-   Windows client has only been tested in software too (its tests, and its installer, companion and
-   page under Wine), so try it on a Windows headset PC first.
-2. On GitHub: **Releases → Draft a new release** → tag `v1.0.0.11` (create it on publish), title
-   *VROSTBridge 1.0.0.11*. For the text, paste [GITHUB_RELEASE_1.0.0.11.md](GITHUB_RELEASE_1.0.0.11.md)
-   (ready-made for this release). For later releases, use the version's entry in
-   [CHANGELOG.md](../CHANGELOG.md) (written for everyone) and link its release notes for detail.
+   them on your own PCs with the release notes' *How to test*. For 1.0.0.12 that is the bitrate
+   after a slow start, the GPU clock held from the start and the add-on warning, all tested in
+   software only. The Windows client has only been tested in software too (its tests, and its
+   installer, companion and page under Wine), so try it on a Windows headset PC first. The source
+   goes to the repository as ordinary commits by you (the private address from step 1), before the
+   release is drafted, so its tag points at the code it was built from.
+2. On GitHub: **Releases → Draft a new release** → tag `v1.0.0.12` (create it on publish), title
+   *VROSTBridge 1.0.0.12*. For the text, paste [GITHUB_RELEASE_1.0.0.12.md](GITHUB_RELEASE_1.0.0.12.md)
+   (ready-made for this release; 1.0.0.11's is in `history/`). Without a ready-made text, use the
+   version's entry in [CHANGELOG.md](../CHANGELOG.md) (written for everyone) and link its release notes.
    Tick **Set as a pre-release** only if you want to mark it as not yet tested on your PCs.
-3. Attach the five packages (`VROSTBridge-Host-Setup-1.0.0.11.exe`,
-   `VROSTBridge-Host-Portable-1.0.0.11.zip`, `VROSTBridge-Bazzite-Installer-1.0.0.11.zip`,
-   `VROSTBridge-Client-Setup-1.0.0.11.exe`, `VROSTBridge-Client-Portable-1.0.0.11.zip`), the source
-   split by part (`VROSTBridge-1.0.0.11-host-source.zip`, `VROSTBridge-1.0.0.11-windows-client-source.zip`,
-   `VROSTBridge-1.0.0.11-bazzite-client-source.zip`) and `SHA256SUMS.txt`, which must list every
+3. Attach the five packages (`VROSTBridge-Host-Setup-1.0.0.12.exe`,
+   `VROSTBridge-Host-Portable-1.0.0.12.zip`, `VROSTBridge-Bazzite-Installer-1.0.0.12.zip`,
+   `VROSTBridge-Client-Setup-1.0.0.12.exe`, `VROSTBridge-Client-Portable-1.0.0.12.zip`), the source
+   split by part (`VROSTBridge-1.0.0.12-host-source.zip`, `VROSTBridge-1.0.0.12-windows-client-source.zip`,
+   `VROSTBridge-1.0.0.12-bazzite-client-source.zip`) and `SHA256SUMS.txt`, which must list every
    file you attach. The release kit's `upload` folder holds exactly these nine. For a later release,
    make the split source with `python3 scripts/package_component_sources.py` and the checksums in
    the folder with the files: `sha256sum VROSTBridge-* > SHA256SUMS.txt`. GitHub adds the whole
@@ -150,8 +147,8 @@ more thorough: [gitleaks](https://github.com/gitleaks/gitleaks) (`gitleaks detec
 4. Publish.
 
 **Never upload host packages RC1 to RC3:** they contained a GPL FFmpeg build without its source.
-Release 1.0.0.11 is the first to publish; publish it and later releases only, not the earlier
-builds (the release candidates and 1.0.0 to 1.0.0.10).
+Release 1.0.0.11 was the first published; publish later releases only, never the earlier builds
+(the release candidates and 1.0.0 to 1.0.0.10).
 
 **What the packages must keep** (already done by the build): `LICENSE`, `NOTICE`,
 `THIRD_PARTY.md` and `licenses/` in all three; FFmpeg's source in both client packages (the

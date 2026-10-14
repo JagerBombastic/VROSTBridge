@@ -39,7 +39,7 @@ def mirror_headset(settings, description):
     values.update({name:'false' for name in UNSUPPORTED_HOST_CAPABILITIES})
     # Keep the driver attribution truthful; the physical driver still lives on
     # the client. Display frequency and live eye/IPD geometry are negotiated.
-    values['DriverVersionString']='VROSTBridge 1.0.0.11 / ALVR'
+    values['DriverVersionString']='VROSTBridge 1.0.0.12 / ALVR'
     owned=set(HEADSET_PROPERTIES.values()) | set(UNSUPPORTED_HOST_CAPABILITIES) | {'DriverVersionString'}
     props=settings['headset']['extra_openvr_props']
     retained=[row for row in props['content'] if row.get('key',{}).get('variant') not in owned]

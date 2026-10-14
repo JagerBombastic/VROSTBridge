@@ -1,6 +1,6 @@
 # Beyond 2 / 2e display setup
 
-Updated 2026-10-12 for VROSTBridge 1.0.0.11 (first written for RC1.3). Local Beyond display and bridged video have been observed; the RC1.3 projection correction still needs physical confirmation.
+Updated 2026-10-12 for VROSTBridge 1.0.0.11 and reviewed for 1.0.0.12, which changes nothing here (first written for RC1.3). Local Beyond display and bridged video have been observed; the RC1.3 projection correction still needs physical confirmation.
 
 Before the first Beyond test, stop the stream and select **Auto** for both codec
 and stream resolution in the client. Existing manual Index preferences survive

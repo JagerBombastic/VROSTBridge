@@ -1815,7 +1815,19 @@ class Application:
             return
         if sample and tuning.active:
             rate=self.eye.rate() if getattr(self,'eye',None) is not None else None
+            raises=getattr(tuning,'raises',None)
             tuning.observe(sample,rate if isinstance(rate,(int,float)) else None)
+            # 1.0.0.12: the GPU clock was just held higher, so the bitrate's steps down so far may have been the
+            # graphics' (launcher/stream_budget.py, fresh_start).
+            after=getattr(tuning,'raises',None)
+            if isinstance(raises,int) and isinstance(after,int) and after>raises:self.bitrate_fresh_start()
+    def bitrate_fresh_start(self):
+        governor=getattr(self,'bitrate_governor',None)
+        if governor is None:return
+        with self.lock:
+            previous=governor.mbps
+            changed=governor.fresh_start('back to the start: the GPU clock was raised')
+            if changed:self.bitrate_note='BITRATE '+str(previous)+' -> '+str(changed)+' Mbit/s ('+governor.reason+')'
     def check_graphics_limit(self):
         """Act once when this PC's graphics start holding the stream below refresh: pause re-aim for
         this session (a full-resolution GPU pass per frame), show a short line in the headset and log."""

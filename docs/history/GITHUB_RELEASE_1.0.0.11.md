@@ -11,7 +11,7 @@ Attach the five packages, the three source archives and `SHA256SUMS.txt`, which 
 - `SHA256SUMS.txt`
 
 GitHub adds the whole source itself (*Source code*). If you publish before trying 1.0.0.11 on your own PCs, tick
-**Set as a pre-release**. See [PUBLISHING.md](PUBLISHING.md). The links assume the repository is
+**Set as a pre-release**. See [PUBLISHING.md](../PUBLISHING.md). The links assume the repository is
 `JagerBombastic/VROSTBridge`; change them if you name it differently.
 
 ---
