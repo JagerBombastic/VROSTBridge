@@ -27,8 +27,9 @@ try:
 finally:lib.vrost_destroy(context)
 # RC4 ABI: capabilities, foveation state, counters and loss policy without a stream.
 class Foveation(c.Structure):_fields_=[('encoded',c.c_uint32*2),('view_ratio',c.c_float*2),('center_size',c.c_float*2),('center_shifts',(c.c_float*2)*2),('edge_ratio',c.c_float*2)]
-class Counters(c.Structure):_fields_=[('frames',c.c_uint64),('network_losses',c.c_uint64),('idr_requests',c.c_uint64),('decoder_saturation',c.c_uint64),('skipped_until_idr',c.c_uint64)]
-assert c.sizeof(Foveation)==48 and c.sizeof(Counters)==40
+# 1.0.0.13: all seven counters (1.0.0.9 added the two parity ones; a smaller buffer was written past its end).
+class Counters(c.Structure):_fields_=[('frames',c.c_uint64),('network_losses',c.c_uint64),('idr_requests',c.c_uint64),('decoder_saturation',c.c_uint64),('skipped_until_idr',c.c_uint64),('fec_video_recovered',c.c_uint64),('fec_audio_recovered',c.c_uint64)]
+assert c.sizeof(Foveation)==48 and c.sizeof(Counters)==56
 lib.vrost_create2.argtypes=[c.c_uint32,c.c_uint32,c.c_float,c.c_uint32];lib.vrost_create2.restype=c.c_void_p
 lib.vrost_foveation.argtypes=[c.c_void_p,c.POINTER(Foveation)];lib.vrost_foveation.restype=c.c_int
 lib.vrost_stream_counters.argtypes=[c.c_void_p,c.POINTER(Counters)]
@@ -38,8 +39,8 @@ assert not lib.vrost_create2(0,1,90,7)
 context=lib.vrost_create2(1024,1024,90,7);assert context
 try:
  fov=Foveation();assert lib.vrost_foveation(context,c.byref(fov))==0,'no foveated stream before negotiation'
- counters=Counters(1,1,1,1,1);lib.vrost_stream_counters(context,c.byref(counters))
- assert (counters.frames,counters.network_losses,counters.idr_requests)==(0,0,0)
+ counters=Counters(1,1,1,1,1,1,1);lib.vrost_stream_counters(context,c.byref(counters))
+ assert (counters.frames,counters.network_losses,counters.idr_requests,counters.fec_video_recovered,counters.fec_audio_recovered)==(0,0,0,0,0)
  lib.vrost_set_gradual_recovery(context,1);lib.vrost_set_gradual_recovery(context,0)
  shifts=(c.c_float*4)();views=c.create_string_buffer(256)
  assert lib.vrost_frame_views2(context,12345,views,shifts)==0,'unknown frame has no views or centres'

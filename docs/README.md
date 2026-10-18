@@ -15,7 +15,7 @@ cup of tea.
 | [Troubleshooting](TROUBLESHOOTING.md) | What the page's messages mean and what to do, from finding the host to Wi-Fi hiccups |
 | [Steam Game Mode on Bazzite](BAZZITE_PLAY.md) | The Game Mode screen, the Steam library entry and the headset display |
 | [Eye tracking](BEYOND_EYE_TRACKING.md) | Eye-tracked foveation on the Bigscreen Beyond 2e: set-up, calibration and gaze centring |
-| [Beyond display options](BEYOND_DISPLAY_OPTIONS.md) | Stream sizes, refresh and projection on a Bigscreen Beyond 2 or 2e |
+| [Beyond display options](BEYOND_DISPLAY_OPTIONS.md) | How the stream follows a Bigscreen Beyond 2 or 2e's display mode, refresh and projection |
 | [Hardware tested so far](HARDWARE_ACCEPTANCE.md) | What has run on real hardware, and the checks for a new setup |
 
 ## How it works
@@ -50,11 +50,11 @@ cup of tea.
 | Document | What's in it |
 | --- | --- |
 | [Changelog](../CHANGELOG.md) | Each version in a few lines, newest first |
-| [Release notes for 1.0.0.12](RELEASE_1.0.0.12.md) | The current release in detail, with how to test it and its known limits |
+| [Release notes for 1.0.0.13](RELEASE_1.0.0.13.md) | The current release in detail, with how to test it and its known limits |
 | [Build verification](BUILD_VERIFICATION.md) and its [evidence](evidence/) | How each release was built and checked, with hashes and test results |
 | [Development checkpoint](DEVELOPMENT_CHECKPOINT.md) | The developer's handoff: what each release changed in the code, and what comes next |
 | [Publishing on GitHub](PUBLISHING.md) | The maintainer's checklist for a release |
-| [The 1.0.0.12 release page](GITHUB_RELEASE_1.0.0.12.md) | The text for the GitHub release page, with the files to attach |
+| [The 1.0.0.13 release page](GITHUB_RELEASE_1.0.0.13.md) | The text for the GitHub release page, with the files to attach |
 
 ## History
 

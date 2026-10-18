@@ -1,6 +1,6 @@
 # Third-party software and notices
 
-For VROSTBridge 1.0.0.12: the host, the Bazzite client and the Windows client. No third-party
+For VROSTBridge 1.0.0.13: the host, the Bazzite client and the Windows client. No third-party
 component has been added or changed since 1.0.0.7, which added the Windows client's package
 (1.0.0.9's patches 0021 to 0023 are VROSTBridge's own changes to ALVR, under ALVR's MIT terms).
 Reviewed 2026-10-14, file by file against the packages and the source. In plain words:

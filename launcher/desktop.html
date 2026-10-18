@@ -165,7 +165,7 @@ footer{font-size:11.5px;color:var(--faint);display:flex;justify-content:space-be
 <p id="bitrate-status" class="small-note" role="status"></p>
 <div class="actions"><button class="secondary" id="network-test" onclick="act('network-test')">Test network now</button><button class="secondary" id="recommended-settings" onclick="act('recommended-settings')">Use recommended settings</button></div><p id="network-test-result" class="small-note" role="status"></p>
 <p class="small-note">Recommended settings: codec, stream resolution, foveated encoding and bitrate on Auto, with the frame timing lock, re-aim, late-frame catch-up and performance balancing on.</p>
-<details><summary class="compact-summary">About the stream size</summary><p id="display-render" class="small-note"></p><p id="display-mode-note" class="small-note">The headset's refresh rate is used as it is set on the headset.</p><p class="small-note">Stream resolution is the picture the host sends per eye, not the headset's panel. H.264 is limited to 2048 pixels wide per eye; HEVC and AV1 to 4096. More pixels need more host and decoder time.</p></details>
+<details><summary class="compact-summary">About the stream size</summary><p id="display-render" class="small-note"></p><p id="display-mode-note" class="small-note">The headset's refresh rate is used as it is set on the headset, unless a rate is chosen for an Index.</p><p class="small-note">Stream resolution is the picture the host sends per eye, not the headset's panel. H.264 is limited to 2048 pixels wide per eye; HEVC and AV1 to 4096. More pixels need more host and decoder time.</p></details>
 <p class="small-note">Changes apply to your next session.</p></section>
 <section class="card client" id="eye-tracking"><h2>Eye tracking</h2><p class="lede">Bigscreen Beyond 2e: the sharp region of the stream follows your eyes, so the rest of each eye can be sent with fewer pixels.</p>
 <label class="option"><input id="eye_tracking" type="checkbox" onchange="act('eye-tracking',{enabled:this.checked})"><span>Eye tracking<small><span id="eye-note-linux">VROSTBridge starts the headset's eye cameras and Baballonia with each session and sends where you look to the host. Calibrate once, in Desktop Mode.</span><span id="eye-note-windows" class="hidden">VROSTBridge starts Baballonia with each session and sends where you look to the host. Baballonia reads the headset's eye cameras directly (the camera “BigEye”), so close Bigscreen's own eye-tracking app while you use it. Calibrate once, in Baballonia's window during a session.</span></small></span></label>
@@ -276,11 +276,14 @@ function renderPlatform(s){
 const DECODERS={d3d11va:'decoded with D3D11VA',vaapi:'decoded with VA-API',cpu:'decoded on the CPU'};
 function decoderText(decoder){return typeof decoder==='string'&&Object.hasOwn(DECODERS,decoder)?' · '+DECODERS[decoder]:'';}
 function renderResolution(s){
-  const display=s.display||{},select=$('resolution'),current=select.value||s.settings?.resolution||'automatic';
+  const display=s.display||{},select=$('resolution');
   const options=[...(display.resolution_options?.[$('codec').value]||[{id:'automatic',label:'Auto - detect on Start',available:true}])];
-  // Keep a pending manual choice if detection changes while the page is open.
+  // 1.0.0.13: the choices are offered before a session too; a saved choice this headset does not offer shows as
+  // Auto (display.selected), which it follows. A pending manual choice is kept if the list changes meanwhile. A Beyond
+  // offers none: its one entry says the mode it is in (display.resolution_fixed).
+  let current=select.value||display.selected||s.settings?.resolution||'automatic';
+  if(!options.some(option=>option.id===current)&&options.some(option=>option.id===display.selected))current=display.selected;
   if(!options.some(option=>option.id===current))options.push({id:current,label:'Saved choice - size checked on Start',available:true});
-  $('codec-h264').disabled=current.startsWith('beyond-');
   const signature=JSON.stringify([options,current]);
   if(signature!==resolutionSignature){
     select.replaceChildren();
@@ -291,10 +294,7 @@ function renderResolution(s){
   $('display-target').textContent=selected?.width?`Stream: ${selected.encoded_width} × ${selected.encoded_height} encoded (both eyes side by side) · ${{Hevc:'HEVC',AV1:'AV1'}[selected.codec]||'H.264'}.`:(selected?.message||'The exact stream size appears once the headset is detected.');
 }
 $('codec').addEventListener('change',()=>{if(lastStatus)renderResolution(lastStatus);});
-$('resolution').addEventListener('change',()=>{
-  if($('resolution').value.startsWith('beyond-')&&$('codec').value==='H264')$('codec').value='Auto';
-  if(lastStatus)renderResolution(lastStatus);
-});
+$('resolution').addEventListener('change',()=>{if(lastStatus)renderResolution(lastStatus);});
 $('auto_connect').addEventListener('change',()=>{autoConnectEdited=true;});
 const states={
   stopped:['Ready to start','Start opens SteamVR on both PCs and connects them.'],
@@ -358,8 +358,8 @@ async function act(action,extra={}){
     if(action==='start'||action==='configure')autoConnectEdited=false;
     if(action==='recommended-settings')initialized=false;  // 1.0.0.8: show the settings it chose
     const smaller=lastStatus?.graphics?.smaller;
-    if(action==='use-standard'){$('resolution').value='sharp';resolutionSignature='';}
-    const notices={'network-test':'Network test finished.','wake-host':'Wake-up sent.','repair-async':'SteamVR reprojection repaired; it applies when SteamVR next starts.','wifi-powersave-off':isWindowsClient(lastStatus)?'Wi-Fi power saving is off in the Windows power plan, for all networks.':'Wi-Fi power saving is off for your home network.',qos:'Windows QoS updated. Restart this PC if asked.',configure:'Preferences saved.',firewall:'Windows Firewall access is ready. Start the session from your headset client.',unregister:'Host streaming driver removed.','trust-client':'Client allowed. Waiting for the connection.','add-client':'Client allowed. Connecting to its LAN address.','forget-client':'Client access removed.','allow-client-network':'Home-network access saved. The client keeps trying to connect.','steam-add':'VROSTBridge is in your Steam library.','steam-remove':'VROSTBridge was removed from Steam.','send-report':'Report sent to the host.','align-check':'Check running: watch something that stays still.','use-standard':`Stream size set to ${smaller?`${smaller.label} (${smaller.width} per eye)`:'the smaller size'}. It applies at your next Start.`,'microphone-setup':'Downloading VB-CABLE from VB-Audio. Its setup opens next.','microphone-check':'Checking the audio devices.','set-sharpening':'Sharpening saved'+(lastStatus?.running?' and applied.':'.'),'gpu-auto':'The GPU clock is automatic again: the processor gets its share of the power.','recommended-settings':'Recommended settings chosen. They apply at your next Start.','eye-calibration':'The previous calibration is chosen. It applies when eye tracking next starts.','gaze-centre-reset':'Gaze centring starts again for this calibration.'};
+    if(action==='use-standard'){$('resolution').value=smaller?.id||'sharp';resolutionSignature='';}
+    const notices={'network-test':'Network test finished.','wake-host':'Wake-up sent.','repair-async':'SteamVR reprojection repaired; it applies when SteamVR next starts.','wifi-powersave-off':isWindowsClient(lastStatus)?'Wi-Fi power saving is off in the Windows power plan, for all networks.':'Wi-Fi power saving is off for your home network.',qos:'Windows QoS updated. Restart this PC if asked.',configure:'Preferences saved.',firewall:'Windows Firewall access is ready. Start the session from your headset client.',unregister:'Host streaming driver removed.','trust-client':'Client allowed. Waiting for the connection.','add-client':'Client allowed. Connecting to its LAN address.','forget-client':'Client access removed.','allow-client-network':'Home-network access saved. The client keeps trying to connect.','steam-add':'VROSTBridge is in your Steam library.','steam-remove':'VROSTBridge was removed from Steam.','send-report':'Report sent to the host.','align-check':'Check running: watch something that stays still.','use-standard':`${smaller?.refresh_hz?'Refresh rate':'Stream size'} set to ${smaller?`${smaller.label} (${smaller.width} per eye)`:'the smaller size'}. It applies at your next Start.`,'microphone-setup':'Downloading VB-CABLE from VB-Audio. Its setup opens next.','microphone-check':'Checking the audio devices.','set-sharpening':'Sharpening saved'+(lastStatus?.running?' and applied.':'.'),'gpu-auto':'The GPU clock is automatic again: the processor gets its share of the power.','recommended-settings':'Recommended settings chosen. They apply at your next Start.','eye-calibration':'The previous calibration is chosen. It applies when eye tracking next starts.','gaze-centre-reset':'Gaze centring starts again for this calibration.'};
     $('notice').textContent=notices[action]||'';
   }catch(e){$('error').textContent='The VROSTBridge companion is unavailable. Reopen it to continue.';}
   finally{pendingCount--;pending=pendingCount>0;if(action==='start')startPending=false;if(action==='stop')stopPending=false;if(!closed)await update();}
@@ -540,6 +540,7 @@ function renderControls(s){
   for(const id of ['foveation','fov_region','fov_edge','keep_warm_minutes',...CLIENT_SWITCHES])$(id).disabled=settingsLocked;
   $('reaim').disabled=busy;$('sharpening').disabled=busy;
   $('bitrate').disabled=settingsLocked||$('auto_bitrate').checked;
+  $('resolution').disabled=settingsLocked||!!s.display?.resolution_fixed;
   $('network-test').disabled=settingsLocked;$('wake-now').disabled=busy||sessionActive||!s.system?.wake?.mac_known;
   $('repair-async').disabled=busy||sessionActive;$('wifi-fix').disabled=busy||sessionActive;
   const check=s.alignment_check||{};
@@ -671,7 +672,8 @@ async function update(){
     if(!host)renderResolution(s);
     $('display-identity').textContent=display.detected?`${display.model} · ${display.refresh_hz} Hz${s.running?'':' · last detected, checked again on Start'}`:display.message||'Your headset is detected when you start a session.';
     $('display-render').textContent=display.detected?`SteamVR on this PC recommends rendering ${display.recommended_width} × ${display.recommended_height} per eye for this headset.`:'';
-    $('display-mode-note').textContent='Refresh rate: '+(display.detected?`${display.refresh_hz} Hz, as set on the headset. `:'detected on Start. ')+'Stream resolution does not change the headset’s panel or refresh rate.';
+    // 1.0.0.13: what a mode does to the refresh rate here, and what the last start found.
+    $('display-mode-note').textContent=[(display.refresh_text||'').replaceAll(' x ',' × '),display.refresh_note?display.refresh_note.replaceAll(' x ',' × '):''].filter(Boolean).join(' ');
     $('runtime-status').textContent=host?(s.running?'The client controls this session.':'SteamVR stays closed until your client requests a session.'):s.client_runtime?.message||'';
     $('room-status').textContent=area&&(area.applied||area.sent)?`Play area ${Number(area.width).toFixed(2)} × ${Number(area.depth).toFixed(2)} m · ${host?'applied on this host':'sent to the host'}. Rectangular; the client's boundary stays active.`:area?.reason||'Waiting for a valid client play area and host confirmation.';
     $('remote-debug-status').textContent=host?'Save this PC\'s report, or download a report your headset PC sent. '+(remote.message||''):'Save the report on this PC, or send it to the host and download it there.';
@@ -848,12 +850,12 @@ function renderGraphics(s){
   $('power-balance').classList.toggle('hidden',!p.message);$('power-message').textContent=p.message||'';
   $('gpu-auto').classList.toggle('hidden',win||!gpuAuto);
   // RC4.3: this PC's graphics holding the stream below the headset refresh, with the one-tap advice.
-  const g=s.graphics||{},smaller=g.smaller,standard=(g.actions||[]).includes('use-standard')&&!!smaller&&s.settings?.resolution!=='sharp';
+  const g=s.graphics||{},smaller=g.smaller,standard=(g.actions||[]).includes('use-standard')&&!!smaller&&s.settings?.resolution!==(smaller.id||'sharp');
   $('graphics-limit').classList.toggle('hidden',!g.message);$('graphics-message').textContent=g.message||'';
   $('use-standard').classList.toggle('hidden',!standard);
   // 1.0.0.5: a GPU held low by a fixed clock: the same one-tap fix, unless the power card already offers it.
   $('graphics-gpu-auto').classList.toggle('hidden',win||!(g.actions||[]).includes('gpu-auto')||gpuAuto);
-  if(smaller)$('use-standard').textContent=`Use ${smaller.label} · ${smaller.width} per eye`;
+  if(smaller)$('use-standard').textContent=smaller.refresh_hz?`Use ${smaller.label}`:`Use ${smaller.label} · ${smaller.width} per eye`;
 }
 // RC4.5: why Eye-tracked does not follow the eyes (system.foveation.eye_state), page wording.
 function eyeNote(s,state){

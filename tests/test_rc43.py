@@ -264,15 +264,24 @@ class GraphicsLimitAppTests(unittest.TestCase):
 
     def test_the_headsets_own_smaller_size_is_offered(self):
         app = self.app
-        self.assertEqual(app.sharp_preset(), {'label': 'Standard', 'width': 2016, 'height': 2016})
+        # 1.0.0.13: a Beyond streams the mode it is in: nothing to choose here. While it streams its 75 Hz mode's
+        # 2560, the advice names the lighter 90 Hz mode, which Bigscreen's Beyond Utility switches.
+        from launcher.headset import BEYOND_LIGHTER_MODE
+        self.assertEqual(app.sharp_preset(), {'id': None, 'hint': BEYOND_LIGHTER_MODE})
         self.stream('client_throttled', 8)
         app.check_graphics_limit()
-        self.assertEqual(app.graphics_status()['smaller'], {'label': 'Standard', 'width': 2016, 'height': 2016})
+        status = app.graphics_status()
+        self.assertIsNone(status['smaller'])
+        self.assertNotIn('use-standard', status['actions'])
+        self.assertIn("Bigscreen's Beyond Utility on a Windows PC", status['message'])
         from headset_fixture import HEADSET
-        app.client_runtime.headset = dict(HEADSET)  # a Valve Index: its 'sharp' preset is High
-        preset = app.sharp_preset()
-        self.assertEqual(preset['label'], 'High')
+        app.client_runtime.headset = dict(HEADSET)  # a Valve Index at 90 Hz: its next lower rate
+        self.assertEqual(app.sharp_preset(), {'id': 'index-80', 'label': '80 Hz', 'width': 2016, 'height': 2240,
+                                              'refresh_hz': 80.0})
+        app.client_runtime.headset = dict(HEADSET, model='Generic HMD', manufacturer='Example')  # its 'sharp': High
+        self.assertEqual(app.sharp_preset()['label'], 'High')
         app.client_runtime.headset = None
+        app.settings.pop('cached_headset', None)
         self.assertIsNone(app.sharp_preset())
 
     def test_a_wifi_gap_or_lost_tracking_does_not_blame_the_graphics(self):
@@ -315,10 +324,10 @@ class GraphicsLimitAppTests(unittest.TestCase):
         self.assertTrue(any(line.startswith('GRAPHICS ') and 're-aim is paused' in line for line in app.lines))
         status = app.graphics_status()
         self.assertEqual((status['state'], status['stream_width']), ('limited', 2560))
-        self.assertEqual(status['actions'], ['use-standard', 'repair-reprojection'])
+        self.assertEqual(status['actions'], ['repair-reprojection'])  # 1.0.0.13: a Beyond's size follows its mode
         self.assertEqual(app.settings['reaim'], True, 'the pause is for this session only')
         app.update_headset_status()
-        app.native_command.assert_called_with('hud PC graphics at their limit|re-aim paused|Standard 2016 for 75 fps')
+        app.native_command.assert_called_with('hud PC graphics at their limit|re-aim paused')
         app.check_graphics_limit()
         self.assertEqual(app.native_command.call_count, 2, 'nothing more until the state changes')
         app.graphics_notice_until = 0
@@ -364,12 +373,19 @@ class GraphicsLimitAppTests(unittest.TestCase):
 
     def test_use_standard_is_saved_during_a_session(self):
         app = self.app
-        app.settings.update(codec='Auto', resolution='beyond-balanced')
+        app.settings.update(codec='Auto', resolution='automatic')
+        # 1.0.0.13: nothing to save on a Beyond, whose mode Bigscreen's Beyond Utility switches.
+        with self.assertRaisesRegex(ValueError, 'Beyond Utility'):
+            app.action({'action': 'use-standard'})
+        self.assertEqual(app.settings['resolution'], 'automatic')
+        from headset_fixture import HEADSET
+        app.client_runtime.headset = dict(HEADSET, refresh_hz=120.0)  # an Index at 120 Hz: 90 Hz is lighter
         app.action({'action': 'use-standard'})
-        self.assertEqual(app.settings['resolution'], 'sharp')
+        self.assertEqual(app.settings['resolution'], 'index-90')
         import json
-        self.assertEqual(json.loads(app.settings_path.read_text())['resolution'], 'sharp')
-        self.assertTrue(any('applies at the next Start' in line for line in app.lines))
+        self.assertEqual(json.loads(app.settings_path.read_text())['resolution'], 'index-90')
+        self.assertTrue(any(line.startswith('Refresh rate set to 90 Hz') and 'applies at the next Start' in line
+                            for line in app.lines))
 
 
 def edid(maker='VLV', product=0x91a8, extensions=()):

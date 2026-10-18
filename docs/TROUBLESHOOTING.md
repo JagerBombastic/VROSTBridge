@@ -70,6 +70,13 @@ base stations off or out of sight, or SteamVR on the headset PC not running. Bas
 ***Waiting for the headset’s position*** **(rendering PC).** The same problem seen from the other end: frames are
 rendered, but the headset PC isn't sending a head position. Look at the headset PC.
 
+**SteamVR doesn't start at 144 Hz (Index).** 144 Hz is experimental, and not every graphics card or driver drives
+it: the start fails after a minute with a message naming the rate VROSTBridge asked for. Choose *Native · 120 Hz*.
+
+**The Beyond is in the wrong mode (75 or 90 Hz).** VROSTBridge doesn't switch it, on Bazzite or Windows: the stream
+follows the mode the headset is in, and the page shows which. Set the mode with Bigscreen's Beyond Utility on a
+Windows PC, then start again.
+
 **Steam's Game Mode on Bazzite doesn't start a session.** Starting a session from Game Mode hasn't yet been seen to
 work on the tested setup: the headset PC's SteamVR could not take over the headset display there. Use Desktop Mode
 until a release says otherwise, and send the reports if you try it (they record the Game Mode start). More:

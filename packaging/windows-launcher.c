@@ -20,7 +20,7 @@
 #define LOG_NAME L"\\host-native.log"
 #define ROLE_ARGUMENT L" --role host"
 #define ARGUMENT_HELP L"Unsupported launcher argument. Use --background for the waiting host service or --self-test to check installation files."
-#define BANNER "\r\n--- VROSTBridge Host native launcher 1.0.0.12 ---\r\n"
+#define BANNER "\r\n--- VROSTBridge Host native launcher 1.0.0.13 ---\r\n"
 #endif
 void *memset(void *destination, int value, size_t count) { volatile unsigned char *p=destination; while(count--)*p++=(unsigned char)value; return destination; }
 static wchar_t root[32768], python[32768], command[32768], logpath[32768], state[32768];

@@ -11,7 +11,7 @@ Either toolchain gives the same program:
 - Zig:  python3 packaging/build_windows_launcher.py --zig /path/to/zig --output DIR [--role client]
 - LLVM: python3 packaging/build_windows_launcher.py --sdk /path/to/xwin-sdk --output DIR [--role client]
   with clang, lld-link and llvm-rc on PATH and an xwin-style Windows SDK (sdk/include/{um,shared,ucrt},
-  sdk/lib/um/x86_64; crt/include). That is how the 1.0.0, 1.0.0.1, 1.0.0.2, 1.0.0.3, 1.0.0.4, 1.0.0.5, 1.0.0.6, 1.0.0.7, 1.0.0.8, 1.0.0.9, 1.0.0.10, 1.0.0.11 and 1.0.0.12 launchers were built (zig was not available).
+  sdk/lib/um/x86_64; crt/include). That is how the 1.0.0, 1.0.0.1, 1.0.0.2, 1.0.0.3, 1.0.0.4, 1.0.0.5, 1.0.0.6, 1.0.0.7, 1.0.0.8, 1.0.0.9, 1.0.0.10, 1.0.0.11, 1.0.0.12 and 1.0.0.13 launchers were built (zig was not available).
 The host's PE timestamp is the link time; --timestamp N (LLVM) writes N instead, so the host launcher rebuilt
 with an earlier release's timestamp can be compared with that release's launcher byte for byte.
 """

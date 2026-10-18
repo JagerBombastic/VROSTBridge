@@ -583,6 +583,13 @@ def parse_if_row(row):
             'admin_up': row.AdminStatus == 1, 'physical_medium': row.PhysicalMediumType}
 
 
+def parse_if_counters(row):
+    """1.0.0.13: GetIfEntry2's packet, discard and error counters, named as the reports name them."""
+    return {'rx_packets': row.InUcastPkts + row.InNUcastPkts, 'rx_discards': row.InDiscards, 'rx_errors': row.InErrors,
+            'rx_unknown_protocols': row.InUnknownProtos, 'tx_packets': row.OutUcastPkts + row.OutNUcastPkts,
+            'tx_discards': row.OutDiscards, 'tx_errors': row.OutErrors}
+
+
 def route_from_row(row, source):
     """A GetBestRoute2 result: interface index, gateway ('' when on-link) and the chosen source address."""
     gateway = _ipv4_of(row.NextHop)
@@ -803,6 +810,18 @@ class NativeApi:
         if function(ctypes.byref(row)) != ERROR_SUCCESS:
             return {}
         return parse_if_row(row)
+
+    def interface_counters(self, luid):
+        """1.0.0.13: GetIfEntry2's counters for one adapter, read now; {} if Windows does not answer."""
+        try:
+            function = self._function('iphlpapi', 'GetIfEntry2')
+        except WindowsNetworkError:
+            return {}
+        row = MIB_IF_ROW2()
+        row.InterfaceLuid = luid
+        if function(ctypes.byref(row)) != ERROR_SUCCESS:
+            return {}
+        return parse_if_counters(row)
 
     def device_id(self, guid):
         """The adapter's PnP instance id (USB\\..., PCI\\...), '' if unknown; cached per adapter."""
@@ -1069,6 +1088,20 @@ def adapter_for(alias=None, index=None, address=None, guid=None):
             continue
         return adapter
     return None
+
+
+def adapter_counters():
+    """1.0.0.13: {alias: counters} for each physical adapter, the counters read now (the adapter list may be the
+    cached one). Raises WindowsNetworkError when the adapters cannot be listed."""
+    result = {}
+    for adapter in adapters():
+        if not adapter.get('physical') or adapter.get('luid') is None:
+            continue
+        counters = _api.interface_counters(adapter['luid'])
+        if counters:
+            name = (adapter.get('alias') or str(adapter.get('index')))[:64]
+            result[name] = dict(counters, kind=adapter.get('kind'), usb=adapter.get('usb'))
+    return result
 
 
 def interface_index(alias):

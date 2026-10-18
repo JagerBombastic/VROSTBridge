@@ -565,7 +565,7 @@ mod tests {
         assert_eq!(size_of::<E>(), 48);
         assert_eq!(size_of::<NativeHand>(), 1768);
         assert_eq!(size_of::<Foveation>(), 48);
-        assert_eq!(size_of::<StreamCounters>(), 40);
+        assert_eq!(size_of::<StreamCounters>(), 56); // 1.0.0.13: the two parity counters of 1.0.0.9
     }
 }
 

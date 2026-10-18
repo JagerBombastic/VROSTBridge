@@ -2,19 +2,19 @@ Unicode true
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "x64.nsh"
-Name "VROSTBridge Host 1.0.0.12"
-Caption "VROSTBridge Host 1.0.0.12 Setup"
+Name "VROSTBridge Host 1.0.0.13"
+Caption "VROSTBridge Host 1.0.0.13 Setup"
 OutFile "${OUTPUT}"
-InstallDir "$LOCALAPPDATA\VROSTBridge\Host\1.0.0.12"
+InstallDir "$LOCALAPPDATA\VROSTBridge\Host\1.0.0.13"
 RequestExecutionLevel user
 SetCompressor /SOLID zlib
 ShowInstDetails show
 BrandingText "VROSTBridge - an open-source remote PCVR bridge"
-VIProductVersion "1.0.0.12"
+VIProductVersion "1.0.0.13"
 VIAddVersionKey /LANG=1033 "ProductName" "VROSTBridge Host"
-VIAddVersionKey /LANG=1033 "FileDescription" "VROSTBridge Host 1.0.0.12 Setup"
-VIAddVersionKey /LANG=1033 "FileVersion" "1.0.0.12"
-VIAddVersionKey /LANG=1033 "ProductVersion" "1.0.0.12"
+VIAddVersionKey /LANG=1033 "FileDescription" "VROSTBridge Host 1.0.0.13 Setup"
+VIAddVersionKey /LANG=1033 "FileVersion" "1.0.0.13"
+VIAddVersionKey /LANG=1033 "ProductVersion" "1.0.0.13"
 VIAddVersionKey /LANG=1033 "LegalCopyright" "Copyright (c) 2026 JagerBombastic. MIT licence."
 !define APPKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\VROSTBridgeHost"
 !define RUNKEY "Software\Microsoft\Windows\CurrentVersion\Run"
@@ -24,7 +24,7 @@ VIAddVersionKey /LANG=1033 "LegalCopyright" "Copyright (c) 2026 JagerBombastic. 
 !define MUI_UNICON "${PAYLOAD}/brand/vrostbridge.ico"
 Var PreviousInstall
 !define MUI_ABORTWARNING
-!define MUI_WELCOMEPAGE_TITLE "VROSTBridge Host 1.0.0.12"
+!define MUI_WELCOMEPAGE_TITLE "VROSTBridge Host 1.0.0.13"
 !define MUI_WELCOMEPAGE_TEXT "Install the Windows rendering host for VROSTBridge.$\r$\n$\r$\nSteam and SteamVR must already be installed. Connect your physical headset and controllers to the Bazzite client PC.$\r$\n$\r$\nSetup verifies the new application, closes an existing session and replaces older application files. Settings, pairing and logs are retained. Close SteamVR on this Windows PC before continuing."
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_COMPONENTS
@@ -77,7 +77,7 @@ Section "VROSTBridge Host (required)" SEC_HOST
   WriteRegStr HKCU "${APPKEY}" "DisplayName" "VROSTBridge Host"
   WriteRegStr HKCU "${APPKEY}" "UninstallString" '"$INSTDIR\Uninstall.exe"'
   WriteRegStr HKCU "${APPKEY}" "InstallLocation" "$INSTDIR"
-  WriteRegStr HKCU "${APPKEY}" "DisplayVersion" "1.0.0.12"
+  WriteRegStr HKCU "${APPKEY}" "DisplayVersion" "1.0.0.13"
   WriteRegStr HKCU "${APPKEY}" "Publisher" "JagerBombastic"
   WriteRegStr HKCU "${APPKEY}" "DisplayIcon" "$INSTDIR\${LAUNCHER}"
   WriteRegDWORD HKCU "${APPKEY}" "NoModify" 1

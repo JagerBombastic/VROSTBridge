@@ -2,6 +2,18 @@
 
 Each version in a few lines, newest first. The release notes in `docs/` have the detail, the reasons and a *How to test* list. Every package always shares one version (the host, the Bazzite client and, from 1.0.0.7, the Windows client): install the host and your client of the same release together, over the previous one.
 
+## 1.0.0.13
+
+What 1.0.0.12's first session on real hardware showed: its three fixes worked, and what held the picture back was the headset PC's decoder and packets lost in clumps on a wired link.
+
+- **Choose the stream before a session.** The choices come from the last headset seen (on Bazzite also the one plugged in), so they no longer wait for Start. An Index offers *Native* (2016 × 2240, the size SteamVR renders for its lenses) at 80, 90, 120 or 144 Hz (experimental): the rate is set in SteamVR on the headset PC for the session and put back afterwards, so no SteamVR menus. A Beyond offers no choice: the stream follows the mode it is in, 2560 per eye at 75 Hz or 1920 at 90 Hz (which the headset upscales), and the mode is switched with Bigscreen's Beyond Utility on a Windows PC, on Bazzite and Windows alike. *Auto* follows the headset as it is set.
+- **More parity on a wired link.** One parity packet per five video packets instead of ten when the headset PC is wired, so a run of lost packets up to a fifth of a frame is rebuilt. Wi-Fi resends lost packets itself and keeps one per ten.
+- **Stopping while SteamVR starts** no longer waits out the whole 90 s start on the rendering PC: ALVR can ask SteamVR to quit only once a headset has streamed, so SteamVR's own *Exit VR* follows.
+- **Reports:** both carry the network adapters' drop counters for the session, and the Bazzite client's the remembered GPU clock and whether the session held it from the start. A Game Mode start records which process started SteamVR's server, whether it runs in a container, and which display it really reaches.
+- The transport's stream-counter checks know all seven counters (two were added in 1.0.0.9).
+- Version 1.0.0.13 for every package. The native programs are 1.0.0.12's with the new version label; the host's driver is 1.0.0.9's.
+- [Release notes](docs/RELEASE_1.0.0.13.md)
+
 ## 1.0.0.12
 
 What 1.0.0.11's first session on real hardware showed (Beat Saber at Native with eye-tracked foveation, a handheld headset PC on Bazzite): it streamed well, with three things to put right.
@@ -11,7 +23,7 @@ What 1.0.0.11's first session on real hardware showed (Beat Saber at Native with
 - **The host's add-on warning** lists only add-ons registered from outside SteamVR. It used to call SteamVR's own drivers (the Index controllers' among them) third-party and suggest turning them off.
 - **A tidier top level** in the repository: the build and start scripts and the two desktop shortcuts are in `scripts/` (the root's `Build-Client-Linux.sh` wrapper is gone), the Windows client's CMake toolchain in `scripts/cross/`, the client's runtime assets in `client/assets/`, `CONTRIBUTING.md` and `SECURITY.md` in `.github/` and the source's start page in `docs/`.
 - Version 1.0.0.12 for every package. The native programs are 1.0.0.11's with the new version label; the host's driver is 1.0.0.9's.
-- [Release notes](docs/RELEASE_1.0.0.12.md)
+- [Release notes](docs/history/RELEASE_1.0.0.12.md)
 
 ## 1.0.0.11
 

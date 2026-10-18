@@ -1,4 +1,4 @@
-# Physical acceptance — VROSTBridge 1.0.0.12
+# Physical acceptance — VROSTBridge 1.0.0.13
 
 ## Tested so far
 
@@ -15,8 +15,11 @@ Not tried: a headset PC running Windows (the Windows client is new in 1.0.0.7, a
 
 ## What to check
 
-Use **1.0.0.12** on both PCs ([release notes](RELEASE_1.0.0.12.md)); over Wi-Fi, turn off Wi-Fi power saving on the client page and run the network test again first. Check:
+Use **1.0.0.13** on both PCs ([release notes](RELEASE_1.0.0.13.md)); over Wi-Fi, turn off Wi-Fi power saving on the client page and run the network test again first. Check:
 
+- **Display modes (1.0.0.13):** before Start the stream list shows the headset's choices. On an Index, 120 Hz and then 144 Hz run at that rate, and SteamVR's own refresh setting is back after Stop; on a Beyond there is nothing to choose, and the stream is 2560 in its 75 Hz mode and 1920 in its 90 Hz mode, as set with the Beyond Utility.
+- **Lost packets on a wired link (1.0.0.13):** frames lost stay rare while *Rebuilt on the way* counts; both reports carry `adapter_counters`, which say whether a PC's own adapter dropped what was lost.
+- **Stop while the rendering PC's SteamVR starts (1.0.0.13):** it ends within about ten seconds.
 - **The bitrate after a slow start:** with *Use recommended settings*, a bitrate that steps down early in a session goes back to where it started once the headset PC's GPU clock is held higher (the bitrate line ends *Last change: back to the start: the GPU clock was raised*), and short stalls from the rendering PC no longer step it down.
 - **The GPU clock from the start (Bazzite):** the next session on the same headset PC says *GPU held at … MHz from the start, as the last session needed*; Steam's Performance menu shows your own setting after Stop.
 - **The add-on warning:** the rendering PC's page names only add-ons installed from outside SteamVR (a headset maker's helper, for instance), or nothing.

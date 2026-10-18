@@ -43,11 +43,13 @@ from launcher.gaze_provider import GazeCentre
 from launcher.base_stations import BaseStations
 from launcher.link_test import MIN_MBPS as LINK_MIN_MBPS, SEND_FRACTION as LINK_SEND_FRACTION
 from launcher.headset import FOVEATION_REGIONS, FOVEATION_EDGES, FOVEATION_REGION_LABELS, FOVEATION_EDGE_LABELS, SHARPENING_LEVELS
+from launcher.headset import BEYOND_LIGHTER_MODE, FAMILY_MODES, MODES, family_headset, requested_refresh
 from launcher.fovea import LiveView as FoveaView, parse_line as parse_fovea, view as fovea_view_checked
 from launcher.session_power import SessionPower, system_environment
 from launcher.steamvr_async import AsyncReprojectionCheck
 from launcher.headset_audio import HeadsetAudio
 from launcher.wifi_diagnostics import WifiDiagnostics
+from launcher.adapter_counters import AdapterCounters
 from launcher.wake_host import HostWaker, learn_mac, local_interfaces, normalise_mac, wake_targets
 from launcher.network_test import NetworkTest, link_info, lossless_rate, pacing_mbps, path_tested, remember as remember_network_test, saved_for as saved_network_test
 from launcher.network_test import MAX_AGE_S as NETWORK_TEST_MAX_AGE_S, failed_tests as network_test_failures, needs_retest as needs_network_retest, sender_timed as network_test_sender_timed
@@ -72,6 +74,7 @@ from host.microphone_setup import MicrophoneSetup
 from launcher.steam_shortcut import SteamShortcut
 from launcher.windows_startup import WindowsStartup
 from launcher.game_mode import GameMode, GameModeStartLog, LeaseRuntime, in_game_mode
+from launcher.game_mode import connectors as headset_displays
 from launcher.version import role_version
 from launcher.wifi_session import WifiSession
 from launcher.wifi_others import OtherWifiPause
@@ -432,6 +435,7 @@ class Application:
         # 1.0.0.4: the processor held back by the shared power limit (a fixed GPU clock), and steamos-manager's settings.
         self.cpu_clocks=CpuClocks();self.steamos_power=SteamOSPower();self.steamos_settings={}
         self.timeline=SessionTimeline();self.timeline_sample=None  # 1.0.0.4: the session in 10 s steps, for reports
+        self.adapter_counters=AdapterCounters()  # 1.0.0.13: the network adapters' drop counters over a session, for reports
         self.power_notice_until=0;self.power_held=None;self.power_history={'held_samples':0,'lowest_cpu_mhz':None}
         # RC4.4: SteamVR's compositor on this PC lost mid-session (see local_compositor_lost).
         self.runtime_restart=None;self.runtime_restarting=False;self.runtime_restart_at=None;self.compositor_missing=0
@@ -660,6 +664,58 @@ class Application:
         cached=self.settings.get('cached_headset')
         try:return headset_family(headset_metadata(cached)) if cached else None
         except ValueError:return None
+    def connected_family(self):
+        """1.0.0.13 (Linux): 'index' or 'beyond' when exactly one known headset display is connected now, from its
+        EDID (launcher/game_mode.py, the same reading Game Mode uses); else None. Read at most every 5 seconds."""
+        if self.role!='client' or not sys.platform.startswith('linux'):return None
+        now=time.monotonic();cached=getattr(self,'_connected_family',None)
+        if cached and now-cached[0]<5:return cached[1]
+        try:models={row.get('model') for row in headset_displays()}
+        except Exception:models=set()
+        known={'Valve Index':'index','Bigscreen Beyond':'beyond'}
+        families={known[m] for m in models if m in known}
+        value=families.pop() if len(families)==1 and len(models)==1 else None
+        self._connected_family=(now,value);return value
+    def known_headset(self):
+        """1.0.0.13: (headset, source) to offer stream choices for, so they can be chosen before a session starts:
+        this run's from SteamVR ('detected'), else the last verified one ('last') unless the headset display connected
+        now is another kind (Linux), else that kind as its display describes it ('display'); (None, None) when nothing
+        is known (a first start on Windows)."""
+        live=self.client_runtime.headset if self.client_runtime else None
+        if live:return live,'detected'
+        try:cached=headset_metadata(self.settings.get('cached_headset')) if self.settings.get('cached_headset') else None
+        except ValueError:cached=None
+        connected=self.connected_family()
+        if cached and connected in (None,headset_family(cached)):return cached,'last'
+        if connected:return family_headset(connected),'display'
+        return None,None
+    def display_info(self):
+        """The display section of the status: the choices and sizes for the known headset, and (1.0.0.13) what the
+        last start asked SteamVR for and what the headset ran."""
+        result=display_status(self.settings,*self.known_headset())
+        note=getattr(self,'refresh_note',None)
+        if note:result['refresh_note']=note
+        return result
+    def session_refresh(self):
+        """1.0.0.13: the refresh rate to ask SteamVR on this PC for at the next Start (an Index rate chosen for the
+        known headset; launcher/headset.py requested_refresh), or None to leave it as it is set."""
+        headset,_=self.known_headset()
+        try:family=headset_family(headset_metadata(headset)) if headset else None
+        except ValueError:family=None
+        return requested_refresh(self.settings.get('resolution','automatic'),family) if family else None
+    def refresh_outcome(self,headset,display=None):
+        """1.0.0.13: a plain note when an Index does not run the rate chosen for it, else None. A Beyond has no choice:
+        its stream follows the mode it is in."""
+        try:physical=headset_metadata(headset);family=headset_family(physical)
+        except ValueError:return None
+        mode=MODES.get(self.settings.get('resolution'))
+        if not mode or mode['family']!=family:return None
+        wanted,running=float(mode['refresh_hz']),float(physical['refresh_hz'])
+        if abs(running-wanted)<1:return None
+        size=(' The stream is '+str(display['stream_width'])+' x '+str(display['stream_height'])+' per eye at '+('%g'%running)+' Hz.'
+              if display and display.get('stream_width') else '')
+        return ('SteamVR runs the Index at '+('%g'%running)+' Hz, not the '+('%g'%wanted)+' Hz chosen'+
+                (': 144 Hz is experimental, and this graphics card or its driver may not drive it.' if wanted>=144 else '.')+size)
     def remember_profile(self,family=None):
         family=family or self.current_family()
         if family:
@@ -985,7 +1041,7 @@ class Application:
                     'client_runtime':self.client_runtime.status() if self.client_runtime else None,
                     'wifi':self.wifi_status(),
                     'host_addons':self.host_addons() if self.role=='host' else None,
-                    'display':display_status(self.settings,self.client_runtime.headset) if self.client_runtime else None,
+                    'display':self.display_info() if self.client_runtime else None,
                     'windows_startup':self.windows_startup.status() if self.windows_startup else None,
                     'game_mode_setup':self.game_mode_setup.status() if self.game_mode_setup else None,
                     'game_mode':self.lease_runtime.status() if self.lease_runtime else None,
@@ -1024,7 +1080,7 @@ class Application:
         features=(link or {}).get('host_features') if isinstance((link or {}).get('host_features'),list) else []
         if self.settings['software']:preset='off'
         estimate=None
-        display=display_status(self.settings,self.client_runtime.headset) if self.client_runtime else {}
+        display=display_status(self.settings,*self.known_headset()) if self.client_runtime else {}
         if display.get('stream_width') and preset!='off':
             estimate=foveated_size(display['stream_width'],display['stream_height'],self.foveation_settings(preset,features))
         return family,preset,features,estimate,display
@@ -1569,7 +1625,7 @@ class Application:
         if sampler:sampler.set()
         self.tuning_started=False
         for name,helper in (('Wi-Fi diagnostics',self.wifi_diagnostics),('Headset audio',self.headset_audio),('Power',self.session_power),
-                            ('Performance balance',getattr(self,'session_tuning',None))):
+                            ('Performance balance',getattr(self,'session_tuning',None)),('Adapter counters',getattr(self,'adapter_counters',None))):
             if helper:
                 try:helper.end()
                 except Exception as error:self.log(name+' restore: '+str(error)[:200])
@@ -1609,7 +1665,8 @@ class Application:
                 'host_control':self.host_control.snapshot() if self.host_control else None,'audio':dict(self.audio),
                 'client_identity':self.client_identity.status() if self.client_identity else None,
                 'client_network':self.client_network.status() if self.client_network else None,
-                'network_path':self.network_monitor.snapshot() if self.network_monitor else None,'wifi':self.wifi_session.status() if getattr(self,'wifi_session',None) else None}
+                'network_path':self.network_monitor.snapshot() if self.network_monitor else None,'wifi':self.wifi_session.status() if getattr(self,'wifi_session',None) else None,
+                'adapter_counters':self.adapter_counters.snapshot() if getattr(self,'adapter_counters',None) else None}
         if self.host_control:
             result['host_runtime_logs']={}
             for name in ('session_log.txt','session_log.previous.txt','crash_log.txt'):
@@ -1724,13 +1781,14 @@ class Application:
         try:reprojection=self.async_reprojection.status() if self.async_reprojection else {}
         except Exception:reprojection={}
         repairable=reprojection.get('state') in ('missing','disabled') and bool(reprojection.get('can_repair'))
+        smaller=self.sharp_preset()
         return dict(snapshot,reaim_paused=paused,stream_width=width,
                     # RC4.4: the live GPU clock, so a TDP change can be watched while it is made.
                     gpu=self.gpu_clocks.latest() if self.role=='client' and self.running() else None,
                     # 1.0.0.11: the picture's shown size this session, while this PC's graphics fell behind.
                     output_scale=self.output_scale.snapshot() if self.role=='client' else None,
-                    **graphics_advice(snapshot,width,refresh,repairable,paused,self.sharp_preset(),
-                                      self.settings.get('resolution')=='sharp',self.gpu_clocks.starved(),
+                    **graphics_advice(snapshot,width,refresh,repairable,paused,smaller,
+                                      self.settings.get('resolution')==(smaller or {}).get('id','sharp'),self.gpu_clocks.starved(),
                                       gpu_auto=bool((self.steamos_settings or {}).get('available'))
                                       and (self.steamos_settings or {}).get('gpu_level') not in (None,'auto'),
                                       load=self.gpu_clocks.load() if self.role=='client' and self.running() else None))
@@ -1790,14 +1848,32 @@ class Application:
         result['steamos']=dict(self.steamos_settings or {})
         return result
     def sharp_preset(self):
-        """This headset's 'sharp' stream size, offered when the graphics fall behind (Standard on a Beyond, High on an Index)."""
+        """The lighter stream choice offered when this PC's graphics fall behind: High (2016) on other headsets; from
+        1.0.0.13 on an Index the next lower rate (with its 'refresh_hz', set in SteamVR at the next Start), and on a
+        Beyond none ('id' None): only Bigscreen's Beyond Utility switches its mode, so while it streams 2560 a 'hint'
+        names the lighter 90 Hz mode instead. None while no headset is known."""
         try:
-            display=display_status(self.settings,self.client_runtime.headset) if self.client_runtime else {}
+            headset,source=self.known_headset()
+            if not headset or not self.client_runtime:return None
+            display=display_status(self.settings,headset,source)
+            family=display.get('family')
+            if family=='beyond':
+                return {'id':None,**({'hint':BEYOND_LIGHTER_MODE} if (display.get('stream_width') or 0)>1920 else {})}
+            if family=='index':
+                rate=float(display.get('refresh_hz') or 0)
+                lower=[key for key in FAMILY_MODES['index'] if MODES[key]['refresh_hz']<rate-1]
+                if not lower:return {'id':None}  # already at its lowest rate
+                wanted=max(lower,key=lambda key:MODES[key]['refresh_hz'])
+            else:wanted='sharp'
             options=(display.get('resolution_options') or {}).get(self.settings.get('codec','Auto')) or []
-            option=next((o for o in options if o.get('id')=='sharp' and o.get('width')),None)
-        except Exception:option=None
+            option=next((o for o in options if o.get('id')==wanted and o.get('width') and o.get('available',True)),None)
+        except Exception:return None
         if not option:return None
-        return {'label':str(option.get('label','Standard')).split(' - ')[0],'width':option['width'],'height':option['height']}
+        mode=MODES.get(option['id'])
+        if mode:
+            return {'id':option['id'],'label':'%g Hz'%mode['refresh_hz'],'width':option['width'],'height':option['height'],
+                    'refresh_hz':float(mode['refresh_hz'])}
+        return {'id':option['id'],'label':str(option.get('label','High')).split(' - ')[0],'width':option['width'],'height':option['height']}
     def balance_performance(self,sample):
         """1.0.0.8: once the session's video is up, launcher/session_tuning.py steers the GPU clock and the power
         limit (Linux with steamos-manager, when chosen); never before the stream runs."""
@@ -2197,6 +2273,7 @@ class Application:
         # Session-only Wi-Fi power saving off on the stream adapter; never blocks a start.
         try:self.wifi_session.begin(interface,self.session_link.snapshot().get('host_ip',''),network_environment.get('VROSTBRIDGE_BIND_IP',''))
         except Exception as error:self.log('Wi-Fi session preparation skipped: '+str(error)[:200])
+        self.adapter_counters.begin(interface)  # 1.0.0.13: the adapters' drop counters from here on
         # A second Wi-Fi adapter on the same network shares the channel and confuses reconnection.
         try:self.other_wifi.begin(interface,network_environment.get('VROSTBRIDGE_BIND_IP',''),self.settings['pause_other_wifi'])
         except Exception as error:self.log('Other Wi-Fi adapter check skipped: '+str(error)[:200])
@@ -2249,6 +2326,12 @@ class Application:
         network='wired' if state=='wired' else 'wifi' if state in ('off','on','disabled_for_session','restored','restore_failed') else 'unknown'
         result=dict(quality,encoder=self.settings['encoder'],network=network,timing_lock=self.settings['timing_lock'])
         features=self.host_feature_list()
+        # 1.0.0.13: hosts before 1.0.0.13 do not know the Beyond's 90 Hz stream (1920; 'display-modes' hosts do):
+        # they get 2016, the size 1.0.0.12 streamed to a Beyond.
+        if result.get('resolution')=='beyond-90' and features and 'display-modes' not in features:
+            result['resolution']='sharp'
+            self.log("The rendering PC's VROSTBridge is older than 1.0.0.13 and does not know the Beyond's 90 Hz stream "
+                     '(1920 per eye), so it streams 2016 per eye, as 1.0.0.12 did. Update VROSTBridge there.')
         try:family=headset_family(headset_metadata(quality.get('headset'))) if quality.get('headset') else 'other'
         except ValueError:family='other'
         # Foveation needs the GPU conversion path, which undoes it on this PC.
@@ -2301,7 +2384,12 @@ class Application:
         """
         cancel=_AnyEvent(self.session_cancelled)
         early=None;outcome={}
+        # 1.0.0.13: a chosen Index rate is set in SteamVR here for the session (session_refresh()).
+        refresh=self.session_refresh();self.refresh_note=None
         cached=self.settings.get('cached_headset')
+        if cached and refresh:
+            # The host starts with the rate this PC is about to run, so it need not restart once SteamVR shows it.
+            cached=dict(cached,refresh_hz=refresh)
         if cached:
             try:early=session_settings(resolve_stream_preferences(quality,cached))
             except (ValueError,SessionError):early=None
@@ -2312,7 +2400,7 @@ class Application:
                 except BaseException as error:outcome['error']=error
             thread=threading.Thread(target=worker,daemon=True,name='VROSTBridge-host-start');thread.start()
         try:
-            self.client_runtime.ensure(True,extra_env=display_environment)
+            self.client_runtime.ensure(True,extra_env=display_environment,**({'refresh':refresh} if refresh else {}))
             if self.session_cancelled.is_set():raise ValueError('Session start cancelled.')
             self.milestone('local SteamVR display verified')
         except BaseException:
@@ -2333,6 +2421,8 @@ class Application:
             except Exception as error:self.log('Headset audio selection skipped: '+str(error)[:200])
         final=session_settings(resolve_stream_preferences(quality,headset))
         display=display_status(self.settings,headset)
+        self.refresh_note=self.refresh_outcome(headset,display)
+        if self.refresh_note:self.log('DISPLAY_MODE '+self.refresh_note)
         self.log('Display detected: '+display['model']+' at '+str(display['refresh_hz'])+' Hz; client application render recommendation '+str(display['recommended_width'])+' x '+str(display['recommended_height'])+' per eye. Stream target: '+final['codec']+', '+str(display['stream_width'])+' pixels wide per eye ('+final['resolution']+').')
         self.settings['cached_headset']=headset;self.remember_profile();self.save_settings()
         if early:
@@ -2439,6 +2529,7 @@ class Application:
                     self.write_session_files(preferences)
                     # The runtime monitor applies this lease's client address through the API.
                     self.stream_recovery.reset();self.session_address=None;self.session_address_attempt=0
+                    self.adapter_counters.begin()
                     if self.keep_awake:self.keep_awake.acquire()
                     self.keep_warm_minutes=preferences.get('keep_warm_minutes',0)
                     self.session_intra_refresh=bool(preferences.get('intra_refresh'))
@@ -2480,7 +2571,7 @@ class Application:
             # The driver registers the headset with what this client will negotiate (patch 0015).
             nonce=write_init_hint(self.host,preferences.get('headset') if 'init-config' in self.session_features() else None)
             self.setup_host('Register')
-            self.evidence=SessionEvidence();self.last_exit=None
+            self.evidence=SessionEvidence();self.last_exit=None;self.adapter_counters.begin()
             self.host_control.directory=self.host
             if self.host_events:self.host_events.reset()
             if self.keep_awake:self.keep_awake.acquire()
@@ -2564,6 +2655,7 @@ class Application:
 
     def stop_host_session(self):
         with self.action_lock:
+            self.adapter_counters.end()
             if self.remote_diagnostics:self.remote_diagnostics.capture()
             forced,self.force_full_stop=self.force_full_stop,False
             runtime=self.host_control.snapshot()
@@ -2692,11 +2784,14 @@ class Application:
             if action=='use-standard' and self.role=='client':
                 # RC4.3 one-tap advice when this PC's graphics fall behind: saved for the next Start,
                 # allowed during a session (the running stream keeps its size).
-                quality=client_stream_preferences({'codec':self.settings['codec'],'bitrate':self.settings['bitrate'],'resolution':'sharp'})
+                preset=self.sharp_preset() or {'id':'sharp','label':'Standard','width':2016,'height':2016}
+                if not preset.get('id'):
+                    # 1.0.0.13: a Beyond streams the mode it is in, and an Index at its lowest rate has none lower.
+                    raise ValueError(preset.get('hint') or 'This headset has no lighter stream choice.')
+                quality=client_stream_preferences({'codec':self.settings['codec'],'bitrate':self.settings['bitrate'],'resolution':preset['id']})
                 self.settings.update(quality);self.remember_profile();self.save_settings()
-                preset=self.sharp_preset() or {'label':'Standard','width':2016,'height':2016}
-                self.log('Stream size set to '+preset['label']+' ('+str(preset['width'])+' x '+str(preset['height'])+' per eye)'
-                         +('; it applies at the next Start.' if self.running() else '.'));return
+                self.log(('Refresh rate' if preset.get('refresh_hz') else 'Stream size')+' set to '+preset['label']+' ('+str(preset['width'])
+                         +' x '+str(preset['height'])+' per eye)'+('; it applies at the next Start.' if self.running() else '.'));return
             if action=='align-check' and self.role=='client':
                 if not self.running() or self.metrics.get('state')!='streaming':raise ValueError('Start a session and wait for video before the check.')
                 if not self.native_command('align-check'):raise ValueError('The headset client did not accept the check.')

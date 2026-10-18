@@ -11,7 +11,7 @@ Attach the five packages, the three source archives and `SHA256SUMS.txt`, which 
 - `SHA256SUMS.txt`
 
 GitHub adds the whole source itself (*Source code*). If you publish before trying 1.0.0.12 on your own PCs, tick
-**Set as a pre-release**. See [PUBLISHING.md](PUBLISHING.md).
+**Set as a pre-release**. See [PUBLISHING.md](../PUBLISHING.md).
 
 ---
 

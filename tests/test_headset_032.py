@@ -97,7 +97,13 @@ class HeadsetTests(unittest.TestCase):
     def test_game_mode_cycles_the_same_saved_resolution_setting(self):
         from launcher.game_ui import View
         view=View(ROOT,lambda:{},Mock(),lambda:{},threading.Event())
-        view.action=Mock();view.state={'settings':{'resolution':'compatibility'},'client_runtime':{'headset':HEADSET}}
+        other=dict(HEADSET,model='Generic HMD',manufacturer='Example')
+        view.action=Mock();view.state={'settings':{'resolution':'compatibility'},'client_runtime':{'headset':other}}
         view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='sharp')
         view.state['settings']['resolution']='sharp'
         view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='recommended')
+        # 1.0.0.13: an Index offers its modes; a saved size it no longer offers shows as Auto, so the next is its first.
+        view.state={'settings':{'resolution':'compatibility'},'client_runtime':{'headset':HEADSET}}
+        view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='index-80')
+        view.state['settings']['resolution']='index-120'
+        view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='index-144')

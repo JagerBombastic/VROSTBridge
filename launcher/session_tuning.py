@@ -103,6 +103,8 @@ class SessionTuning:
         self.previous_counters = None
         self._reset_session()
         self.value = {'state': 'idle', 'message': ''}
+        # 1.0.0.13: what the last session did with the GPU clock, kept after it ends, for the reports.
+        self.last_session = None
 
     def _reset_session(self):
         self.active = False
@@ -274,7 +276,26 @@ class SessionTuning:
     # ------------------------------------------------------------------ session
     def status(self):
         with self.lock:
-            return dict(self.value, applied=dict(self.applied), active=self.active)
+            return dict(self.value, applied=dict(self.applied), active=self.active,
+                        remembered=self.remembered_record(),
+                        last_session=dict(self.last_session) if self.last_session else None)
+
+    def remembered_record(self):
+        """1.0.0.13: the clock saved for the next session's start (MEMORY_NAME), as saved; None without one."""
+        path = self._memory_path()
+        try:
+            value = json.loads(path.read_text(encoding='utf-8')) if path and path.is_file() else None
+        except (OSError, ValueError):
+            return None
+        if not isinstance(value, dict):
+            return None
+        return {key: value.get(key) for key in ('clock_mhz', 'clock_max_mhz', 'charger')}
+
+    def _note_clock(self, clock, set_back=False):
+        if self.last_session is not None:
+            self.last_session.update(clock_mhz=clock, raises=self.raises)
+            if set_back:
+                self.last_session['set_back'] = True
 
     def _say(self, state, message):
         self.value = {'state': state, 'message': message}
@@ -287,6 +308,7 @@ class SessionTuning:
             if self.active:
                 return self.status()
             self._reset_session()
+            self.last_session = None
             current = self.read()
             if not current.get('available'):
                 self.value = {'state': 'unavailable', 'message': 'This PC has no steamos-manager performance settings, so '
@@ -317,6 +339,8 @@ class SessionTuning:
                 problem = self._hold(remembered)
                 notes.append(('GPU held at ' + str(remembered) + ' MHz from the start, as the last session needed')
                              if not problem else 'the GPU clock could not be held (' + problem + ')')
+            self.last_session = {'held_from_start': bool(remembered) and 'manual_clock_mhz' in self.applied,
+                                 'clock_mhz': self.applied.get('manual_clock_mhz'), 'raises': 0, 'set_back': False}
             if self.applied:
                 self._write_receipt()
             self._say('active', 'Balancing this PC for the session: ' + ('; '.join(notes) if notes else
@@ -427,6 +451,7 @@ class SessionTuning:
             return None
         self.raises += 1
         self._remember(target)
+        self._note_clock(target)
         self._say('active', 'Frames were running late with the GPU at ' + (str(int(gpu)) + ' MHz' if gpu else 'a low clock')
                   + ': GPU held at ' + str(target) + ' MHz for the rest of the session.')
         return target
@@ -436,6 +461,7 @@ class SessionTuning:
         if self.first_clock is None or target < self.first_clock:
             self._restore_clock()
             self._forget_clock()  # 1.0.0.12: this PC needed it lower after all; the next session finds it afresh
+            self._note_clock(None, set_back=True)
             self._say('active', 'GPU clock set back to ' + str(self.original.get('gpu_level', 'automatic')) + ' (' +
                       reason + ').')
             return 0
@@ -444,6 +470,7 @@ class SessionTuning:
             return None
         self.applied['manual_clock_mhz'] = target
         self._remember(target)
+        self._note_clock(target)
         self._write_receipt()
         self._say('active', 'GPU held at ' + str(target) + ' MHz (' + reason + ').')
         return target

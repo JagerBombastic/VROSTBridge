@@ -29,8 +29,7 @@ CADENCES = ('idle', 'full', 'client_throttled', 'source_limited', 'late_or_paire
 WINDOW_S = 30   # streaming seconds considered
 LIMIT_S = 8     # throttled seconds within the window that mean "at the limit"
 WARMUP_S = 5    # streaming seconds ignored at the start (first keyframes, SteamVR settling)
-STANDARD = {'label': 'Standard', 'width': 2016, 'height': 2016}  # the 'sharp' preset on a Beyond
-STANDARD_WIDTH = STANDARD['width']
+STANDARD = {'label': 'Standard', 'width': 2016, 'height': 2016}  # 'sharp' while the headset is not known
 NOTICE_S = 12   # how long the in-headset line shows the notice (first episode of a session)
 # RC4.4: a power-starved GPU. Both RC4.2 and RC4.3 tests ran the integrated GPU at 800 of its
 # 2700 MHz for whole sessions while 45-64 % busy, with the chip drawing about 15 W: its power
@@ -231,9 +230,10 @@ def advice(snapshot, stream_width=None, refresh_hz=None, reprojection_repairable
     """Plain-language status and advice for the pages; '' when nothing needs saying.
 
     stream_width is the running stream's eye width (None when unknown). smaller is the
-    headset's 'sharp' preset ({'label', 'width', 'height'}: Standard on a Beyond, High on an
-    Index), suggested only when the stream is wider; chosen when it is already saved for the
-    next Start. Background reprojection only when its repair is offered. starved (GpuClocks.starved())
+    headset's lighter choice ({'label', 'width', 'height'}, App.sharp_preset(): High on other headsets, from 1.0.0.13
+    on an Index a lower refresh rate, with its 'refresh_hz'), suggested only when the stream is wider or the refresh
+    higher; chosen when it is already saved for the next Start. A Beyond has none ({'id': None}): only Bigscreen's
+    Beyond Utility switches its mode, and its 'hint' says so. Background reprojection only when its repair is offered. starved (GpuClocks.starved())
     puts the power limit first: raising it is the fix, not a smaller stream. gpu_auto (1.0.0.5): steamos-manager
     reports a fixed GPU clock it can set back to automatic, offered in one step while the GPU is held low.
     Windows (1.0.0.7): the advice names Windows' power mode, the charger and the maker's own tool, and never
@@ -273,13 +273,20 @@ def advice(snapshot, stream_width=None, refresh_hz=None, reprojection_repairable
                     ' program on this PC is more likely holding SteamVR back.')
     if reaim_paused:
         message += ' Frame re-aim is paused for this session to save GPU time.'
-    offered = isinstance(stream_width, int) and isinstance(smaller.get('width'), int) and stream_width > smaller['width']
+    lower_rate = (isinstance(smaller.get('refresh_hz'), (int, float)) and isinstance(refresh_hz, (int, float))
+                  and refresh_hz > smaller['refresh_hz'] + 1)
+    offered = lower_rate or (isinstance(stream_width, int) and isinstance(smaller.get('width'), int)
+                             and stream_width > smaller['width'])
     size = str(smaller.get('label')) + ' (' + str(smaller.get('width')) + ' x ' + str(smaller.get('height')) + ' per eye)'
+    if isinstance(smaller.get('refresh_hz'), (int, float)):
+        rate = str(int(round(smaller['refresh_hz'])))  # a mode with its own refresh rate: steady at that rate
     if offered and chosen:
         message += ' ' + size + ' is saved and gives a steady ' + rate + ' fps from the next Start.'
     elif offered:
         message += (' Or choose ' if starved else ' Choose ') + size + ' for a steady ' + rate + ' fps; it applies at the next Start.'
         actions.append('use-standard')
+    elif smaller.get('hint'):
+        message += ' ' + smaller['hint']
     if reprojection_repairable:
         message += (' Background reprojection is off in SteamVR: Repair it so a late frame is smoothed instead of'
                     ' halving the frame rate.')
@@ -293,7 +300,8 @@ def advice(snapshot, stream_width=None, refresh_hz=None, reprojection_repairable
         short = 'GPU held at ' + str(starved['clock_mhz']) + ' MHz · raise the TDP limit'
     else:
         short = 'PC graphics at their limit' + (' · re-aim paused' if reaim_paused else '')
-        if offered:
-            short += ' · ' + str(smaller['label']) + ' ' + str(smaller['width']) + (' next Start' if chosen else ' for ' + rate + ' fps')
+        if offered:  # a rate keeps the size: its name says it all
+            short += ' · ' + str(smaller['label']) + ('' if isinstance(smaller.get('refresh_hz'), (int, float))
+                                                      else ' ' + str(smaller['width'])) + (' next Start' if chosen else ' for ' + rate + ' fps')
     return {'state': state, 'message': message, 'actions': actions, 'short': short,
             'smaller': dict(smaller) if offered else None, 'starved': dict(starved) if starved else None}

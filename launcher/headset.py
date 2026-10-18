@@ -6,8 +6,32 @@ import struct
 TEXT_FIELDS = ('model', 'manufacturer', 'tracking_system', 'serial', 'render_model',
                'registered_type', 'input_profile', 'icon_ready', 'icon_off',
                'icon_searching', 'icon_alert')
-RESOLUTIONS = ('compatibility', 'sharp', 'recommended', 'beyond-balanced', 'beyond-detail')
+RESOLUTIONS = ('compatibility', 'sharp', 'recommended', 'beyond-balanced', 'beyond-detail',
+               'beyond-90', 'index-80', 'index-90', 'index-120', 'index-144')
 CLIENT_RESOLUTIONS = ('automatic',) + RESOLUTIONS
+# 1.0.0.13: the stream follows the display mode of the headsets VROSTBridge knows, and the choices are offered before
+# a session as well as after. The Beyond 2 and 2e show 2560 x 2560 per eye at 75 Hz and take 1920 x 1920 at 90 Hz,
+# which the headset upscales; only Bigscreen's Beyond Utility on a Windows PC switches the mode, so the Beyond offers
+# no choice: it streams the mode it is in ('beyond-balanced' or 'beyond-90' on the wire, automatic_mode()). The Index
+# shows its panels at 80, 90, 120 or, experimentally, 144 Hz, each a choice set in SteamVR for the session (MODES), and
+# streams 2016 x 2240 per eye, the size SteamVR renders for its lenses (the old High). Other headsets keep the sizes
+# (Custom or Standard, High, SteamVR app size). A saved choice the connected headset does not offer follows its mode,
+# as Auto does.
+MODES = {
+    'index-80': {'family': 'index', 'width': 2016, 'refresh_hz': 80, 'label': 'Native · 80 Hz'},
+    'index-90': {'family': 'index', 'width': 2016, 'refresh_hz': 90, 'label': 'Native · 90 Hz'},
+    'index-120': {'family': 'index', 'width': 2016, 'refresh_hz': 120, 'label': 'Native · 120 Hz'},
+    'index-144': {'family': 'index', 'width': 2016, 'refresh_hz': 144, 'label': 'Native · 144 Hz (experimental)',
+                  'experimental': True},
+}
+# The choices besides Auto of each headset whose stream follows its display mode: none on a Beyond.
+FAMILY_MODES = {'beyond': (), 'index': tuple(MODES)}
+# Every choice some headset offers (offered_resolutions()); the other RESOLUTIONS are only sent to the host.
+CHOICES = ('automatic', 'compatibility', 'sharp', 'recommended') + tuple(MODES)
+FAMILY_NAMES = {'beyond': 'Bigscreen Beyond', 'index': 'Valve Index'}
+# A known headset seen only by its display (Linux EDID, before SteamVR has described it): its maker and model as
+# SteamVR names them, the render size's aspect and the rate shown until the session measures it.
+DISPLAY_ONLY = {'beyond': ('Bigscreen', 'Beyond', 2560, 2560, 75.0), 'index': ('Valve', 'Index', 2016, 2240, 90.0)}
 CLIENT_CODECS = ('Auto', 'H264', 'Hevc', 'AV1')
 # Foveated encoding: the host sends the edges of each eye at reduced resolution and
 # this client restores the full image, so the same bitrate and decoder budget go to
@@ -58,9 +82,66 @@ def client_stream_preferences(value):
         raise ValueError('Choose Auto, H.264, HEVC or AV1 and a bitrate from 10 to 300 Mbit/s.')
     if resolution not in CLIENT_RESOLUTIONS:
         raise ValueError('Choose a supported stream resolution.')
-    if resolution.startswith('beyond-') and codec == 'H264':
-        raise ValueError('Beyond 2560 and 3200 stream sizes require HEVC or AV1. Select Auto, HEVC or AV1 for the video codec.')
+    # 1.0.0.13: no choice needs HEVC any more. The Beyond's 2560 and 3200 sizes were the ones wider than H.264's 2048
+    # pixels per eye; saved, they follow the Beyond's mode, which keeps H.264 within its limit (automatic_mode()).
     return {'codec': codec, 'bitrate': bitrate, 'resolution': resolution}
+
+
+def family_headset(family):
+    """1.0.0.13: a known headset seen only by its display, described as SteamVR would before it has (DISPLAY_ONLY)."""
+    manufacturer, model, width, height, hz = DISPLAY_ONLY[family]
+    return headset_metadata(dict({key: '' for key in TEXT_FIELDS}, manufacturer=manufacturer, model=model,
+                                 width=width, height=height, refresh_hz=hz))
+
+
+def automatic_mode(family, refresh_hz, codec='Hevc'):
+    """1.0.0.13: the stream for the mode a Beyond or an Index runs: a Beyond at 90 Hz is in its 1920 mode, at 75 Hz in
+    its 2560 one; an Index streams 2016 at any rate. H.264 keeps a Beyond within its 2048-pixel limit."""
+    if family == 'beyond':
+        return 'beyond-90' if refresh_hz >= 82.5 or codec == 'H264' else 'beyond-balanced'
+    if family == 'index':
+        return min(FAMILY_MODES['index'], key=lambda key: abs(MODES[key]['refresh_hz'] - refresh_hz))
+    return None
+
+
+def wire_resolution(resolution):
+    """The stream size as hosts before 1.0.0.13 name it: an Index mode is 'sharp' (2016), its old High."""
+    mode = MODES.get(resolution)
+    return 'sharp' if mode and mode['family'] == 'index' else resolution
+
+
+def requested_refresh(resolution, family):
+    """1.0.0.13: the refresh rate (Hz) to ask SteamVR on this PC for: a chosen Index rate, on Bazzite and Windows alike
+    (steamvr.preferredRefreshRate). None leaves the headset as it is set: Auto, other sizes and headsets, and a Beyond
+    always, whose mode only Bigscreen's Beyond Utility on a Windows PC switches."""
+    mode = MODES.get(resolution)
+    return float(mode['refresh_hz']) if mode and mode['family'] == family else None
+
+
+def refresh_text(family):
+    """1.0.0.13: how the stream and the headset's refresh rate are chosen for this headset, in plain words."""
+    if family == 'index':
+        return ('A rate chosen here is set in SteamVR on this PC for the session, and your own setting comes back after '
+                'it. Auto keeps the rate SteamVR is set to. 144 Hz is experimental: not every graphics card drives it.')
+    if family == 'beyond':
+        return ("The stream follows the Beyond's display mode: 2560 x 2560 per eye at 75 Hz, or 1920 x 1920 at 90 Hz, "
+                "which the headset upscales. VROSTBridge does not switch the mode: set it with Bigscreen's Beyond Utility "
+                'on a Windows PC.')
+    return "The headset's refresh rate is used as it is set on the headset."
+
+
+# 1.0.0.13: the lighter choice when the headset PC's graphics fall behind a Beyond streaming 2560 at 75 Hz is its
+# other mode, which VROSTBridge cannot switch (1920^2 x 90 is about two thirds of 2560^2 x 75 pixels a second).
+BEYOND_LIGHTER_MODE = ("The Beyond's 90 Hz mode is lighter for this PC: 1920 x 1920 per eye, about a third fewer "
+                       "pixels a second. Switch it with Bigscreen's Beyond Utility on a Windows PC.")
+
+
+def offered_resolutions(family):
+    """1.0.0.13: the stream choices for a kind of headset: Auto only on a Beyond (it follows the headset's mode), Auto
+    and the rates on an Index, Auto and the sizes on others."""
+    if family in FAMILY_MODES:
+        return ('automatic',) + FAMILY_MODES[family]
+    return ('automatic', 'compatibility', 'sharp', 'recommended')
 
 
 def resolve_stream_preferences(value, headset):
@@ -68,36 +149,50 @@ def resolve_stream_preferences(value, headset):
     physical = headset_metadata(headset)
     result = client_stream_preferences({key: value[key] for key in ('codec', 'bitrate', 'resolution') if key in value})
     family = headset_family(physical)
-    if result['resolution'].startswith('beyond-') and family != 'beyond':
-        raise ValueError('A Beyond stream preset is selected, but SteamVR detected ' + physical['model'] + '. Select Automatic headset or another stream size.')
+    # 1.0.0.13: a choice this headset does not offer (another headset's, or a size gone in 1.0.0.13) follows its mode,
+    # as Auto does, and stays saved for the headset it was made for.
+    chosen = result['resolution'] if result['resolution'] in offered_resolutions(family) else 'automatic'
     if result['codec'] == 'Auto':
         result['codec'] = 'Hevc' if family == 'beyond' else 'H264'
-    if result['resolution'] == 'automatic':
-        # Conservative starting budgets; the full runtime recommendation stays
-        # selectable. Never equate the render recommendation with panel pixels.
-        # RC4.3: the Beyond starts at Standard (2016) too. In the RC4.2 physical test a
-        # headset PC with integrated Radeon graphics held 75 fps at 2016 but kept falling to half rate at
-        # 2560 (Native since 1.0.0.11, High before), which stays one choice away: without eye tracking its
-        # foveated stream carries about 60 % more pixels to decode than Standard's.
-        result['resolution'] = 'sharp' if family in ('index', 'beyond') else 'compatibility'
+    if chosen == 'automatic':
+        # Conservative for other headsets; the full runtime recommendation stays selectable. Never equate the render
+        # recommendation with panel pixels. 1.0.0.13: a Beyond or an Index streams the mode it runs (until 1.0.0.12
+        # Auto was 2016 on both: since 1.0.0.11's lighter frame pass a handheld headset PC holds the Beyond's 2560 at
+        # 75 Hz).
+        chosen = automatic_mode(family, physical['refresh_hz'], result['codec']) or 'compatibility'
+    result['resolution'] = wire_resolution(chosen)
     result['headset'] = physical
     result['microphone'] = value.get('microphone', False)
     return result
 
 
-def display_status(preferences, headset):
-    """Read-only display information for both desktop and Game Mode controls."""
-    catalog = {'resolution_options': {codec: resolution_options(dict(preferences, codec=codec), headset)
-                                      for codec in CLIENT_CODECS}}
+def display_status(preferences, headset, source='detected'):
+    """Read-only display information for both desktop and Game Mode controls.
+
+    source (1.0.0.13) says where the headset description comes from: 'detected' (SteamVR, this run), 'last' (the last
+    verified session) or 'display' (a known headset seen only by its display, family_headset()). The choices are
+    offered from any of them, so a stream size can be chosen before a session starts."""
+    catalog = {'resolution_options': {codec: resolution_options(dict(preferences, codec=codec), headset, source)
+                                      for codec in CLIENT_CODECS},
+               'selected': selected_resolution(preferences, headset)}
     if not headset:
-        return dict(catalog, detected=False, message='Headset detected automatically on Start. Saved stream quality is retained.')
+        return dict(catalog, detected=False, source=None, refresh_text=refresh_text(None),
+                    message='Headset detected automatically on Start. Saved stream quality is retained.')
     try:
         physical = headset_metadata(headset)
     except ValueError:
-        return dict(catalog, detected=False, message='Waiting for a valid headset description from SteamVR.')
-    result = dict(catalog, **{'detected': True, 'model': physical['model'], 'family': headset_family(physical),
-              'refresh_hz': physical['refresh_hz'], 'recommended_width': physical['width'],
-              'recommended_height': physical['height']})
+        return dict(catalog, detected=False, source=None, refresh_text=refresh_text(None),
+                    message='Waiting for a valid headset description from SteamVR.')
+    family = headset_family(physical)
+    result = dict(catalog, **{'detected': source != 'display', 'source': source, 'model': physical['model'],
+              'family': family, 'refresh_hz': physical['refresh_hz'], 'recommended_width': physical['width'],
+              'recommended_height': physical['height'], 'refresh_text': refresh_text(family),
+              # 1.0.0.13: no choice to make: the stream follows the headset's mode (a Beyond).
+              'resolution_fixed': offered_resolutions(family) == ('automatic',)})
+    if source == 'display':
+        result['message'] = (FAMILY_NAMES[family] + ' connected (known from its display). SteamVR describes it on '
+                             'Start' + ('; the stream follows the mode it is in.' if family == 'beyond'
+                                        else '; sizes are checked then.'))
     try:
         selected = resolve_stream_preferences(preferences, physical)
         width, height = stream_size(selected['codec'], selected['resolution'], physical)
@@ -107,6 +202,19 @@ def display_status(preferences, headset):
     except ValueError as error:
         result['message'] = str(error)
     return result
+
+
+def selected_resolution(preferences, headset):
+    """1.0.0.13: the choice the controls show: the saved one, or Auto when this headset does not offer it (it follows
+    the headset's mode, as Auto does; on a Beyond always)."""
+    current = preferences.get('resolution', 'automatic')
+    if current not in CHOICES:
+        return 'automatic'  # the Beyond's sizes until 1.0.0.12: it follows its mode now
+    try:
+        family = headset_family(headset_metadata(headset))
+    except ValueError:
+        return current
+    return current if current in offered_resolutions(family) else 'automatic'
 
 
 def stream_size(codec, resolution, headset):
@@ -126,11 +234,13 @@ def stream_size(codec, resolution, headset):
     return width, height
 
 
-def resolution_options(preferences, headset=None):
-    """Shared, model-aware UI labels; legacy IDs keep their exact saved budget.
+def resolution_options(preferences, headset=None, source='detected'):
+    """Shared, model-aware UI labels and sizes for the desktop page and Game Mode.
 
-    Do not replace a saved legacy preset with a differently sized 'equivalent'.
-    Before detection, only Auto and the saved manual choice are meaningful.
+    1.0.0.13: offered before a session too, from the last verified headset or a known headset's display. An Index
+    offers Auto and its rates (MODES); a Beyond only the mode it is in, which is set outside VROSTBridge; other
+    headsets the sizes; with no headset known, the sizes without dimensions. A saved choice the headset does not
+    offer follows its mode (selected_resolution()).
     """
     try:
         physical = headset_metadata(headset)
@@ -139,46 +249,41 @@ def resolution_options(preferences, headset=None):
     family = headset_family(physical) if physical else None
     codec = preferences.get('codec', 'Auto')
     effective_codec = ('Hevc' if family == 'beyond' else 'H264') if codec == 'Auto' else codec
-    codec_label = {'H264': 'H.264', 'Hevc': 'HEVC', 'AV1': 'AV1'}
     current = preferences.get('resolution', 'automatic')
-    # 1.0.0.11: the Beyond's 2560 is its panels' own resolution, so it is called Native (until 1.0.0.10: High).
-    labels = {'automatic': 'Auto', 'sharp': 'Standard' if family == 'beyond' else 'High',
-              'compatibility': 'Standard' if effective_codec == 'H264' and family != 'beyond' else 'Custom',
-              'beyond-balanced': 'Native', 'beyond-detail': 'Ultra', 'recommended': 'SteamVR app size'}
-    if not physical:
-        ids = ['automatic']
-    elif family == 'beyond':
-        ids = ['automatic', 'sharp', 'beyond-balanced', 'beyond-detail', 'recommended']
-    else:
-        ids = (['automatic', 'compatibility', 'sharp', 'recommended'] if effective_codec == 'H264'
-               else ['automatic', 'sharp', 'compatibility', 'recommended'])
-    if current in CLIENT_RESOLUTIONS and current not in ids:
-        ids.insert(-1 if len(ids) > 1 else len(ids), current)
+    labels = {'automatic': 'Auto', 'sharp': 'High', 'compatibility': 'Standard' if effective_codec == 'H264' else 'Custom',
+              'recommended': 'SteamVR app size', **{key: mode['label'] for key, mode in MODES.items()}}
+    if family == 'beyond':
+        # The mode it is in, as SteamVR measured it (not yet known from its display alone).
+        labels['automatic'] = 'Set by the headset' + ('' if source == 'display' else
+                                                      ' · ' + str(round(physical['refresh_hz'])) + ' Hz')
+    elif family == 'index':
+        labels['automatic'] = 'Auto · as SteamVR is set'
+    ids = list(offered_resolutions(family))
+    if family not in FAMILY_MODES and effective_codec != 'H264':
+        ids = ['automatic', 'sharp', 'compatibility', 'recommended']
+    if current in CLIENT_RESOLUTIONS and current not in ids and selected_resolution(preferences, physical) == current:
+        ids.append(current)  # only with no headset known: checked on Start
     options = []
     for preset in ids:
         option = {'id': preset, 'label': labels[preset], 'available': True}
+        if MODES.get(preset, {}).get('experimental'):
+            option['experimental'] = True
+        if MODES.get(preset):
+            option['refresh_hz'] = MODES[preset]['refresh_hz']
         if not physical:
             option['label'] = ('Auto - detect on Start' if preset == 'automatic'
-                               else labels[preset] + ' - saved; size checked on Start')
-        elif preset.startswith('beyond-') and family != 'beyond':
-            option.update(label='Saved custom - different headset; choose Auto', available=False)
+                               else labels[preset] + ' - size checked on Start')
+        elif preset == 'automatic' and family == 'beyond' and source == 'display':
+            option['label'] += ' - size checked on Start'  # the mode it runs is known once SteamVR describes it
         else:
-            required_hevc = preset.startswith('beyond-')
-            candidate = dict(preferences, resolution=preset)
-            if required_hevc and effective_codec == 'H264':
-                candidate['codec'] = 'Hevc'
             try:
-                selected = resolve_stream_preferences(candidate, physical)
+                selected = resolve_stream_preferences(dict(preferences, resolution=preset), physical)
                 width, height = stream_size(selected['codec'], selected['resolution'], physical)
                 option.update(width=width, height=height, encoded_width=width * 2,
                               encoded_height=height, codec=selected['codec'])
                 option['label'] += f' - {width} x {height} per eye'
                 if preset == 'recommended':
                     option['label'] += ' (capped)'
-                elif required_hevc and effective_codec == 'H264':
-                    option['label'] += ' (HEVC)'
-                if required_hevc:
-                    option['requires_codec'] = 'Hevc'
             except ValueError as error:
                 option.update(available=False, message=str(error))
         options.append(option)
@@ -223,16 +328,20 @@ def stream_width(codec, resolution='compatibility', headset=None):
         width = 1440 if codec == 'H264' else 2144
     elif resolution == 'sharp':
         width = 2016
-    elif resolution in ('beyond-balanced', 'beyond-detail'):
-        if codec == 'H264':
+    elif resolution in ('beyond-balanced', 'beyond-detail', 'beyond-90'):
+        if resolution in ('beyond-balanced', 'beyond-detail') and codec == 'H264':
             raise ValueError('Beyond 2560 and 3200 stream sizes require HEVC or AV1.')
         if headset is None or headset_family(headset_metadata(headset)) != 'beyond':
             raise ValueError('The physical Beyond headset must be ready before choosing its stream preset.')
         # This application recommendation is scaled for the client GPU, which
         # only decodes the stream. It must not cap the remote rendering PC's
         # chosen budget. ALVR retains the measured runtime aspect ratio; these
-        # widths describe stream targets, not physical panel/display modes.
-        width = 2560 if resolution == 'beyond-balanced' else 3200
+        # widths describe stream targets. 1.0.0.13: 1920 is what the 90 Hz mode's panels take.
+        width = {'beyond-balanced': 2560, 'beyond-detail': 3200, 'beyond-90': 1920}[resolution]
+    elif resolution.startswith('index-'):
+        if headset is not None and headset_family(headset_metadata(headset)) != 'index':
+            raise ValueError('An Index display mode is selected for another headset.')
+        width = 2016  # 1.0.0.13: the Index's native stream, the size SteamVR renders for its lenses
     else:
         if headset is None:
             raise ValueError('The physical headset must be ready before selecting its recommended resolution.')

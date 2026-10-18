@@ -157,7 +157,8 @@ RECOVERY_CAPABILITY = 'quality-4'
 RECOVERY_FIELDS = ('host_prediction', 'client_hostname')
 FEATURES = ('ten-bit', 'av1', 'foveation', 'gaze-foveation', 'optical-centre', 'pacing', 'intra-refresh',
             'link-test', 'quick-resume', 'host-power', 'prediction-switch', 'init-config', 'stream-recovery',
-            'report-upload', 'fovea-view', 'session-gaze', 'bitrate-control')
+            'report-upload', 'fovea-view', 'session-gaze', 'bitrate-control', 'display-modes')
+# 1.0.0.13: 'display-modes' hosts know the Beyond's 90 Hz size ('beyond-90', 1920 per eye) in session_settings().
 # 1.0.0.8: 'bitrate-control' hosts accept a 'bitrate' (whole Mbit/s) in heartbeats and set the running stream to
 # it at once: the headset client's bitrate governor (launcher/stream_budget.py) steps it down when decoding falls
 # behind or frames are lost, and back up while the stream runs clean.
@@ -552,6 +553,7 @@ class SessionHost:
         value.append('session-gaze')  # RC4.5: session_settings() accepts 'gaze'
         if self.bitrate_callback:
             value.append('bitrate-control')  # 1.0.0.8: heartbeats may carry 'bitrate'
+        value.append('display-modes')  # 1.0.0.13: session_settings() accepts 'beyond-90'
         return sorted({item for item in value if item in FEATURES})
 
     def hello(self):

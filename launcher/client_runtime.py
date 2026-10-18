@@ -9,6 +9,7 @@ reused PID is never touched). The platform is decided at call time.
 """
 import datetime
 import json
+import math
 import ntpath
 import os
 from pathlib import Path
@@ -348,6 +349,18 @@ def signal_identity(identity, sig):
 
 
 STREAM_ONLY={('steamvr','enableHomeApp'):False,('dashboard','enableDashboard'):False,('steamvr','sendSystemButtonToAllApps'):True}
+# 1.0.0.13: the headset's refresh rate SteamVR uses (Hz), set for a session for which an Index rate is chosen
+# (launcher/headset.py requested_refresh) and put back with the other settings afterwards.
+REFRESH=('steamvr','preferredRefreshRate')
+
+def _refresh_value(value):
+    """A refresh rate SteamVR could be asked for (a real number of Hz from 30 to 240), else None."""
+    return float(value) if type(value) in (int,float) and math.isfinite(value) and 30<=value<=240 else None
+
+def _still_applied(current,applied):
+    """Whether a setting still holds the value VROSTBridge applied: the same bool, or the same number of Hz."""
+    if type(applied) is bool:return current is applied
+    return type(current) in (int,float) and current==applied
 COMPOSITOR_LOGS=('.local/share/Steam/logs/vrcompositor.txt','.steam/steam/logs/vrcompositor.txt')
 WATCHDOG_ABORT='Failed Watchdog timeout'
 # 1.0.0.10: SteamVR's compositor could not take the headset display (VRInitError 496). In the 1.0.0.9
@@ -412,6 +425,98 @@ def server_display_note(server, environment):
     return ('Game Mode: SteamVR\'s server was started with '+('WAYLAND_DISPLAY='+got if got else 'no WAYLAND_DISPLAY')+
             ', not VROSTBridge\'s headset display ('+str(wanted)+'); gamescope\'s display marker '+
             ('was still set' if server.get('gamescope_wayland_display') else 'was not set')+'.')
+
+# 1.0.0.13: names of variables that a container runtime or Steam sets for what it starts (only names are reported).
+ORIGIN_PREFIXES = ('PRESSURE_VESSEL', 'SRT_', 'STEAM_COMPAT_', 'FLATPAK_')
+ORIGIN_NAMES = ('container', 'SteamAppId', 'SteamGameId', 'STEAM_RUNTIME', 'STEAM_RUNTIME_SCOUT', 'SteamOverlayGameId')
+
+def _process_stat(pid, proc):
+    """(name, parent pid) of a process from /proc/<pid>/stat, else None."""
+    try:
+        text = (proc/str(pid)/'stat').read_text()
+        name = text[text.index('(')+1:text.rindex(')')]
+        return name[:32], int(text[text.rindex(')')+1:].split()[1])
+    except (OSError, ValueError, IndexError):
+        return None
+
+def _socket_names(folder):
+    """{(device, inode): name} of the sockets directly in a folder."""
+    result = {}
+    try:
+        entries = list(os.scandir(folder))
+    except OSError:
+        return result
+    for entry in entries:
+        try:
+            info = entry.stat()
+        except OSError:
+            continue
+        if stat.S_ISSOCK(info.st_mode):
+            result.setdefault((info.st_dev, info.st_ino), entry.name)
+    return result
+
+def server_origin(identities, wanted=None, proc=Path('/proc'), runtime_dir=None, gamescope=None):
+    """1.0.0.13 (Game Mode): where SteamVR's server came from, and which display its own name for it reaches.
+
+    In 1.0.0.12's Game Mode start the server had WAYLAND_DISPLAY=wayland-0, a name VROSTBridge never gives, and no
+    gamescope marker: something between vrstartup.sh and the server renamed the display (a container runtime, such
+    as Steam's, can). This notes the server's parent processes, whether it has a mount namespace of its own (a
+    container), the container and Steam variables it was given (names only), and which socket its WAYLAND_DISPLAY
+    is inside its own file system: VROSTBridge's headset display, gamescope's, or another. None without a server."""
+    runtime_dir = runtime_dir or os.environ.get('XDG_RUNTIME_DIR') or ''
+    gamescope = gamescope if gamescope is not None else os.environ.get('GAMESCOPE_WAYLAND_DISPLAY')
+    for pid, identity in sorted(identities.items()):
+        if runtime_name(identity) != 'vrserver':
+            continue
+        parents, current = [], int(pid)
+        for _ in range(6):
+            found = _process_stat(current, proc)
+            if not found or found[1] <= 1:
+                break
+            current = found[1]
+            parent = _process_stat(current, proc)
+            if not parent:
+                break
+            parents.append(parent[0])
+        try:
+            own = os.readlink(proc/str(pid)/'ns'/'mnt') != os.readlink(proc/'self'/'ns'/'mnt')
+        except OSError:
+            own = None
+        result = {'parents': parents, 'own_namespace': own}
+        try:
+            data = (proc/str(pid)/'environ').read_bytes()
+        except OSError as error:
+            return dict(result, readable=False, error=error.strerror or type(error).__name__)
+        values = {key.decode('utf-8', 'replace'): value.decode('utf-8', 'replace')
+                  for key, value in (item.split(b'=', 1) for item in data.split(b'\0') if b'=' in item)}
+        result.update(readable=True, markers=sorted(name for name in values if name in ORIGIN_NAMES
+                                                    or name.startswith(ORIGIN_PREFIXES))[:12])
+        name = values.get('WAYLAND_DISPLAY')
+        if name:
+            inner = name if name.startswith('/') else (values.get('XDG_RUNTIME_DIR') or runtime_dir)+'/'+name
+            try:
+                info = os.stat(proc/str(pid)/'root'/inner.lstrip('/'))
+                match = _socket_names(runtime_dir).get((info.st_dev, info.st_ino)) if runtime_dir else None
+                kind = ('vrostbridge' if match and match == wanted else 'gamescope' if match and match == gamescope
+                        else 'other' if match else 'unknown')
+                result['display'] = {'name': name[:64], 'reaches': kind, 'socket': match}
+            except OSError:
+                result['display'] = {'name': name[:64], 'reaches': 'missing', 'socket': None}
+        return result
+    return None
+
+def server_origin_note(origin):
+    """The log line for server_origin() (1.0.0.13)."""
+    if not origin.get('readable'):
+        return 'Game Mode: where SteamVR\'s server came from could not be read ('+str(origin.get('error'))+').'
+    display = origin.get('display') or {}
+    reaches = {'vrostbridge': 'VROSTBridge\'s headset display', 'gamescope': 'gamescope\'s own display',
+               'other': 'another display ('+str(display.get('socket'))+')', 'unknown': 'a display this PC\'s session does not have',
+               'missing': 'nothing (no such socket)'}.get(display.get('reaches'), 'nothing (no WAYLAND_DISPLAY)')
+    return ('Game Mode: SteamVR\'s server was started by '+(' < '.join(origin.get('parents') or []) or 'an unknown process')+
+            ('; it runs in a container of its own' if origin.get('own_namespace') else '')+
+            ('; Steam or container variables: '+', '.join(origin['markers']) if origin.get('markers') else '')+
+            '; its display name '+str(display.get('name') or '(none)')+' reaches '+reaches+'.')
 
 def lease_failure_message(environment, server=None):
     """Why SteamVR's compositor could not take the headset display (1.0.0.10), as precisely as known."""
@@ -604,12 +709,14 @@ class ClientRuntime:
         self.lifecycle_lock = threading.RLock()
         self.runtime_environment = {}
         self.headset = None
+        self.requested_refresh = None
         self.environment_setup = ''
         self.last_probe_diagnostic = ''
         self.probe_attempts = 0
         self.probe_timeouts = 0
         self.probe_executable = ''
         self.server_display = None  # 1.0.0.10 (Game Mode): the display SteamVR's server was given
+        self.server_origin = None  # 1.0.0.13 (Game Mode): who started that server and which display it reaches
 
     def status(self):
         return {'state': self.state, 'message': self.message,
@@ -621,6 +728,8 @@ class ClientRuntime:
                 'probe_attempts':self.probe_attempts, 'probe_timeouts':self.probe_timeouts,
                 'probe_executable':self.probe_executable,
                 'steamvr_display':self.server_display,
+                'steamvr_origin':self.server_origin,
+                'requested_refresh_hz':self.requested_refresh,
                 'headset':self.headset}
 
     def cancel(self):
@@ -662,18 +771,24 @@ class ClientRuntime:
         # vrenv.sh execs its arguments, preserving stdin and process ownership.
         return [str(wrapper), *command] if wrapper else command
 
-    def prepare_settings(self):
+    def prepare_settings(self,refresh=None):
         if runtime_processes():raise ValueError('Local SteamVR must stop before stream-only preparation.')
         if self.receipt.exists() and not self.restore():raise ValueError('Previous runtime settings could not be recovered; receipt retained.')
         path=settings_path();data=read_settings(path);previous=[]
-        for (section,key),value in STREAM_ONLY.items():
+        wanted=dict(STREAM_ONLY)
+        if refresh is not None:
+            if _refresh_value(refresh) is None:raise ValueError('Invalid headset refresh rate.')
+            wanted[REFRESH]=_refresh_value(refresh)
+        for (section,key),value in wanted.items():
             values=data.setdefault(section,{})
             previous.append(dict(section=section,key=key,present=key in values,original=values.get(key),applied=value))
             values[key]=value
-        atomic_json(self.receipt,dict(version=3,path=str(path),preferences=previous))
+        # Receipt version 4 (1.0.0.13) may carry the refresh rate; version 3 had the three stream-only switches.
+        atomic_json(self.receipt,dict(version=4,path=str(path),preferences=previous))
         if runtime_processes():raise ValueError('SteamVR started during preparation. Close it and retry.')
         atomic_json(path,data)
-        self.log('Stream-only settings prepared before SteamVR startup. Local Home and dashboard are disabled.')
+        self.log('Stream-only settings prepared before SteamVR startup. Local Home and dashboard are disabled.'+
+                 (' Headset refresh rate for this session: '+('%g'%wanted[REFRESH])+' Hz.' if REFRESH in wanted else ''))
 
     def processes(self):
         """SteamVR's programs running on this PC now, {pid: identity}; empty when SteamVR is closed.
@@ -755,9 +870,12 @@ class ClientRuntime:
                  ('restarting it now instead of waiting for its crash report.' if stopped else 'it already exited; SteamVR restarts it.'))
         return stopped
 
-    def ensure(self, lightweight=True, extra_env=None):
+    def ensure(self, lightweight=True, extra_env=None, refresh=None):
+        """Start SteamVR on this PC as a stream-only runtime and verify the headset display. refresh (1.0.0.13): the
+        refresh rate (Hz) to ask SteamVR for this session, or None to leave it as it is set."""
         with self.lifecycle_lock:
             self.cancelled.clear();self.state='starting';self.message='Preparing stream-only headset runtime.'
+            self.requested_refresh=_refresh_value(refresh) if refresh is not None else None
             self.headset=None;self.last_probe_diagnostic='';self.environment_setup=''
             self.probe_attempts=0;self.probe_timeouts=0;self.probe_executable=''
             self.identities=runtime_processes();self.session_active=True
@@ -768,9 +886,11 @@ class ClientRuntime:
                 self.session_active=True
             if extra_env and any(k not in ('WAYLAND_DISPLAY','DISPLAY','SDL_VIDEODRIVER','QT_QPA_PLATFORM') or not isinstance(v,str) or not v or '\0' in v for k,v in extra_env.items()):raise ValueError('Invalid runtime display environment.')
             self.runtime_environment=dict(extra_env or {})
-            self.prepare_settings();launched=False;deadline=time.monotonic()+60
+            if self.requested_refresh:self.prepare_settings(self.requested_refresh)
+            else:self.prepare_settings()
+            launched=False;deadline=time.monotonic()+60
             self.mark_compositor_log();self.compositor_recoveries=0
-            self.server_display=None;notes=set()
+            self.server_display=None;self.server_origin=None;notes=set()
             while time.monotonic()<deadline:
                 self.capture()
                 if self.cancelled.is_set():raise ValueError('Session startup cancelled.')
@@ -778,7 +898,10 @@ class ClientRuntime:
                     if self.runtime_environment.get('WAYLAND_DISPLAY') and self.server_display is None:
                         # 1.0.0.10 (Game Mode): which display SteamVR's server was really given.
                         self.server_display=server_display_environment(self.identities)
-                        if self.server_display is not None:self.log(server_display_note(self.server_display,self.runtime_environment))
+                        if self.server_display is not None:
+                            self.log(server_display_note(self.server_display,self.runtime_environment))
+                            self.server_origin=server_origin(self.identities,self.runtime_environment.get('WAYLAND_DISPLAY'))
+                            if self.server_origin is not None:self.log(server_origin_note(self.server_origin))
                     found=self.compositor_check()
                     for note in found['notes']:
                         if note not in notes:notes.add(note);self.log('SteamVR compositor: '+note)
@@ -836,6 +959,9 @@ class ClientRuntime:
                     self.log('Starting local SteamVR for the bridge.')
                 self.cancelled.wait(min(1,max(0,deadline-time.monotonic())))
             self.state='error';self.message='VROSTBridge could not verify headset display timing within 60 seconds. This does not necessarily mean SteamVR cannot see the headset. Save a report from this client; it includes the startup probe results.'
+            if self.requested_refresh:
+                self.message+=(' VROSTBridge asked SteamVR for '+('%g'%self.requested_refresh)+' Hz: if this headset or '
+                               'graphics card cannot run that rate, choose another mode or Auto.')
             raise ValueError(self.message)
 
     def restore(self):
@@ -845,13 +971,19 @@ class ClientRuntime:
             path=settings_path();text=self.receipt.read_text(encoding='utf-8')
             if text.lstrip().startswith('{'):
                 saved=json.loads(text)
-                if saved.get('version')!=3 or saved.get('path')!=str(path):raise ValueError('Changed SteamVR configuration path or invalid receipt.')
+                if saved.get('version') not in (3,4) or saved.get('path')!=str(path):raise ValueError('Changed SteamVR configuration path or invalid receipt.')
                 previous=saved.get('preferences');seen=set()
-                if not isinstance(previous,list) or len(previous)!=3:raise ValueError('Invalid settings receipt.')
+                if not isinstance(previous,list) or len(previous) not in ((3,) if saved['version']==3 else (3,4)):raise ValueError('Invalid settings receipt.')
                 for entry in previous:
+                    if not isinstance(entry,dict):raise ValueError('Invalid receipt values.')
                     pair=(entry.get('section'),entry.get('key'))
-                    if pair not in STREAM_ONLY or pair in seen or type(entry.get('present')) is not bool or type(entry.get('applied')) is not bool or entry['applied']!=STREAM_ONLY[pair]:raise ValueError('Invalid receipt values.')
+                    if pair in seen or type(entry.get('present')) is not bool:raise ValueError('Invalid receipt values.')
+                    if pair in STREAM_ONLY:
+                        if type(entry.get('applied')) is not bool or entry['applied']!=STREAM_ONLY[pair]:raise ValueError('Invalid receipt values.')
+                    elif pair!=REFRESH or saved['version']!=4 or _refresh_value(entry.get('applied'))!=entry.get('applied'):
+                        raise ValueError('Invalid receipt values.')
                     seen.add(pair)
+                if not set(STREAM_ONLY)<=seen:raise ValueError('Invalid settings receipt.')
             else:
                 parts=text.split();previous=[]
                 if not parts or parts[0] not in ('VROSTBridgeRuntime1','VROSTBridgeRuntime2'):raise ValueError('Invalid legacy receipt.')
@@ -863,7 +995,8 @@ class ClientRuntime:
             data=read_settings(path)
             for entry in previous:
                 values=data.get(entry['section'],{});key=entry['key']
-                if key in values and values[key] is entry['applied']:
+                # Only a value still as VROSTBridge set it goes back: one changed meanwhile is the user's.
+                if key in values and _still_applied(values[key],entry['applied']):
                     if entry['present']:values[key]=entry['original']
                     else:values.pop(key,None)
             if runtime_processes():raise ValueError('SteamVR restarted during restoration.')

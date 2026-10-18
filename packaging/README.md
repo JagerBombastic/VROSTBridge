@@ -1,4 +1,4 @@
-# Release packaging — VROSTBridge 1.0.0.12, host, Bazzite client and Windows client
+# Release packaging — VROSTBridge 1.0.0.13, host, Bazzite client and Windows client
 
 Updated 2026-10-08. Normal users install release packages; maintainers use this guide after [native builds](../docs/BUILDING.md). Earlier notes are retained in [packaging history](../docs/history/PACKAGING_HISTORY_0.2.md).
 
@@ -72,7 +72,7 @@ makensis -DPAYLOAD=/tmp/host/payload -DOUTPUT=/tmp/VROSTBridge-Host-Setup-<versi
 
 The repack verifies the input manifest and ALVR pin, never replaces compiled files except the launcher given with `--launcher` (it checks that it is a 64-bit Windows program with the VROSTBridge version resource) and the driver given with `--native-overlay`, replaces `brand/` (the installer's icon) with `launcher/brand`, and rewrites `PACKAGED.json`, `HOST_PROVENANCE.txt` (with the launcher's and its source's SHA-256, and the driver's patch set) and `SHA256SUMS`. The `launcher/` tree is pruned to the source's, so no earlier artwork stays.
 
-Without `--native-overlay` the previous native driver is reused, so the host does not include newer driver patches. RC4.2 to 1.0.0 were built that way over the payload before them (the RC4.1 driver); the overlay also carries the page fonts, the brand images, `licenses/`, `LICENSE`, `NOTICE` and `THIRD_PARTY.md`. The driver was rebuilt for RC3, RC4, RC4.1, 1.0.0.1 (where only its names changed), 1.0.0.3, 1.0.0.4, 1.0.0.5, 1.0.0.6 and 1.0.0.9 (and 1.0.0.10, 1.0.0.11 and 1.0.0.12 passed 1.0.0.9's overlay again), each passed with `--native-overlay <dir>`, the output of `scripts/Build-Host-Cross.py`, whose manifest must record the complete current patch set. 1.0.0.1's previous payload was 1.0.0's, with the file names inside it made VROSTBridge's first and its build manifest left out (a one-off step outside the project, recorded in the build evidence). RC4 also passed `--drop-ffmpeg`, which removes the Windows FFmpeg DLLs and notice after checking that the rebuilt driver (built without ALVR's `gpl` feature) does not import them. RC2 was produced this way over the RC1 payload. A Linux `makensis` built from NSIS 3.09 source works with the official NSIS 3.09 `Include`, `Contrib`, `Stubs` and `Plugins` directories as `NSISDIR`.
+Without `--native-overlay` the previous native driver is reused, so the host does not include newer driver patches. RC4.2 to 1.0.0 were built that way over the payload before them (the RC4.1 driver); the overlay also carries the page fonts, the brand images, `licenses/`, `LICENSE`, `NOTICE` and `THIRD_PARTY.md`. The driver was rebuilt for RC3, RC4, RC4.1, 1.0.0.1 (where only its names changed), 1.0.0.3, 1.0.0.4, 1.0.0.5, 1.0.0.6 and 1.0.0.9 (and 1.0.0.10 to 1.0.0.13 passed 1.0.0.9's overlay again), each passed with `--native-overlay <dir>`, the output of `scripts/Build-Host-Cross.py`, whose manifest must record the complete current patch set. 1.0.0.1's previous payload was 1.0.0's, with the file names inside it made VROSTBridge's first and its build manifest left out (a one-off step outside the project, recorded in the build evidence). RC4 also passed `--drop-ffmpeg`, which removes the Windows FFmpeg DLLs and notice after checking that the rebuilt driver (built without ALVR's `gpl` feature) does not import them. RC2 was produced this way over the RC1 payload. A Linux `makensis` built from NSIS 3.09 source works with the official NSIS 3.09 `Include`, `Contrib`, `Stubs` and `Plugins` directories as `NSISDIR`.
 
 The installer's identity is the install folder `$LOCALAPPDATA\VROSTBridge\Host\<version>`, the uninstall key `VROSTBridgeHost` and the Run value `VROSTBridgeHost`: a later version upgrades it in place and rewrites the sign-in command only when it was VROSTBridge's own.
 
@@ -112,10 +112,10 @@ The payload, which is the install folder `%LOCALAPPDATA%\VROSTBridge\Client\<ver
 
 ## Release checksums
 
-One `SHA256SUMS.txt` lists every file of a release, one `<sha256>  <file name>` line each: for 1.0.0.12 `VROSTBridge-Host-Setup-1.0.0.12.exe`, `VROSTBridge-Host-Portable-1.0.0.12.zip`, `VROSTBridge-Bazzite-Installer-1.0.0.12.zip`, `VROSTBridge-Client-Setup-1.0.0.12.exe` and `VROSTBridge-Client-Portable-1.0.0.12.zip`. `packaging/build_distributions.py` writes it only for the host and Bazzite products it builds, and `packaging/build_windows_client.py` only prints the SHA-256 of its two, so write the file once all five are final, in the folder that holds them:
+One `SHA256SUMS.txt` lists every file of a release, one `<sha256>  <file name>` line each: for 1.0.0.13 `VROSTBridge-Host-Setup-1.0.0.13.exe`, `VROSTBridge-Host-Portable-1.0.0.13.zip`, `VROSTBridge-Bazzite-Installer-1.0.0.13.zip`, `VROSTBridge-Client-Setup-1.0.0.13.exe` and `VROSTBridge-Client-Portable-1.0.0.13.zip`. `packaging/build_distributions.py` writes it only for the host and Bazzite products it builds, and `packaging/build_windows_client.py` only prints the SHA-256 of its two, so write the file once all five are final, in the folder that holds them:
 
 ```sh
-cd /tmp/vrostbridge-release && sha256sum VROSTBridge-*-1.0.0.12.* > SHA256SUMS.txt
+cd /tmp/vrostbridge-release && sha256sum VROSTBridge-*-1.0.0.13.* > SHA256SUMS.txt
 ```
 
 Each package also checks its own files against the `SHA256SUMS` inside it (its installer, or the launcher's `--self-test`); that manifest is separate from the release's `SHA256SUMS.txt`.

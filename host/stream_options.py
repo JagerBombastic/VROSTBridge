@@ -70,6 +70,12 @@ GAZE_COMFORT = 0.5
 # so every shard is sent twice.
 FEC_VIDEO_GROUP = 10
 FEC_AUDIO_GROUP = 1
+# 1.0.0.13: a wired path can lose packets in clumps, not one at a time (a network test on a wired link lost six at
+# once, and 12 frames of a session were lost although every group got its parity). One parity shard per 5 data
+# shards there: twice the groups, so a run of lost shards up to a fifth of the frame comes back, for 20 % more
+# packets. Wi-Fi resends lost packets itself, and keeps one per 10. Older clients read the group count from
+# each parity datagram, so they repair either.
+FEC_VIDEO_GROUP_WIRED = 5
 # Companion features that need no driver patch (upstream ALVR or companion only).
 COMPANION_FEATURES = ('ten-bit', 'av1', 'foveation', 'link-test', 'quick-resume', 'host-power', 'stream-recovery')
 EF_TOS = 46 << 2  # DSCP Expedited Forwarding, as the stream marks its packets
@@ -110,7 +116,8 @@ def stream_config(preferences, features):
     if 'gaze-comfort' in features:  # patch 0019 (a driver without it moves with every 0.025 change)
         config['gaze_comfort'] = GAZE_COMFORT
     if 'parity' in features:  # patch 0021 (older clients ignore the parity datagrams)
-        config['fec_video_group'] = FEC_VIDEO_GROUP
+        wired = preferences.get('network') == 'wired'
+        config['fec_video_group'] = FEC_VIDEO_GROUP_WIRED if wired else FEC_VIDEO_GROUP
         config['fec_audio_group'] = FEC_AUDIO_GROUP
     return config
 

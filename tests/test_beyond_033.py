@@ -23,12 +23,13 @@ class BeyondDisplayTests(unittest.TestCase):
         index = session_settings(resolve_stream_preferences(AUTO, HEADSET))
         beyond = session_settings(resolve_stream_preferences(AUTO, BEYOND))
         self.assertEqual((index['codec'], index['resolution']), ('H264','sharp'))
-        # RC4.3: Auto starts the Beyond at Standard (2016). A headset PC with integrated Radeon graphics held 75 fps there
-        # but kept falling to half rate at High (2560), which stays an explicit choice.
-        self.assertEqual((beyond['codec'], beyond['resolution']), ('Hevc','sharp'))
+        # 1.0.0.13: Auto follows the Beyond's mode: at 90 Hz the 1920 size its panels take, at 75 Hz Native (2560).
+        # (RC4.3 to 1.0.0.12 started it at Standard, 2016, which went with the other sizes.)
+        self.assertEqual((beyond['codec'], beyond['resolution']), ('Hevc','beyond-90'))
         self.assertEqual(AUTO, {'codec':'Auto','bitrate':80,'resolution':'automatic'})
-        self.assertEqual(stream_width(beyond['codec'], beyond['resolution'], BEYOND), 2016)
-        self.assertEqual(stream_width('Hevc', 'beyond-balanced', BEYOND), 2560)
+        self.assertEqual(stream_width(beyond['codec'], beyond['resolution'], BEYOND), 1920)
+        at75 = session_settings(resolve_stream_preferences(AUTO, dict(BEYOND, refresh_hz=75)))
+        self.assertEqual((at75['resolution'], stream_width('Hevc', 'beyond-balanced', BEYOND)), ('beyond-balanced', 2560))
         # No auto token or unknown property reaches the fixed upstream host API.
         self.assertEqual(set(beyond), {'codec','bitrate','resolution','microphone','headset'})
         with self.assertRaises(ValueError):session_settings(AUTO)
@@ -38,7 +39,7 @@ class BeyondDisplayTests(unittest.TestCase):
         display = display_status(AUTO, mode75)
         self.assertEqual(display['recommended_width'], 3560)
         self.assertEqual(display['refresh_hz'], 75)
-        self.assertEqual(display['stream_width'], 2016)
+        self.assertEqual(display['stream_width'], 2560)  # 1.0.0.13: Auto at 75 Hz is Native
         self.assertEqual(display_status(dict(AUTO,resolution='beyond-balanced'), mode75)['stream_width'], 2560)
         self.assertEqual(stream_width('Hevc','beyond-detail',mode75), 3200)
         self.assertEqual(stream_width('Hevc','beyond-detail',BEYOND), 3200)
@@ -50,8 +51,11 @@ class BeyondDisplayTests(unittest.TestCase):
 
     def test_beyond_stream_budget_does_not_inherit_client_gpu_auto_scale(self):
         scaled = dict(BEYOND, width=1344, height=1344)
-        for preferences, expected in ((AUTO, 2016), (dict(AUTO,resolution='beyond-balanced'),2560),
-                                      (dict(AUTO,resolution='beyond-detail'),3200)):
+        # 1.0.0.13: the Beyond streams the mode it is in, whatever is saved: 1920 at 90 Hz, 2560 at 75 Hz.
+        for preferences, hz, expected in ((AUTO, 90, 1920), (dict(AUTO,resolution='beyond-balanced'), 90, 1920),
+                                          (dict(AUTO,resolution='beyond-detail'), 90, 1920), (AUTO, 75, 2560),
+                                          (dict(AUTO,resolution='beyond-90'), 75, 2560)):
+            scaled = dict(scaled, refresh_hz=hz)
             selected=resolve_stream_preferences(preferences,scaled)
             self.assertEqual(stream_width(selected['codec'],selected['resolution'],scaled),expected)
             doc=json.loads((ROOT/'host/default-session.json').read_text())
@@ -63,19 +67,20 @@ class BeyondDisplayTests(unittest.TestCase):
         self.assertEqual(display_status(AUTO,scaled)['recommended_width'],1344)
 
     def test_explicit_choices_are_not_overridden_by_auto_codec_or_resolution(self):
-        value={'codec':'H264','bitrate':120,'resolution':'recommended'}
+        value={'codec':'H264','bitrate':120,'resolution':'automatic'}
         result=resolve_stream_preferences(value,BEYOND)
-        self.assertEqual((result['codec'],result['resolution'],result['bitrate']),('H264','recommended',120))
-        self.assertEqual(stream_width(result['codec'],result['resolution'],BEYOND),2048)
-        result=resolve_stream_preferences(dict(AUTO,codec='H264'),BEYOND)
-        self.assertEqual((result['codec'],result['resolution']),('H264','sharp'))
+        self.assertEqual((result['codec'],result['resolution'],result['bitrate']),('H264','beyond-90',120))
+        self.assertEqual(stream_width(result['codec'],result['resolution'],BEYOND),1920)
+        # 1.0.0.13: whatever is saved follows the Beyond's mode; with H.264, the 1920 that fits it, at 75 Hz too.
+        for saved in ('recommended','automatic','beyond-balanced','beyond-detail'):
+            result=resolve_stream_preferences(dict(AUTO,codec='H264',resolution=saved),dict(BEYOND,refresh_hz=75))
+            self.assertEqual((result['codec'],result['resolution']),('H264','beyond-90'))
         for preset in ('beyond-balanced','beyond-detail'):
-            with self.assertRaisesRegex(ValueError,'HEVC'):
-                client_stream_preferences(dict(AUTO,codec='H264',resolution=preset))
+            # No longer choices: saved with H.264 they are kept, and the 2560 and 3200 sizes are never sent with it.
+            self.assertEqual(client_stream_preferences(dict(AUTO,codec='H264',resolution=preset))['resolution'],preset)
             with self.assertRaisesRegex(ValueError,'HEVC'):
                 stream_width('H264',preset,BEYOND)
-            with self.assertRaisesRegex(ValueError,'detected Index'):
-                resolve_stream_preferences(dict(AUTO,resolution=preset),HEADSET)
+            self.assertEqual(resolve_stream_preferences(dict(AUTO,resolution=preset),HEADSET)['resolution'],'sharp')
 
     def test_auto_does_not_guess_device_version_or_missing_hardware(self):
         generic=dict(BEYOND,model='Beyond')
@@ -90,12 +95,17 @@ class BeyondDisplayTests(unittest.TestCase):
     def test_game_mode_uses_same_options_and_does_not_trap_codec_cycle(self):
         view=View(ROOT,lambda:{},Mock(),lambda:{},threading.Event())
         view.action=Mock();view.state={'settings':dict(AUTO,resolution='beyond-balanced')}
-        view.choose('codec');view.action.assert_called_with('client-preferences',codec='Hevc')
-        view.state['settings']['codec']='Hevc'
-        view.choose('codec');view.action.assert_called_with('client-preferences',codec='AV1')
-        view.state['settings']['codec']='AV1'
-        view.choose('codec');view.action.assert_called_with('client-preferences',codec='Auto')
+        # 1.0.0.13: no choice needs HEVC any more, so H.264 is always among the codecs.
+        for current,following in (('Auto','H264'),('H264','Hevc'),('Hevc','AV1'),('AV1','Auto')):
+            view.state['settings']['codec']=current
+            view.choose('codec');view.action.assert_called_with('client-preferences',codec=following)
+        # A Beyond streams the mode it is in: its row has nothing to cycle.
         view.state['client_runtime']={'headset':BEYOND}
         view.state['settings']={'codec':'H264','resolution':'sharp'}
-        view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='beyond-balanced',codec='Auto')
+        view.state['display']=display_status(view.state['settings'],BEYOND)
+        view.action.reset_mock()
+        view.choose('resolution');view.action.assert_not_called()
+        view.state['client_runtime']={'headset':HEADSET}
+        view.state['display']=display_status(view.state['settings'],HEADSET)
+        view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='index-80')
         view.choose('stream');self.assertEqual(view.page,'stream')

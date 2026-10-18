@@ -4,7 +4,7 @@ here="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 data="${XDG_DATA_HOME:-$HOME/.local/share}"
 base="$data/vrostbridge"
 applications="$data/applications"
-version=1.0.0.12
+version=1.0.0.13
 say() {
     if command -v kdialog >/dev/null; then kdialog --title VROSTBridge --msgbox "$1"
     elif command -v zenity >/dev/null; then zenity --info --title VROSTBridge --text "$1"

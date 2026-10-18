@@ -381,15 +381,15 @@ class PageTests(unittest.TestCase):
         self.assertIn('keep_frame_rate', LIVE_TOGGLES)
         self.assertTrue(DEFAULTS['lens_area'] and DEFAULTS['keep_frame_rate'])
 
-    def test_the_beyonds_own_size_is_native(self):
+    def test_the_beyond_streams_its_panels_own_size(self):
         from headset_fixture import HEADSET
         from launcher.headset import resolution_options
         beyond = dict(HEADSET, model='Bigscreen Beyond 2e', manufacturer='Bigscreen', width=2712, height=2712,
                       refresh_hz=75.0)
         options = resolution_options({'codec': 'Hevc', 'resolution': 'beyond-balanced'}, beyond)
-        native = next(o for o in options if o['id'] == 'beyond-balanced')
-        self.assertTrue(native['label'].startswith('Native - 2560 x 2560'), native['label'])
-        self.assertTrue(next(o for o in options if o['id'] == 'sharp')['label'].startswith('Standard'))
+        # 1.0.0.13: the Beyond offers no choice; at 75 Hz it streams 2560, its panels' own size (1.0.0.11's Native).
+        self.assertEqual([(o['id'], o['label']) for o in options],
+                         [('automatic', 'Set by the headset · 75 Hz - 2560 x 2560 per eye')])
 
 
 if __name__ == '__main__':

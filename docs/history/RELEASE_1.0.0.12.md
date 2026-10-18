@@ -1,6 +1,6 @@
 # VROSTBridge 1.0.0.12
 
-Fixes from 1.0.0.11's first session on real hardware. Every package carries **1.0.0.12**, and the [1.0.0.11 notes](history/RELEASE_1.0.0.11.md) still apply.
+Fixes from 1.0.0.11's first session on real hardware. Every package carries **1.0.0.12**, and the [1.0.0.11 notes](RELEASE_1.0.0.11.md) still apply.
 
 **Install** over 1.0.0.11 on each PC: `VROSTBridge-Host-Setup-1.0.0.12.exe` on the rendering PC, and `VROSTBridge-Bazzite-Installer-1.0.0.12.zip` or `VROSTBridge-Client-Setup-1.0.0.12.exe` on the headset PC. Settings, pairing, the network test, Baballonia and its calibration stay. Nothing on the network changed, so either PC still works with the other at 1.0.0.11.
 
@@ -17,4 +17,4 @@ Play with *Use recommended settings*. The bitrate line on the headset PC's page 
 - The rendering PC's occasional stalls are not fixed; they just no longer cost bitrate.
 - Game Mode on Bazzite doesn't start sessions yet, and the Windows client hasn't run on real hardware.
 
-Build and test evidence: [evidence/vrostbridge-build-1.0.0.12.json](evidence/vrostbridge-build-1.0.0.12.json).
+Build and test evidence: [evidence/vrostbridge-build-1.0.0.12.json](../evidence/vrostbridge-build-1.0.0.12.json).

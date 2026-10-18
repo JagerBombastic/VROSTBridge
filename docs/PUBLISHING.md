@@ -36,7 +36,7 @@ decisions below.** What is already in place:
 **Still yours to decide or do:**
 
 - [x] **The first release.** 1.0.0.11 was published as a full release on 2026-10-13 and tried on
-      your PCs the same day; 1.0.0.12 answers what that session showed. For each later release,
+      your PCs the same day; 1.0.0.12 and 1.0.0.13 answer what the sessions after it showed. For each later release,
       try it on your PCs first and update the README's *What works today*, or mark it a pre-release
       (step 6).
 - [x] **The artwork licence:** CC BY-ND 4.0 for the logo, icons and other artwork (`brand/LICENSE.md`).
@@ -124,22 +124,23 @@ more thorough: [gitleaks](https://github.com/gitleaks/gitleaks) (`gitleaks detec
 ## 6. Each release
 
 1. Build and check the packages (see [packaging/README.md](../packaging/README.md)), then try
-   them on your own PCs with the release notes' *How to test*. For 1.0.0.12 that is the bitrate
-   after a slow start, the GPU clock held from the start and the add-on warning, all tested in
-   software only. The Windows client has only been tested in software too (its tests, and its
+   them on your own PCs with the release notes' *How to test*. For 1.0.0.13 that is the display modes
+   (an Index at 120 and 144 Hz, a Beyond in each of its modes), lost frames on a wired link with the adapters'
+   drop counters, a stop while SteamVR starts and a Game Mode attempt, all tested in software only. The Windows client has only been tested in software too (its tests, and its
    installer, companion and page under Wine), so try it on a Windows headset PC first. The source
    goes to the repository as ordinary commits by you (the private address from step 1), before the
    release is drafted, so its tag points at the code it was built from.
-2. On GitHub: **Releases → Draft a new release** → tag `v1.0.0.12` (create it on publish), title
-   *VROSTBridge 1.0.0.12*. For the text, paste [GITHUB_RELEASE_1.0.0.12.md](GITHUB_RELEASE_1.0.0.12.md)
-   (ready-made for this release; 1.0.0.11's is in `history/`). Without a ready-made text, use the
+2. On GitHub: **Releases → Draft a new release** → tag `v1.0.0.13`, title *VROSTBridge 1.0.0.13*,
+   only once the source is pushed: a tag created on publish points at whatever the repository holds
+   then (1.0.0.12's first pointed at 1.0.0.11's code and was moved). For the text, paste
+   [GITHUB_RELEASE_1.0.0.13.md](GITHUB_RELEASE_1.0.0.13.md) (ready-made for this release; earlier ones are in `history/`). Without a ready-made text, use the
    version's entry in [CHANGELOG.md](../CHANGELOG.md) (written for everyone) and link its release notes.
    Tick **Set as a pre-release** only if you want to mark it as not yet tested on your PCs.
-3. Attach the five packages (`VROSTBridge-Host-Setup-1.0.0.12.exe`,
-   `VROSTBridge-Host-Portable-1.0.0.12.zip`, `VROSTBridge-Bazzite-Installer-1.0.0.12.zip`,
-   `VROSTBridge-Client-Setup-1.0.0.12.exe`, `VROSTBridge-Client-Portable-1.0.0.12.zip`), the source
-   split by part (`VROSTBridge-1.0.0.12-host-source.zip`, `VROSTBridge-1.0.0.12-windows-client-source.zip`,
-   `VROSTBridge-1.0.0.12-bazzite-client-source.zip`) and `SHA256SUMS.txt`, which must list every
+3. Attach the five packages (`VROSTBridge-Host-Setup-1.0.0.13.exe`,
+   `VROSTBridge-Host-Portable-1.0.0.13.zip`, `VROSTBridge-Bazzite-Installer-1.0.0.13.zip`,
+   `VROSTBridge-Client-Setup-1.0.0.13.exe`, `VROSTBridge-Client-Portable-1.0.0.13.zip`), the source
+   split by part (`VROSTBridge-1.0.0.13-host-source.zip`, `VROSTBridge-1.0.0.13-windows-client-source.zip`,
+   `VROSTBridge-1.0.0.13-bazzite-client-source.zip`) and `SHA256SUMS.txt`, which must list every
    file you attach. The release kit's `upload` folder holds exactly these nine. For a later release,
    make the split source with `python3 scripts/package_component_sources.py` and the checksums in
    the folder with the files: `sha256sum VROSTBridge-* > SHA256SUMS.txt`. GitHub adds the whole

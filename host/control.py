@@ -145,6 +145,21 @@ def launch_steamvr():
     return child
 
 
+def quit_steamvr():
+    """1.0.0.13: SteamVR's own Exit VR (vrmonitor://quit) for the runtime this host launches.
+
+    ALVR's shutdown request asks SteamVR to quit through the driver's headset device, and that device exists only
+    once a headset client has streamed: before that, the request is accepted and nothing happens. The URI goes to
+    the vrmonitor.exe beside the vrstartup.exe this host runs, as the headset PC's Windows client does."""
+    program = steamvr_startup().parent / 'vrmonitor.exe'
+    if not program.is_file():
+        raise ValueError('vrmonitor.exe was not found beside vrstartup.exe.')
+    child = subprocess.Popen([str(program), 'vrmonitor://quit'], cwd=str(program.parent),
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+    threading.Thread(target=child.wait, daemon=True).start()
+
+
 def client_rows(document, live=True):
     rows = []
     for hostname, client in document.get('client_connections', {}).items():
@@ -289,16 +304,20 @@ class HostControl:
     RUNTIME_LOSS_GRACE = 10
     SLOW_START_S = 30  # 1.0.0.3: say once why SteamVR's start is taking this long
     SHUTDOWN_QUIET_SECONDS = 1.0
+    # 1.0.0.13: SteamVR still running this long after ALVR accepted the shutdown (or after its server appeared, when
+    # the driver's API did not answer) is asked to exit as its own Exit VR does (quit_steamvr).
+    QUIT_FALLBACK_S = 5.0
     MAX_NEGOTIATION_RESTARTS = 3
     # Patch 0015 saves session.json just before its startup record; wait this long for the
     # record before treating a changed hash as a restart request.
     INIT_RECORD_GRACE = 5.0
 
-    def __init__(self, directory, log, launch=launch_steamvr, process_ids=windows_process_ids):
+    def __init__(self, directory, log, launch=launch_steamvr, process_ids=windows_process_ids, quit=quit_steamvr):
         self.directory = Path(directory)
         self.log = log
         self.launch = launch
         self.process_ids = process_ids
+        self.quit = quit
         self.lock = threading.RLock()
         self.playspace_lock = threading.Lock()
         self.stop_requested = threading.Event()
@@ -475,15 +494,23 @@ class HostControl:
     def _shutdown_runtime(self, timeout=None):
         # An accepted shutdown HTTP response is not process termination. Track
         # server, compositor, monitor and bootstrap, then require a quiet window.
-        deadline=time.monotonic()+(timeout or self.SHUTDOWN_TIMEOUT)
-        if not self.runtime_observed and not self.restart_pending:deadline=max(self.launch_deadline,deadline)
+        # 1.0.0.13: a stop while SteamVR is still starting no longer waits out the rest of the launch budget
+        # (STARTUP_TIMEOUT; a stop 0.75 s into a start waited 88 s): the window counts from now, and again from when
+        # the server appears. ALVR's request ends SteamVR only once a headset has streamed (quit_steamvr), so SteamVR's
+        # own Exit VR follows when it still runs QUIT_FALLBACK_S later. A negotiated restart is left to ALVR.
+        window=timeout or self.SHUTDOWN_TIMEOUT
+        deadline=time.monotonic()+window
+        awaiting_server=not self.runtime_observed and not self.restart_pending
         requested=False;quiet_since=None;forced=False;can_finish=self.runtime_observed or self.restart_pending
+        quit_after=None;quit_sent=self.restart_pending
         self._set(runtime_phase='stopping-runtime')
         while True:
             now=time.monotonic();pids=self.process_ids()
             if self.runtime_observed and self._adopt_new_servers(pids):
                 raise ValueError('SteamVR ownership changed. Close SteamVR on the host PC before retrying.')
             if pids:
+                if awaiting_server:deadline=max(deadline,now+window);awaiting_server=False
+                if quit_after is None:quit_after=now+self.QUIT_FALLBACK_S
                 self.owned_pids=pids;self.runtime_observed=True;can_finish=True
             self._capture_identities(pids)
             remaining=self._remaining_owned()
@@ -500,8 +527,16 @@ class HostControl:
                     version=self.api.request('version').strip()
                     if version!=self.expected_version:raise ValueError('The running host version changed. Its runtime was not stopped.')
                     self.api.request('steamvr/shutdown',post=True);requested=True
+                    quit_after=max(quit_after or now,now+self.QUIT_FALLBACK_S)
                     self.log('Host graceful shutdown accepted; waiting for process exit.')
                 except OSError:pass  # A negotiated restart can remove the API first.
+            if pids and not quit_sent and quit_after is not None and now>=quit_after:
+                quit_sent=True
+                try:
+                    self.quit()
+                    self.log('SteamVR was still running; asking it to exit as its own Exit VR does.')
+                except (OSError,ValueError,KeyError) as error:
+                    self.log('SteamVR could not be asked to exit: '+str(error)[:160])
             if now>=deadline and not empty:
                 if forced:raise ValueError('SteamVR did not become quiet after owned-process recovery. Save a report before retrying.')
                 self._force_owned();forced=True

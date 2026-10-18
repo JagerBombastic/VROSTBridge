@@ -88,8 +88,10 @@ class FoveationPresetTests(unittest.TestCase):
         self.assertEqual(stream_width('AV1', 'recommended', dict(HEADSET, width=3500)), 3488)
         self.assertEqual(stream_width('AV1', 'beyond-detail', BEYOND), 3200)
         self.assertEqual(client_stream_preferences({'codec': 'AV1', 'resolution': 'beyond-balanced'})['codec'], 'AV1')
+        # 1.0.0.13: the Beyond's sizes are no longer choices: saved with H.264 they follow its mode, within H.264's limit.
+        self.assertEqual(client_stream_preferences({'codec': 'H264', 'resolution': 'beyond-balanced'})['codec'], 'H264')
         with self.assertRaisesRegex(ValueError, 'HEVC or AV1'):
-            client_stream_preferences({'codec': 'H264', 'resolution': 'beyond-balanced'})
+            stream_width('H264', 'beyond-balanced', BEYOND)
         self.assertEqual(resolve_stream_preferences({'codec': 'AV1', 'bitrate': 80, 'resolution': 'automatic'}, BEYOND)['codec'], 'AV1')
 
 
@@ -272,7 +274,7 @@ class LoopbackNetworkTestTests(SessionTests):
     def test_hello_lists_features_and_status_carries_host_info(self):
         self.host.host_info = lambda local: {'wake': {'mac': 'aa:bb:cc:dd:ee:ff', 'ready': True}}
         owner = self.credentials()
-        self.assertEqual(self.host.hello()['features'], ['link-test', 'session-gaze'])
+        self.assertEqual(self.host.hello()['features'], ['display-modes', 'link-test', 'session-gaze'])
         status = self.host.dispatch('/status', owner, '127.0.0.1', local='127.0.0.1')
         self.assertEqual(status['host_info']['wake']['mac'], 'aa:bb:cc:dd:ee:ff')
 

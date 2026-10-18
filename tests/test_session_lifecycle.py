@@ -98,7 +98,8 @@ class SessionLifecycleTests(unittest.TestCase):
         app.launch = Mock(side_effect=lambda *args:events.append('native.launch'))
         app.action({'action':'start','codec':'Hevc','bitrate':120,'resolution':'compatibility','host_ip':' 192.168.1.40 '})
         self.assertEqual(events,['runtime.ensure','network.prepare','host.start','native.launch'])
-        app.session_link.start.assert_called_once_with({'codec':'Hevc','bitrate':120,'microphone':False,'resolution':'compatibility','headset':HEADSET,
+        # 1.0.0.13: on an Index the saved Custom size follows its mode: Native, 'sharp' on the wire.
+        app.session_link.start.assert_called_once_with({'codec':'Hevc','bitrate':120,'microphone':False,'resolution':'sharp','headset':HEADSET,
                                                          'encoder':'speed','network':'unknown','timing_lock':True,
                                                      # RC4 fields; the session link strips them for older hosts.
                                                      'foveation':None,'ten_bit':True,'intra_refresh':False,'pacing_mbps':0,
@@ -121,8 +122,9 @@ class SessionLifecycleTests(unittest.TestCase):
         app.client_runtime.ensure.side_effect=lambda *_,**kw:setattr(app.client_runtime,'headset',beyond)
         app.action({'action':'start'})
         sent=app.session_link.start.call_args.args[0]
-        # RC4.3: Auto starts the Beyond at Standard (2016); High (2560) is an explicit choice.
-        self.assertEqual((sent['codec'],sent['resolution']),('Hevc','sharp'))
+        # 1.0.0.13: Auto follows the Beyond's mode: Native (2560) at 75 Hz. Nothing asks SteamVR for a rate.
+        self.assertEqual((sent['codec'],sent['resolution']),('Hevc','beyond-balanced'))
+        self.assertNotIn('refresh',app.client_runtime.ensure.call_args.kwargs)
         self.assertEqual(sent['headset']['refresh_hz'],75)
         saved=json.loads(app.settings_path.read_text())
         self.assertEqual((saved['codec'],saved['resolution']),('Auto','automatic'))
@@ -161,12 +163,14 @@ class SessionLifecycleTests(unittest.TestCase):
 
     def test_resolution_is_saved_and_headset_metadata_is_session_scoped(self):
         app=self.app();app.launch=Mock()
-        app.action({'action':'start','resolution':'recommended'})
+        app.action({'action':'start','resolution':'index-120'})
         sent=app.session_link.start.call_args.args[0]
         self.assertEqual(sent['headset'],HEADSET)
-        self.assertEqual(sent['resolution'],'recommended')
+        # 1.0.0.13: an Index mode is its Native size on the wire ('sharp', 2016), and its rate is asked of SteamVR.
+        self.assertEqual(sent['resolution'],'sharp')
+        self.assertEqual(app.client_runtime.ensure.call_args.kwargs.get('refresh'),120.0)
         saved=json.loads(app.settings_path.read_text())
-        self.assertEqual(saved['resolution'],'recommended')
+        self.assertEqual(saved['resolution'],'index-120')
         self.assertNotIn('headset',saved)
 
     def test_native_start_failure_rolls_back_remote_and_local(self):

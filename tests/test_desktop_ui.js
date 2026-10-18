@@ -305,13 +305,27 @@ const base = {
   client.state.value.session_link={host:{runtime:{audio:{message:'Headset microphone is off.'}}}};
   await client.run('update()');
   assert.equal(client.elements.get('audio-status').textContent,'Headset microphone is off.');
-  client.state.value.display={detected:true,model:'Bigscreen Beyond 2e',family:'beyond',refresh_hz:75,recommended_width:3560,recommended_height:3560};
+  // 1.0.0.13: a Beyond offers no choice: its one entry is the mode it is in, and the note says how that is switched.
+  const beyondOnly=[{id:'automatic',label:'Set by the headset · 75 Hz - 2560 x 2560 per eye',available:true,width:2560,height:2560,encoded_width:5120,encoded_height:2560,codec:'Hevc'}];
+  client.state.value.display={detected:true,model:'Bigscreen Beyond 2e',family:'beyond',refresh_hz:75,recommended_width:3560,recommended_height:3560,
+    selected:'automatic',resolution_fixed:true,resolution_options:{Auto:beyondOnly,H264:beyondOnly,Hevc:beyondOnly,AV1:beyondOnly},
+    refresh_text:"The stream follows the Beyond's display mode: 2560 x 2560 per eye at 75 Hz, or 1920 x 1920 at 90 Hz, which the headset upscales. VROSTBridge does not switch the mode: set it with Bigscreen's Beyond Utility on a Windows PC."};
   client.state.value.running=false;
   await client.run('update()');
   assert(client.elements.get('display-identity').textContent.includes('75 Hz'));
   assert(client.elements.get('display-identity').textContent.includes('checked again on Start'));
   assert(client.elements.get('display-render').textContent.includes('3560 × 3560'));
-  assert(client.elements.get('display-mode-note').textContent.includes('does not change the headset’s panel or refresh rate'));
+  assert(client.elements.get('display-mode-note').textContent.includes('2560 × 2560 per eye at 75 Hz'));
+  assert(client.elements.get('display-mode-note').textContent.includes("set it with Bigscreen's Beyond Utility on a Windows PC"));
+  assert.equal(client.elements.get('resolution').disabled,true,'Nothing to choose on a Beyond');
+  assert.equal(client.elements.get('resolution').children.length,1);
+  assert.equal(client.elements.get('resolution').children[0].textContent,'Set by the headset · 75 Hz · 2560 × 2560 per eye');
+  // An Index rate the headset did not take is said under it (refresh_note).
+  client.state.value.display={detected:true,model:'Index',family:'index',refresh_hz:120,recommended_width:2016,recommended_height:2240,resolution_fixed:false,
+    refresh_text:'A rate chosen here is set in SteamVR on this PC for the session.',refresh_note:'SteamVR runs the Index at 120 Hz, not the 144 Hz chosen.'};
+  await client.run('update()');
+  assert(client.elements.get('display-mode-note').textContent.includes('SteamVR runs the Index at 120 Hz, not the 144 Hz chosen.'));
+  assert.equal(client.elements.get('resolution').disabled,false);
   assert(html.includes('resolution_options'),'Headset-aware options come from the shared backend catalog');
   client.state.value.session_link={active:false,network:{interface:'wlan-usb',source_ip:'192.168.77.8',host_ip:'192.168.77.10',adapters:[{interface:'wlan-usb',address:'192.168.77.8'},{interface:'wlan-internal',address:'192.168.77.233'}]}};
   await client.run('update()');
@@ -348,12 +362,19 @@ const base = {
   quality.elements.get('codec').value='Hevc';quality.elements.get('codec').events.change();
   assert.equal(quality.elements.get('resolution').value,'sharp','Codec change must not silently replace saved resolution');
   assert(quality.elements.get('display-target').textContent.includes('HEVC'));
-  quality.state.value.display.resolution_options.Auto=[{id:'automatic',label:'Auto - 2560 x 2560 per eye',available:true},{id:'beyond-balanced',label:'High - 2560 x 2560 per eye',available:true,width:2560,height:2560,encoded_width:5120,encoded_height:2560,codec:'Hevc'}];
-  await quality.run('update()');
-  quality.elements.get('codec').value='H264';quality.elements.get('resolution').value='beyond-balanced';quality.elements.get('resolution').events.change();
-  assert.equal(quality.elements.get('codec').value,'Auto','Explicit HEVC-size selection chooses a compatible codec');
-  assert.equal(quality.elements.get('codec-h264').disabled,true);
-  assert(quality.elements.get('display-target').textContent.includes('5120 × 2560'));
+  // 1.0.0.13: no choice needs HEVC any more, so H.264 stays selectable whatever is chosen.
+  quality.elements.get('codec').value='H264';quality.elements.get('codec').events.change();
+  quality.elements.get('resolution').value='sharp';quality.elements.get('resolution').events.change();
+  assert.equal(quality.elements.get('codec').value,'H264');
+  assert.notEqual(quality.elements.get('codec-h264').disabled,true);
+  assert(quality.elements.get('display-target').textContent.includes('4032 × 2240'));
+  // 1.0.0.13: a saved size this headset no longer offers shows as the choice it follows (display.selected), not as a stray entry.
+  const modes=setup({...structuredClone(base),role:'client',running:false,state:'stopped',settings:{codec:'Auto',resolution:'sharp',bitrate:80},display:{detected:true,model:'Index',family:'index',refresh_hz:120,recommended_width:2016,recommended_height:2240,selected:'automatic',resolution_options:{
+    Auto:[{id:'automatic',label:'Auto · as SteamVR is set - 2016 x 2240 per eye',available:true,width:2016,height:2240,encoded_width:4032,encoded_height:2240,codec:'H264'},{id:'index-144',label:'Native · 144 Hz (experimental) - 2016 x 2240 per eye',available:true,width:2016,height:2240,encoded_width:4032,encoded_height:2240,codec:'H264',refresh_hz:144,experimental:true}]}}});
+  await modes.run('update()');
+  assert.equal(modes.elements.get('resolution').value,'automatic');
+  assert.equal(modes.elements.get('resolution').children.length,2,'No saved-choice entry for a size the headset no longer offers');
+  assert.equal(modes.elements.get('resolution').children.at(-1).textContent,'Native · 144 Hz (experimental) · 2016 × 2240 per eye');
   quality.state.value.running=true;quality.state.value.inputs={left:{connected:true,tracked:false},right:{connected:false,tracked:false}};
   await quality.run('update()');
   assert.equal(quality.elements.get('finger-details').children[0].children[0].textContent,'Left · Tracking lost');
@@ -502,6 +523,20 @@ const base = {
   rc42.state.value.settings.resolution='sharp';
   await rc42.run('update()');
   assert.equal(rc42.elements.get('use-standard').classList.contains('hidden'),true,'Already on Standard');
+  // 1.0.0.13: an Index's lighter choice is its next lower rate, named by it.
+  rc42.state.value.settings.resolution='index-120';
+  rc42.state.value.graphics={...rc42.state.value.graphics,smaller:{id:'index-90',label:'90 Hz',width:2016,height:2240,refresh_hz:90}};
+  await rc42.run('update()');
+  assert.equal(rc42.elements.get('use-standard').textContent,'Use 90 Hz');
+  await rc42.run("act('use-standard')");
+  assert.equal(rc42.elements.get('resolution').value,'index-90');
+  assert.equal(rc42.elements.get('notice').textContent,'Refresh rate set to 90 Hz (2016 per eye). It applies at your next Start.');
+  // A Beyond has none: the advice says how its mode is switched, without a button.
+  rc42.state.value.graphics={state:'limited',message:"This PC's graphics can't keep up with the stream. The Beyond's 90 Hz mode is lighter for this PC.",actions:['repair-reprojection'],short:'PC graphics at their limit',smaller:null};
+  await rc42.run('update()');
+  assert.equal(rc42.elements.get('use-standard').classList.contains('hidden'),true,'Nothing to choose on a Beyond');
+  assert(rc42.elements.get('graphics-message').textContent.includes("Beyond's 90 Hz mode"));
+  rc42.state.value.settings.resolution='sharp';
   // RC4.3: sharpening applies at once; the eye-tracked tuning shows only with eye tracking.
   rc42.elements.get('sharpening').value='high';
   await rc42.run("act('set-sharpening',{level:'high'})");

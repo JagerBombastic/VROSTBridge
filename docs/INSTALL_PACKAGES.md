@@ -1,4 +1,4 @@
-# Installable packages — VROSTBridge 1.0.0.12
+# Installable packages — VROSTBridge 1.0.0.13
 
 Documentation revision: 2026-10-09. See [the full specification](PROJECT_SPEC.md) and [quick start](QUICK_START.md).
 
@@ -6,16 +6,16 @@ Current behaviour and validation limits are in
 [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md). The client now starts SteamVR
 automatically; a manual local run is only the initial hardware/room-setup check.
 
-1.0.0.12 has three packages, one for each kind of PC, and all carry version 1.0.0.12:
+1.0.0.13 has three packages, one for each kind of PC, and all carry version 1.0.0.13:
 
-- **VROSTBridge-Host-Setup-1.0.0.12.exe** for the rendering PC (Windows);
-- **VROSTBridge-Bazzite-Installer-1.0.0.12.zip** for a headset PC with Bazzite;
-- **VROSTBridge-Client-Setup-1.0.0.12.exe** for a headset PC with Windows 10 or 11 (64-bit), new in 1.0.0.7.
+- **VROSTBridge-Host-Setup-1.0.0.13.exe** for the rendering PC (Windows);
+- **VROSTBridge-Bazzite-Installer-1.0.0.13.zip** for a headset PC with Bazzite;
+- **VROSTBridge-Client-Setup-1.0.0.13.exe** for a headset PC with Windows 10 or 11 (64-bit), new in 1.0.0.7.
 
-`VROSTBridge-Host-Portable-1.0.0.12.zip` and `VROSTBridge-Client-Portable-1.0.0.12.zip` hold the same
+`VROSTBridge-Host-Portable-1.0.0.13.zip` and `VROSTBridge-Client-Portable-1.0.0.13.zip` hold the same
 files as the two Windows setups, without an installer. `SHA256SUMS.txt` lists each file's SHA-256.
 
-Install host 1.0.0.12 and a 1.0.0.12 client together, so both PCs carry one version (1.0.0.12 changes nothing on the network, so either still works with the other at 1.0.0.11). On the rendering PC and on Bazzite an earlier installation must be 1.0.0.1 or later: 1.0.0.12 installs over 1.0.0.11, 1.0.0.10, 1.0.0.9, 1.0.0.8, 1.0.0.7, 1.0.0.6, 1.0.0.5, 1.0.0.4, 1.0.0.3, 1.0.0.2 and 1.0.0.1 and keeps their state (see the [release notes](RELEASE_1.0.0.12.md)). The Windows client installs over 1.0.0.7 to 1.0.0.11, or fresh. Install over the previous version; do not uninstall it first: 1.0.0.2's and earlier uninstallers delete the Baballonia download, which would then be downloaded again. Over a test build it installs fresh: remove a test build (1.0.0 or earlier) with its own uninstaller first, as the [release notes](history/RELEASE_1.0.0.1.md#before-you-install-remove-earlier-test-builds) describe. Later versions install over 1.0.0.1. This release retains
+Install host 1.0.0.13 and a 1.0.0.13 client together, so both PCs carry one version (either still works with the other at 1.0.0.12, a Beyond in its 90 Hz mode then streaming 2016 per eye, as 1.0.0.12 did). On the rendering PC and on Bazzite an earlier installation must be 1.0.0.1 or later: 1.0.0.13 installs over 1.0.0.12, 1.0.0.11, 1.0.0.10, 1.0.0.9, 1.0.0.8, 1.0.0.7, 1.0.0.6, 1.0.0.5, 1.0.0.4, 1.0.0.3, 1.0.0.2 and 1.0.0.1 and keeps their state (see the [release notes](RELEASE_1.0.0.13.md)). The Windows client installs over 1.0.0.7 to 1.0.0.12, or fresh. Install over the previous version; do not uninstall it first: 1.0.0.2's and earlier uninstallers delete the Baballonia download, which would then be downloaded again. Over a test build it installs fresh: remove a test build (1.0.0 or earlier) with its own uninstaller first, as the [release notes](history/RELEASE_1.0.0.1.md#before-you-install-remove-earlier-test-builds) describe. Later versions install over 1.0.0.1. This release retains
 client-led startup and private-LAN connection through the VROSTBridge pages. Normal
 bridge operation does not require opening or using the separate ALVR Dashboard.
 Stop the existing sessions and choose **Quit** on both pages before upgrading;
@@ -34,7 +34,7 @@ installer rather than deleting its folders manually.
 ## Windows rendering host
 
 1. Install Steam and SteamVR on the rendering PC.
-2. Run **VROSTBridge-Host-Setup-1.0.0.12.exe** and follow the installer. It installs
+2. Run **VROSTBridge-Host-Setup-1.0.0.13.exe** and follow the installer. It installs
    for the current user and creates a **VROSTBridge Host** shortcut in the Start menu's
    *VROSTBridge* folder.
 3. If the Microsoft x64 Visual C++ runtime is missing, select the installer's
@@ -115,7 +115,7 @@ interoperability. See the release evidence for the exact validation boundary.
 
 ## Bazzite headset client
 
-1. In desktop mode, download **VROSTBridge-Bazzite-Installer-1.0.0.12.zip**.
+1. In desktop mode, download **VROSTBridge-Bazzite-Installer-1.0.0.13.zip**.
 2. Extract the **whole ZIP** into a normal folder.
 3. Open **Install VROSTBridge.desktop**. Allow that launcher to execute if KDE
    asks. Keep its adjacent `payload` folder in place during installation.
@@ -192,7 +192,7 @@ installer, companion and page under Wine. Expect first-run problems, and send re
 
 1. Install Steam and SteamVR on the headset PC. Connect the headset, run SteamVR once,
    complete its room setup and check both controllers, then close SteamVR.
-2. Run **VROSTBridge-Client-Setup-1.0.0.12.exe**. It needs 64-bit Windows 10 or 11 (it
+2. Run **VROSTBridge-Client-Setup-1.0.0.13.exe**. It needs 64-bit Windows 10 or 11 (it
    refuses older or 32-bit Windows), installs for the current user and needs no
    administrator rights. It is not code-signed, so SmartScreen may say *Windows
    protected your PC*: choose **More info**, then **Run anyway**. The optional
@@ -201,7 +201,7 @@ installer, companion and page under Wine. Expect first-run problems, and send re
    and waits in the system tray. Select **Allow home-network connection** and accept
    the administrator prompt once, then **Start session**.
 
-The installer copies the program to `%LOCALAPPDATA%\VROSTBridge\Client\1.0.0.12` (about
+The installer copies the program to `%LOCALAPPDATA%\VROSTBridge\Client\1.0.0.13` (about
 63 MB). It adds **VROSTBridge Client**, *Client startup logs*, *Client open-source
 credits* and *Uninstall VROSTBridge Client* to the Start menu's *VROSTBridge* folder,
 and *VROSTBridge Client* to *Settings → Apps*. The package carries its own Python, the
@@ -227,7 +227,7 @@ I sign in* under *This PC* on the page) writes this user's sign-in entry
 browser and no SteamVR. An update keeps the choice as it was, and never replaces a
 sign-in entry of that name that another program wrote.
 
-For a silent installation run `VROSTBridge-Client-Setup-1.0.0.12.exe /S`, and add
+For a silent installation run `VROSTBridge-Client-Setup-1.0.0.13.exe /S`, and add
 `/STARTUP` to turn the sign-in start on. `Uninstall.exe /S`, in the program folder,
 uninstalls without questions and keeps the downloaded Baballonia; add
 `/REMOVEEYETRACKING` to remove it too. Windows still asks for administrator permission
@@ -256,7 +256,7 @@ entries, its *Settings → Apps* entry and the sign-in entry if it is the client
 Settings, pairing and logs in `%LOCALAPPDATA%\VROSTBridge`, Baballonia's settings and
 calibration in `%APPDATA%\ProjectBabble`, and a Baballonia you installed yourself stay.
 
-The portable ZIP, `VROSTBridge-Client-Portable-1.0.0.12.zip`, holds the same files in a
+The portable ZIP, `VROSTBridge-Client-Portable-1.0.0.13.zip`, holds the same files in a
 `VROSTBridge-Client` folder: extract it whole and open `VROSTBridge Client.exe`. It has
 no Start menu entries and no uninstaller. To remove it, turn off its sign-in start on
 the page, quit it and delete the folder; its firewall rules stay until you remove the

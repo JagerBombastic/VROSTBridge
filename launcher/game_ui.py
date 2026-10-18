@@ -28,7 +28,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 from launcher.game_mode import in_game_mode
-from launcher.headset import CLIENT_CODECS, FOVEATION_CHOICES, FOVEATION_LABELS, resolution_options
+from launcher.headset import CLIENT_CODECS, FOVEATION_CHOICES, FOVEATION_LABELS, resolution_options, selected_resolution
 from launcher.headset import (FOVEATION_EDGES, FOVEATION_EDGE_LABELS, FOVEATION_REGIONS, FOVEATION_REGION_LABELS,
                               SHARPENING_LABELS, SHARPENING_LEVELS)
 from launcher.version import CLIENT_VERSION
@@ -452,6 +452,13 @@ class View:
         return (self.state.get('display', {}).get('resolution_options', {}).get(settings.get('codec', 'Auto'))
                 or resolution_options(settings, self.state.get('client_runtime', {}).get('headset')))
 
+    def stream_choice(self):
+        """1.0.0.13: the stream choice shown as chosen: the saved one, or Auto for a size this headset no longer
+        offers (it follows the headset's mode; display.selected)."""
+        settings = self.state.get('settings', {})
+        return ((self.state.get('display') or {}).get('selected')
+                or selected_resolution(settings, (self.state.get('client_runtime') or {}).get('headset')))
+
     def save_report(self):
         from launcher.app import state_directory
         report = self.report_fn()
@@ -532,17 +539,15 @@ class View:
             self.action('client-preferences', ten_bit=not settings.get('ten_bit', True))
         elif name == 'codec':
             current = settings.get('codec', 'Auto')
-            values = ('Auto', 'Hevc', 'AV1') if settings.get('resolution', '').startswith('beyond-') else CLIENT_CODECS
+            values = CLIENT_CODECS
             self.action('client-preferences', codec=values[(values.index(current) + step) % len(values)]
                         if current in values else 'Auto')
         elif name == 'resolution':
-            values = [option['id'] for option in self.stream_options() if option.get('available', True)]
-            current = settings.get('resolution', 'automatic')
-            following = values[(values.index(current) + step) % len(values)] if current in values else 'automatic'
-            changes = {'resolution': following}
-            if following.startswith('beyond-') and settings.get('codec') == 'H264':
-                changes['codec'] = 'Auto'
-            self.action('client-preferences', **changes)
+            if not (self.state.get('display') or {}).get('resolution_fixed'):  # 1.0.0.13: a Beyond's has no choice
+                values = [option['id'] for option in self.stream_options() if option.get('available', True)]
+                current = self.stream_choice()
+                following = values[(values.index(current) + step) % len(values)] if current in values else 'automatic'
+                self.action('client-preferences', resolution=following)
         elif name == 'encoder':
             current = settings.get('encoder', 'speed')
             self.action('client-preferences', encoder=ENCODERS[(ENCODERS.index(current) + step) % len(ENCODERS)]
@@ -989,7 +994,7 @@ class View:
         self.button('host-menu', 'Open host menu', 652, 336, 580, 104, enabled=bool(running and not busy),
                     subtitle='The host\'s SteamVR dashboard, in the headset')
         options = self.stream_options()
-        chosen = next((o for o in options if o.get('id') == settings.get('resolution', 'automatic')), None)
+        chosen = next((o for o in options if o.get('id') == self.stream_choice()), None)
         stream = (chosen or {}).get('label', 'Auto').replace(' - ', ' · ').replace(' x ', ' × ')
         self.button('stream', 'Stream & headset', 48, 462, 380, 92, subtitle=stream)
         self.button('motion', 'Motion & timing', 450, 462, 380, 92,
@@ -1065,7 +1070,7 @@ class View:
         settings, display = s.get('settings', {}), s.get('display', {})
         busy, running = s.get('busy') or self.pending, s.get('running')
         locked = bool(busy or running)
-        chosen = next((o for o in self.stream_options() if o.get('id') == settings.get('resolution', 'automatic')),
+        chosen = next((o for o in self.stream_options() if o.get('id') == self.stream_choice()),
                       {'label': 'Auto - detect on Start'})
         fov = (s.get('system') or {}).get('foveation') or {}
         choice = FOVEATION_LABELS.get(settings.get('foveation', 'auto'), 'Auto')
@@ -1083,9 +1088,10 @@ class View:
             rows.append(('eyes', 'Eye-tracking view', 'live', True,
                          'Where each eye looks and the sharp region that follows it. Live only: never saved.'))
         smaller = graphics.get('smaller') or {}
-        if ('use-standard' in (graphics.get('actions') or []) and settings.get('resolution') != 'sharp'
+        if ('use-standard' in (graphics.get('actions') or []) and settings.get('resolution') != smaller.get('id', 'sharp')
                 and smaller.get('label') and smaller.get('width')):
-            rows.append(('use-standard', 'Use ' + str(smaller['label']) + ' · ' + str(smaller['width']) + ' per eye',
+            rows.append(('use-standard', 'Use ' + str(smaller['label']) + ('' if smaller.get('refresh_hz') else
+                                                                            ' · ' + str(smaller['width']) + ' per eye'),
                          'steady frame rate', not busy, graphics.get('message') or ''))
         # RC4.4: Eye-tracked shows its settings whenever it is chosen, and says what is missing while
         # the region does not follow the eyes (RC4.3 hid them until it did, which looked broken).
@@ -1093,9 +1099,11 @@ class View:
         eye_note = EYE_NOTES.get(fov.get('eye_state', '')) if eye_choice else None
         eye_message = (s.get('eye_tracking') or {}).get('message') or ''
         rows += [
-            ('resolution', 'Stream resolution', chosen['label'].replace(' - ', ' · ').replace(' x ', ' × '), not locked,
-             'The picture the host sends per eye. More pixels need more time on both PCs; Standard keeps a steady '
-             'frame rate on integrated graphics.'),
+            ('resolution', 'Stream resolution', chosen['label'].replace(' - ', ' · ').replace(' x ', ' × '),
+             not locked and not display.get('resolution_fixed'),
+             ' '.join(part for part in ('The picture the host sends per eye. More pixels need more time on both PCs.',
+                                        str(display.get('refresh_text') or ''), str(display.get('refresh_note') or ''))
+                      if part).replace(' x ', ' × ')),
             ('codec', 'Video codec', CODEC_LABELS.get(settings.get('codec', 'Auto'), 'Auto'), not locked,
              'Auto picks HEVC for the Beyond and H.264 for the Index. AV1 needs AV1 on both PCs.'),
             ('quality', 'Bitrate', bitrate, not locked,
