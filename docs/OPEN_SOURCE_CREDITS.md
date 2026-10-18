@@ -1,6 +1,6 @@
 # VROSTBridge — open-source credits
 
-Reviewed for VROSTBridge 1.0.0.7 (the host, the Bazzite client and the Windows client), documentation revision 2026-10-08. VROSTBridge's own code is MIT-licensed (`LICENSE`, copyright JagerBombastic); [THIRD_PARTY.md](../THIRD_PARTY.md) is the short list of what each package ships, and `NOTICE` the key attributions. Paths under `dist/host/licenses/` refer to the packaged/built Windows host, which is separate from this source archive. Since RC4 the Windows host contains no FFmpeg (see below); the Windows client of 1.0.0.7 carries its own LGPL FFmpeg build, with its source.
+Reviewed for VROSTBridge 1.0.0.14 (the host, the Bazzite client and the Windows client), documentation revision 2026-10-18. VROSTBridge's own code is MIT-licensed (`LICENSE`, copyright JagerBombastic); [THIRD_PARTY.md](../THIRD_PARTY.md) is the short list of what each package ships, and `NOTICE` the key attributions. Paths under `dist/host/licenses/` refer to the packaged/built Windows host, which is separate from this source archive. Since RC4 the Windows host contains no FFmpeg (see below); the Windows client carries its own LGPL FFmpeg build, with its source.
 
 VROSTBridge builds on the work of the following projects and their
 contributors. The original licence texts and copyright notices remain the
@@ -267,7 +267,7 @@ The rebuilt native components' Rust dependency notices are indexed in
 actual Linux-client, Windows-host and (from 1.0.0.7) Windows-client normal/build graphs; build-time
 entries are not represented as necessarily linked runtime components. Four earlier entries
 remain for traceability. Each package records its source, version, licence and
-notice-file hashes. All 769 notice files were verified for 1.0.0.7. For hexf-parse 0.2.1, whose
+notice-file hashes. All 769 notice files were verified for 1.0.0.7 and again for each release since, 1.0.0.14 included. For hexf-parse 0.2.1, whose
 crate and exact repository commit omit a full licence file, the declared CC0-1.0
 text is supplied from SPDX License List Data v3.27.0 with that provenance stated.
 See `docs/evidence/rust-notices-0.2.14.json` for graph and coverage details.

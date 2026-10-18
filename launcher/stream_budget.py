@@ -53,8 +53,12 @@ import statistics
 
 # Bits per pixel per frame the automatic bitrate stops at. HEVC at 0.22 gave the 1.0.0.5 test's clean
 # picture (2432 x 1216 at 75 Hz: 49 Mbit/s); H.264 needs about 45 % more for the same picture and AV1 a
-# little less than HEVC.
-BITS_PER_PIXEL = {'H264': 0.32, 'Hevc': 0.22, 'AV1': 0.18}
+# little less than HEVC. 1.0.0.14: 0.30 for HEVC (0.42 H.264, 0.25 AV1). The first external testers found the picture
+# softer than a headset on its own PC, and snow, foliage and chain-link fences are where a thin bitrate shows first;
+# 0.22 was tuned to a handheld's decoder, which the governor now protects on its own (decoding behind, frames arriving
+# unevenly, frames lost all step the bitrate down and stay down), so the ceiling need not. 2816 x 1408 at 75 Hz in
+# HEVC: 65 -> 89 Mbit/s.
+BITS_PER_PIXEL = {'H264': 0.42, 'Hevc': 0.30, 'AV1': 0.25}
 MIN_MBPS = 20
 MAX_MBPS = 300
 FLOOR_SHARE = 0.35       # the governor never goes below this share of the ceiling (or MIN_MBPS)

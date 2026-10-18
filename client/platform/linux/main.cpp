@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
 #endif
   bool lateLatch = true;
   bool prediction = true;
+  bool acceleration = true;  // 1.0.0.14: the acceleration folded into the poses the host extrapolates
   bool allowFoveation = true, allowTenBit = true, allowAv1 = true, gradualRecovery = false;
   bool reaim = true;
   int sharpening = 0; // RC4.3: percent of the unsharp amount on luma in the fused pass
@@ -110,6 +111,8 @@ int main(int argc, char **argv) {
       lateLatch = false;
     else if (arg == "--no-prediction")
       prediction = false;
+    else if (arg == "--no-acceleration")
+      acceleration = false;
     else if (arg == "--no-foveation")
       allowFoveation = false;
     else if (arg == "--no-10bit")
@@ -151,6 +154,7 @@ int main(int argc, char **argv) {
                    "--gaze-udp PORT  Receive the companion's gaze samples on 127.0.0.1:PORT\n"
                    "--no-late-frame-catchup  Disable bounded late-frame selection for comparison\n"
                    "--no-prediction  Timestamp poses at sampling time; with an RC4.1 host, also turns host prediction off\n"
+                   "--no-acceleration  Send measured velocities only: the host predicts hands at constant speed (1.0.0.14 folds in acceleration)\n"
                    "--no-foveation / --no-10bit / --no-av1  Do not offer these stream features to the host\n"
                    "--gradual-recovery  The host uses intra refresh: keep decoding after an isolated loss\n"
                    "--no-reaim  Submit frames as rendered instead of re-aiming them to the displayed head pose\n"
@@ -166,6 +170,7 @@ int main(int argc, char **argv) {
                    "Explicit CPU compatibility mode (not a performance path)\n"
                    "--no-late-frame-catchup  Disable bounded late-frame selection for comparison\n"
                    "--no-prediction  Timestamp poses at sampling time; with an RC4.1 host, also turns host prediction off\n"
+                   "--no-acceleration  Send measured velocities only: the host predicts hands at constant speed (1.0.0.14 folds in acceleration)\n"
                    "--no-foveation / --no-10bit / --no-av1  Do not offer these stream features to the host\n"
                    "--gradual-recovery  The host uses intra refresh: keep decoding after an isolated loss\n"
                    "--no-reaim  Submit frames as rendered instead of re-aiming them to the displayed head pose\n"
@@ -298,6 +303,7 @@ int main(int argc, char **argv) {
     vrost::StatusOverlay statusOverlay;
     statusOverlay.open(runtime.overlay, dir / "assets");
     runtime.setPrediction(prediction);
+    runtime.acceleration(acceleration);
     runtime.startTracking(transport);
     vrost_resume(transport);
     uint32_t width = 0, height = 0;
@@ -341,7 +347,7 @@ int main(int argc, char **argv) {
     bool reconnecting = false;
     VrostStreamCounters previousCounters{};
     VrostAudioStats previousAudio{};
-    uint64_t previousTenBit = 0, previousFoveated = 0, previousGaze = 0;
+    uint64_t previousTenBit = 0, previousFoveated = 0, previousGaze = 0, previousGazePredicted = 0;
     // Mid-session decoder changes and reconnect timing.
     std::vector<uint8_t> activeConfig;
     uint32_t activeCodec = UINT32_MAX;
@@ -543,6 +549,7 @@ int main(int argc, char **argv) {
                  <<",\"stereo_width\":"<<width*2<<",\"codec\":\""
                  <<(event.codec==0?"H264":event.codec==1?"Hevc":"AV1")<<"\",\"refresh_hz\":"<<runtime.refresh
                  <<",\"motion_prediction\":"<<(runtime.prediction()?"true":"false")
+                 <<",\"acceleration\":"<<(runtime.prediction()&&runtime.acceleration()?"true":"false")
                  <<",\"foveated\":"<<(foveation.enabled?"true":"false")
                  <<",\"encoded_width\":"<<decoder->decodedWidth()/2<<",\"encoded_height\":"<<decoder->decodedHeight()
                  <<",\"shown_width\":"<<decoder->shownWidth()<<",\"shown_height\":"<<decoder->shownHeight()
@@ -856,8 +863,15 @@ int main(int argc, char **argv) {
                  << " ten_bit_frames=" << delta(tenBit, previousTenBit)
                  << " foveated_frames=" << delta(foveatedNow, previousFoveated)
                  << " gaze_centred_frames=" << delta(gazeNow, previousGaze)
+                 // 1.0.0.14: gaze samples sent turned against the head's motion, and the largest turn (degrees).
+                 << " gaze_predicted=" << delta(runtime.gazePredicted.load(), previousGazePredicted)
+                 << " gaze_turn_max_deg=" << runtime.gazeTurnMaxMrad.exchange(0) * 0.0572958  // the line is already fixed, 3 decimals
+                 // 1.0.0.14: hand samples sent with their acceleration folded in, and the largest acceleration seen (m/s^2).
+                 << " acceleration_samples=" << runtime.accelerationSamples.exchange(0)
+                 << " acceleration_max=" << runtime.accelerationMaxMm.exchange(0) / 1000.0
                  << " status_overlay=" << statusOverlay.available() << " status_card=" << statusOverlay.styled();
           previousCounters=counters; previousTenBit=tenBit; previousFoveated=foveatedNow; previousGaze=gazeNow;
+          previousGazePredicted=runtime.gazePredicted.load();
           // Game-audio playback (1.0.0.9): this window's events and the jitter buffer now.
           VrostAudioStats audio{};
           vrost_audio_stats(transport, &audio);

@@ -76,7 +76,7 @@ Bridge. That is about as loose as an acronym gets, and we're keeping it.
 
 | | Status |
 | --- | --- |
-| **Bazzite headset PC, Desktop Mode** | Used on the maintainer's setup with a Valve Index and a Bigscreen Beyond 2e: picture, tracking, Index controllers, game audio, eye-tracked foveation and the headset microphone, and 1.0.0.11 at Native (2560 per eye) with eye-tracked foveation. 1.0.0.12's automatic bitrate and add-on warning worked in its first session. 1.0.0.13's changes (the stream size chosen before a session from the headset's modes, more parity on a wired link, a quicker stop while SteamVR starts, the adapters' drop counters in the reports) have passed their tests in software and await their first session. |
+| **Bazzite headset PC, Desktop Mode** | Used on the maintainer's setup with a Valve Index and a Bigscreen Beyond 2e: picture, tracking, Index controllers and the menu button, game audio, the headset microphone, eye-tracked foveation at the Beyond's full 2560 per eye, and the automatic bitrate. 1.0.0.14 has run long sessions of Beat Saber, Pistol Whip and Half-Life: Alyx over Ethernet, with the video kept on the cable and the hands predicted closer to where they go. |
 | **Steam Game Mode on Bazzite** | Included, but starting a session from Game Mode hasn't worked yet on the tested setup. Use Desktop Mode for now. |
 | **Windows headset PC** | Built and tested in software only (its installer, page and frame path run in the tests under Wine); it has never met a real Windows headset PC. Brave volunteers wanted. |
 | **Rendering PC** | Tested with an AMD Radeon (its AMF encoder). NVIDIA and Intel encoders should work through ALVR but haven't been tried. |
@@ -141,7 +141,10 @@ check your downloads.
    client setup (**More info → Run anyway** again); it installs for your account only and needs no administrator
    rights.
 4. **Open VROSTBridge** on both PCs and allow the home-network firewall step if asked: on the headset PC that is
-   **Allow home-network connection** on its page (one administrator prompt on Windows). They find each other.
+   **Allow home-network connection** on its page (one administrator prompt on Windows). They find each other and
+   pair. Windows must class the home network as Private for that first pairing only; afterwards any network type works.
+   If a Bazzite headset PC is on the network by cable and Wi-Fi at once, its page offers **Fix this PC's network
+   settings** (once): that keeps the video on the cable.
 5. On the headset PC choose **Use recommended settings**, then press **Start session**. The first time, it tests your
    network for about 15 seconds. The rendering PC's SteamVR appears in your headset.
 6. Play. **Stop session** on the headset PC ends it on both. On Windows the client's tray icon starts and stops
@@ -172,7 +175,8 @@ unreliable. Follow your headset maker's safety guidance.
   re-aimed to where your head is now, and about 40 milliseconds of travel, so fast games feel a little further away
   than on a cable.
 - **Blurry or stuttery?** Choose **Use recommended settings**, try a cable for the headset PC, check the *Network*
-  card, keep a handheld on its charger, or pick a smaller size. The [troubleshooting](docs/TROUBLESHOOTING.md) page has
+  card (it says when the video arrives over Wi-Fi instead of the cable), keep a handheld on its charger, or pick a
+  smaller size. The [troubleshooting](docs/TROUBLESHOOTING.md) page has
   the rest.
 - **Something broke?** On the client page choose **Send report to host**, save both reports on the host page, and open
   an issue with them. Reports contain local network addresses and hardware names, so look before posting publicly.

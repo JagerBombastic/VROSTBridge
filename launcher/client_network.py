@@ -9,7 +9,7 @@ Windows: launcher/Client-Firewall.ps1 (modelled on host/Host-Setup.ps1
 slow, so the result is cached and refreshed every minute. allow() runs its
 Firewall action, which asks for administrator permission once (UAC) and
 creates inbound Allow rules named VROSTBridge.Client.* (never the host's
-VROSTBridge.* names), Profile Private, RemoteAddress LocalSubnet, each limited
+VROSTBridge.* names), any network type (1.0.0.14; Private only before), RemoteAddress LocalSubnet, each limited
 to its program and ports and carrying an ownership marker in its description.
 remove_windows_rules() is the uninstaller's RemoveFirewall action.
 """
@@ -253,8 +253,6 @@ class ClientNetwork:
         blocking = [name[:80] for name in (value.get('blocking') if isinstance(value.get('blocking'), list) else [])
                     if isinstance(name, str) and name][:6]
         targets = self._windows_targets(value.get('profiles'))
-        public = [target['interface'] for target in targets if target['category'] not in ('Private', '')]
-        private = [target['interface'] for target in targets if target['category'] == 'Private']
         common = dict(targets=targets, rules=rules, missing=missing, blocking=blocking)
         if foreign:
             return self._set_windows('error', 'A Windows Firewall rule named ' + foreign[0] + ' already exists and was not '
@@ -264,9 +262,6 @@ class ClientNetwork:
             return self._set_windows('inactive', 'Windows Firewall is off for private networks. Other firewall software '
                                      'has not been checked.', **common)
         note = ''
-        if public:
-            note = (' Windows treats the network on ' + ', '.join(public[:3]) + ' as Public, where these rules do not '
-                    'apply: set it to Private in Settings > Network & internet.')
         if blocking:
             note += (' Windows Firewall also has rules that block this program (' + ', '.join(blocking[:3]) + '), '
                      'usually left by a declined firewall prompt; block rules win over allow rules, so remove them in '
@@ -274,11 +269,11 @@ class ClientNetwork:
         if missing:
             return self._set_windows('needs-permission', 'Allow your home network to reach this PC\'s VROSTBridge client. '
                                      'Windows asks for administrator permission once; the rules admit only the local '
-                                     'subnet of private networks.' + note, can_allow=True, **common)
-        if blocking or (public and not private):
+                                     'subnet.' + note, can_allow=True, **common)
+        if blocking:
             return self._set_windows('error', 'The home-network firewall rules are in place, but connections can still '
                                      'be blocked.' + note, **common)
-        return self._set_windows('ready', 'Home-network firewall rules are in place (private networks, local subnet '
+        return self._set_windows('ready', 'Home-network firewall rules are in place (local subnet '
                                  'only). Other firewall software has not been checked.' + note, **common)
 
     def _allow_windows(self):

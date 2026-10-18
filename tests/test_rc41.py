@@ -738,7 +738,7 @@ class AppTests(unittest.TestCase):
         app.setup_host = Mock()
         app.session_features = lambda: ['init-config', 'prediction-switch']
         app.session_link.lease_details.return_value = {'client_hostname': HOSTNAME, 'ip': '192.168.1.8', 'started': False}
-        with patch('launcher.app.require_private_home_network'), \
+        with patch('launcher.app.require_home_network'), \
                 patch('launcher.app.host_loader_check', return_value={'ok': True}):
             app.start_host_session({'codec': 'Hevc', 'bitrate': 80, 'headset': HEADSET, 'host_prediction': False})
         session = json.loads((app.host / 'session.json').read_text())

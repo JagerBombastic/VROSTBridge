@@ -98,10 +98,13 @@ class HeadsetTests(unittest.TestCase):
         from launcher.game_ui import View
         view=View(ROOT,lambda:{},Mock(),lambda:{},threading.Event())
         other=dict(HEADSET,model='Generic HMD',manufacturer='Example')
-        view.action=Mock();view.state={'settings':{'resolution':'compatibility'},'client_runtime':{'headset':other}}
+        view.action=Mock();view.state={'settings':{'resolution':'compatibility','codec':'H264'},'client_runtime':{'headset':other}}
         view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='sharp')
         view.state['settings']['resolution']='sharp'
         view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='recommended')
+        # 1.0.0.14: Auto codec is HEVC, whose list puts High before Custom.
+        view.state['settings']={'resolution':'automatic'}
+        view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='sharp')
         # 1.0.0.13: an Index offers its modes; a saved size it no longer offers shows as Auto, so the next is its first.
         view.state={'settings':{'resolution':'compatibility'},'client_runtime':{'headset':HEADSET}}
         view.choose('resolution');view.action.assert_called_with('client-preferences',resolution='index-80')

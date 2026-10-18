@@ -1,5 +1,7 @@
 #pragma once
 #include "client/device/gaze.hpp"
+#include "client/device/gaze_prediction.hpp"
+#include "client/device/acceleration.hpp"
 #include "core/stream.hpp"
 #include "client/device/view_geometry.hpp"
 #include "client/device/runtime_observation.hpp"
@@ -39,6 +41,7 @@ class OpenVRDevice {
   PredictionClock clock_;
   TrackingSchedule schedule_;
   bool prediction_ = true;
+  bool acceleration_ = true;  // 1.0.0.14: the acceleration folded into what the host extrapolates (acceleration.hpp)
   void trackingLoop(void *transport);
 
 public:
@@ -56,6 +59,13 @@ public:
   void requestPlayspace() { spaceDirty_ = true; }
   bool inputFocus() const { return focused_; }
   std::atomic<uint64_t> trackingSamples{0}, trackingGapMaxUs{0}, predictionNs{0};
+  // 1.0.0.14: gaze samples sent turned against the head's motion (client/device/gaze_prediction.hpp), and the largest
+  // turn applied in milliradians, for the TIMING line.
+  std::atomic<uint64_t> gazePredicted{0}, gazeTurnMaxMrad{0};
+  // 1.0.0.14: the largest hand acceleration estimated since the last TIMING line (mm/s^2), and samples sent with one.
+  std::atomic<uint64_t> accelerationMaxMm{0}, accelerationSamples{0};
+  void acceleration(bool enabled) { acceleration_ = enabled; }
+  bool acceleration() const { return acceleration_; }
   // 1.0.0.5: the headset's own position while a stream is negotiated. The host sends a frame
   // only for a head pose this client sent, so without one no video comes back: the headset is
   // not tracked here (base stations not seen, headset asleep), not a video or network fault.

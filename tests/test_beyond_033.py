@@ -22,7 +22,7 @@ class BeyondDisplayTests(unittest.TestCase):
     def test_same_auto_preferences_follow_fresh_physical_device(self):
         index = session_settings(resolve_stream_preferences(AUTO, HEADSET))
         beyond = session_settings(resolve_stream_preferences(AUTO, BEYOND))
-        self.assertEqual((index['codec'], index['resolution']), ('H264','sharp'))
+        self.assertEqual((index['codec'], index['resolution']), ('Hevc','sharp'))  # 1.0.0.14: Auto is HEVC for all
         # 1.0.0.13: Auto follows the Beyond's mode: at 90 Hz the 1920 size its panels take, at 75 Hz Native (2560).
         # (RC4.3 to 1.0.0.12 started it at Standard, 2016, which went with the other sizes.)
         self.assertEqual((beyond['codec'], beyond['resolution']), ('Hevc','beyond-90'))
@@ -90,6 +90,9 @@ class BeyondDisplayTests(unittest.TestCase):
         with self.assertRaises(ValueError):resolve_stream_preferences(AUTO,None)
         unknown=dict(HEADSET,model='Other headset',manufacturer='Other')
         result=resolve_stream_preferences(AUTO,unknown)
+        self.assertEqual((result['codec'],result['resolution']),('Hevc','compatibility'))
+        # 1.0.0.14: only a PC whose decoder was found without HEVC gets H.264 from Auto.
+        result=resolve_stream_preferences(dict(AUTO,decoder_profiles={'h264':True,'hevc':False}),unknown)
         self.assertEqual((result['codec'],result['resolution']),('H264','compatibility'))
 
     def test_game_mode_uses_same_options_and_does_not_trap_codec_cycle(self):

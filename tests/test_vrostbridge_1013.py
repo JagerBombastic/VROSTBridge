@@ -28,33 +28,14 @@ def read(path):
 
 
 class VersionTests(unittest.TestCase):
-    def test_every_program_is_1_0_0_13(self):
+    def test_every_program_shares_one_version_from_1_0_0_13_on(self):
+        """1.0.0.13 put every program on one version; the exact number is pinned by the current release's test."""
         from launcher.version import CLIENT_VERSION, HOST_VERSION
-        self.assertEqual((CLIENT_VERSION, HOST_VERSION), ('1.0.0.13', '1.0.0.13'))
+        self.assertEqual(CLIENT_VERSION, HOST_VERSION)
+        self.assertGreaterEqual(tuple(int(part) for part in CLIENT_VERSION.split('.')), (1, 0, 0, 13))
         version = read('core/version.hpp')
-        self.assertIn('#define VROSTBRIDGE_CLIENT_VERSION "1.0.0.13"', version)
-        self.assertIn('#define VROSTBRIDGE_HOST_VERSION "1.0.0.13"', version)
-        self.assertIn('project(VROSTBridge VERSION 1.0.0.13 ', read('CMakeLists.txt'))
-        self.assertIn('version=1.0.0.13\n', read('packaging/install-bazzite.sh'))
-        nsi = read('packaging/windows-installer.nsi')
-        for line in ('Name "VROSTBridge Host 1.0.0.13"', 'VIProductVersion "1.0.0.13"', '"DisplayVersion" "1.0.0.13"',
-                     'InstallDir "$LOCALAPPDATA\\VROSTBridge\\Host\\1.0.0.13"'):
-            self.assertIn(line, nsi)
-        self.assertNotIn('1.0.0.12', nsi)
-        resource = read('packaging/windows-icon.rc')
-        self.assertIn('FILEVERSION 1,0,0,13', resource)
-        self.assertIn('PRODUCTVERSION 1,0,0,13', resource)
-        self.assertIn('native launcher 1.0.0.13 ---', read('packaging/windows-launcher.c'))
-        self.assertIn("VERSION = '1.0.0.13'", read('launcher/install_maintenance.py'))
-        self.assertIn("'VROSTBridge 1.0.0.13 / ALVR'", read('host/profile.py'))
-        sys.path.insert(0, str(ROOT / 'packaging'))
-        import build_distributions
-        import build_windows_client
-        self.assertEqual(build_distributions.client_archive_name(), 'VROSTBridge-Bazzite-Installer-1.0.0.13.zip')
-        self.assertEqual(build_distributions.host_setup_name(), 'VROSTBridge-Host-Setup-1.0.0.13.exe')
-        self.assertEqual(build_windows_client.client_version(), '1.0.0.13')
-        self.assertEqual(build_windows_client.setup_name(), 'VROSTBridge-Client-Setup-1.0.0.13.exe')
-        self.assertEqual(build_windows_client.portable_name(), 'VROSTBridge-Client-Portable-1.0.0.13.zip')
+        self.assertIn('#define VROSTBRIDGE_CLIENT_VERSION "%s"' % CLIENT_VERSION, version)
+        self.assertIn('#define VROSTBRIDGE_HOST_VERSION "%s"' % HOST_VERSION, version)
         from launcher import install_maintenance
         self.assertTrue(install_maintenance._RELEASE_VERSION.fullmatch('1.0.0.13'))
 
@@ -488,7 +469,7 @@ class DisplayModeTests(unittest.TestCase):
     def test_the_index_streams_native_at_every_rate(self):
         for mode in FAMILY_MODES['index']:
             resolved = resolve_stream_preferences(dict(AUTO, resolution=mode), HEADSET)
-            self.assertEqual((resolved['codec'], resolved['resolution']), ('H264', 'sharp'))
+            self.assertEqual((resolved['codec'], resolved['resolution']), ('Hevc', 'sharp'))  # 1.0.0.14: Auto is HEVC
             self.assertEqual(stream_size(resolved['codec'], resolved['resolution'], HEADSET), (2016, 2240))
         self.assertEqual([MODES[mode]['refresh_hz'] for mode in FAMILY_MODES['index']], [80, 90, 120, 144])
         self.assertTrue(MODES['index-144']['experimental'])

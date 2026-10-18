@@ -71,7 +71,7 @@ def main():
     parser.add_argument('--vendor', type=Path)
     parser.add_argument('--supplemental', type=Path)
     parser.add_argument('--rust-toolchain-docs', type=Path)
-    parser.add_argument('--release', default='1.0.0.13')
+    parser.add_argument('--release', default='1.0.0.14')
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = root / 'licenses/rust'

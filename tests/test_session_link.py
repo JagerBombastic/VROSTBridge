@@ -94,7 +94,7 @@ class SessionTests(unittest.TestCase):
 
     def test_private_network_policy_required_for_pair_and_new_start(self):
         self.policy.return_value = False
-        with self.assertRaisesRegex(SessionError, 'Private home'):
+        with self.assertRaisesRegex(SessionError, 'pair from a network Windows classes as Private'):
             self.host.dispatch('/pair', self.credentials(pair=False), '127.0.0.1')
         self.policy.return_value = True
         value = self.credentials()
@@ -161,7 +161,7 @@ class SessionTests(unittest.TestCase):
         self.host.allow_start = lambda: True
         result = self.host.dispatch('/start', dict(owner, request_id=secrets.token_hex(16)), '127.0.0.1')
         self.assertEqual(result['state'], 'starting')
-        with self.assertRaisesRegex(SessionError, 'Private home'):
+        with self.assertRaisesRegex(SessionError, 'pair from a network Windows classes as Private'):
             self.host.dispatch('/pair', self.credentials(pair=False), '127.0.0.1')
         eventually(lambda: self.host.snapshot()['state'] == 'running')
 

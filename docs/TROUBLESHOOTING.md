@@ -39,16 +39,17 @@ Reopen VROSTBridge to reconnect.
   172.16–31.x.x). Guest networks, VLANs and "AP isolation" settings that keep devices apart stop discovery.
 - On the headset PC, choose **Allow home-network connection** if the page offers it. On Bazzite it adds firewall rules
   for your home subnet only (your password); on Windows it asks for administrator permission once.
-- On a Windows PC, the network must be classed as **Private** (*Settings → Network & internet*); the firewall rules
-  don't apply to Public networks, and the page says so when that's the cause. If the page mentions **block rules**, a
+- On a Windows PC, Windows' Private or Public label no longer matters for a headset PC that is already paired; only
+  pairing a **new** one automatically needs the network set to Private once (*Settings → Network & internet*). If the page mentions **block rules**, a
   declined Windows Firewall prompt left them behind; block rules win over allow rules, so remove them in *Windows
   Defender Firewall → Inbound Rules*. On the rendering PC, **Repair Windows Firewall access** puts VROSTBridge's own
   rules back.
 - If discovery still fails, type the rendering PC's address under *Host address* on the headset PC's page.
 
-***Client approval needed*** **(rendering PC).** The first time a headset PC connects, the rendering PC asks. Choose
-**Allow & connect** beside the right device. With *Allow home-network clients* on (the rendering PC's Preferences),
-headset PCs on your private home network are allowed without asking.
+***Client approval needed*** **(rendering PC).** With *Allow home-network clients* on (the rendering PC's Preferences,
+on by default), a new headset PC pairs by itself, provided Windows classes the rendering PC's network as Private for
+that first pairing; once paired, it connects on any network type. With the setting off, or on a Public network the
+first time, choose **Allow & connect** beside the right device on the rendering PC's page.
 
 **The rendering PC is asleep.** If it doesn't answer at Start, the headset PC offers **Wake host now**. Wake-on-LAN
 becomes available after one session, once the headset PC knows the rendering PC's network adapter. The adapter and
@@ -89,12 +90,17 @@ message under it.
 
 - *This PC's graphics can't keep up with the stream* means the headset PC's own GPU is the limit. VROSTBridge first
   shows the picture a little smaller (*Shown at 90 %*, then 80 %) instead of SteamVR halving the frame rate, and offers
-  the 2016-per-eye size if it keeps happening. On a handheld, keep it on the charger and raise its power limit (TDP):
+  a lighter choice if it keeps happening: an Index's next lower refresh rate, a Beyond's 90 Hz mode (set with
+  Bigscreen's Beyond Utility), or a smaller stream on other headsets. On a handheld, keep it on the charger and raise its power limit (TDP):
   decoding, SteamVR and eye tracking share one power budget. If the page says *a power limit (TDP) or a fixed GPU clock
   is holding it back*, **Set the GPU clock to automatic** (Bazzite) fixes the usual cause.
 - *Fewer frames are arriving from the host* means the rendering PC or the network is the limit: a heavy game, or a
   busy link. Try a lower bitrate or a smaller stream size.
 - Frames arriving in uneven bursts usually point at Wi-Fi. See below.
+- A stall of a few seconds every five minutes or so, on a cable, with Wi-Fi connected too: the page says *the video is
+  arriving over* your Wi-Fi adapter. A Linux PC on one network twice answers for both addresses on both adapters.
+  **Fix this PC's network settings** (one password prompt; it stays set) keeps the video on the cable, and Wi-Fi can
+  stay connected.
 
 **Wi-Fi drops, stalls or hiccups every few minutes.** VR video is a lot of data that has to arrive on time, and Wi-Fi
 is shared radio.
@@ -109,8 +115,11 @@ is shared radio.
 - An Ethernet cable is always the most reliable link. A 1 Gbit/s USB adapter is fine; the page warns about a slow or
   half-duplex link.
 
-**Blurry picture.** Choose **Use recommended settings** first. Then check the *Headset & stream* card: a larger
-stream size, HEVC or AV1, and a higher bitrate each help, as long as both PCs and the network keep up. Foveated
+**Blurry picture.** Choose **Use recommended settings** first: *Auto* codec is HEVC on every headset, and the
+rendering PC renders the game larger than the stream and scales it down, which is where fine detail comes from. Then
+check the *Headset & stream* card: a larger stream size, HEVC or AV1, and a higher bitrate each help, as long as both
+PCs and the network keep up. SteamVR's resolution setting on the rendering PC changes how large the game renders, not the
+stream; a very low SteamVR resolution on the headset PC lowers it too. Foveated
 encoding sends the edges of each eye at reduced resolution, which is hard to see in the headset by design; set it to
 *Off* to compare. Sharpening is separate and can be changed live.
 
@@ -123,6 +132,11 @@ dropouts and buffer underruns.
 
 **The headset microphone doesn't reach the game.** Windows has no virtual microphone by default. **Set up headset
 microphone** on the rendering PC's page downloads VB-CABLE from VB-Audio (donationware) and opens its setup.
+
+**Hands land short in fast games.** The rendering PC predicts every pose a stream's latency ahead, and the
+headset PC folds each controller's acceleration into what it sends, so a swing lands where it is going. A change of
+direction within that latency (30 to 40 ms on a cable) cannot be predicted by either PC: a rhythm game at its hardest is
+the worst case for any streamed headset. Wired beats Wi-Fi here more than anywhere.
 
 **Controllers.** VROSTBridge forwards Valve Index controllers, with finger tracking. Other controllers aren't
 supported yet. The system (menu) button opens the rendering PC's SteamVR menu. Holding it is the headset PC's own SteamVR

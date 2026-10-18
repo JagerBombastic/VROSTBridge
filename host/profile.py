@@ -39,7 +39,7 @@ def mirror_headset(settings, description):
     values.update({name:'false' for name in UNSUPPORTED_HOST_CAPABILITIES})
     # Keep the driver attribution truthful; the physical driver still lives on
     # the client. Display frequency and live eye/IPD geometry are negotiated.
-    values['DriverVersionString']='VROSTBridge 1.0.0.13 / ALVR'
+    values['DriverVersionString']='VROSTBridge 1.0.0.14 / ALVR'
     owned=set(HEADSET_PROPERTIES.values()) | set(UNSUPPORTED_HOST_CAPABILITIES) | {'DriverVersionString'}
     props=settings['headset']['extra_openvr_props']
     retained=[row for row in props['content'] if row.get('key',{}).get('variant') not in owned]
@@ -118,6 +118,24 @@ def intra_refresh_edits(enabled, fps):
             'connection.avoid_video_glitching': not enabled}
 
 
+# 1.0.0.14: how much larger than the stream the game may render. SteamVR's recommended render size for a headset is
+# larger than its panels (the lens correction needs it), and a headset on its own PC renders at it; until 1.0.0.13
+# VROSTBridge made the game render at exactly the stream width, so the picture reached the headset with no
+# oversampling at all. The host now renders at the headset PC's recommended size (which carries that user's own
+# supersampling setting) up to this much above the stream width, and the encoder's input is scaled down from it, as
+# on a headset's own PC. Nothing changes for the headset PC: the stream is the same size.
+RENDER_OVERSAMPLE_MAX = 1.5
+
+
+def render_width(eye_width, headset=None):
+    """The width SteamVR renders per eye: the headset's recommended width within [eye_width, 1.5 x eye_width],
+    a multiple of 32; the stream width itself without a headset description."""
+    if headset is None:
+        return eye_width
+    recommended = headset_metadata(headset)['width']
+    return max(eye_width, min(recommended, int(eye_width * RENDER_OVERSAMPLE_MAX)) // 32 * 32)
+
+
 def configure(document, microphone=False, gaze=False, codec='Hevc', bitrate=60, auto_connect=False,
               resolution='compatibility', headset=None, encoder='speed', network=None, ten_bit=False,
               foveation=None, intra_refresh=False):
@@ -144,7 +162,7 @@ def configure(document, microphone=False, gaze=False, codec='Hevc', bitrate=60, 
         'video.transcoding_view_resolution.Absolute.width': eye_width,
         'video.transcoding_view_resolution.Absolute.height.set': False,
         'video.emulated_headset_view_resolution.variant': 'Absolute',
-        'video.emulated_headset_view_resolution.Absolute.width': eye_width,
+        'video.emulated_headset_view_resolution.Absolute.width': render_width(eye_width, headset),  # 1.0.0.14
         'video.emulated_headset_view_resolution.Absolute.height.set': False,
         'video.clientside_foveation.enabled': False,
         'video.clientside_post_processing.enabled': False,

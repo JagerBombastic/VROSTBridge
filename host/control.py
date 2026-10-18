@@ -79,46 +79,61 @@ def windows_runtime_process_ids():
     return rows
 
 
-def require_private_home_network(local_address=None):
-    """Read Windows network categories without modifying them.
+def require_home_network(local_address=None):
+    """Read whether this PC has a network a headset PC can reach, without modifying anything.
 
-    Without an address: at least one active network must be Private. Other
-    adapters (VPN, WSL/Hyper-V, a second NIC or a direct cable) may be Public;
-    RC1 refused every session in that case even though the firewall rules
-    already admit only Private/LocalSubnet traffic.
-    With the local address a client actually reached: that adapter must be
-    Private. The address is validated before it is placed in the query.
+    Without an address: at least one network must be connected. Windows' own category for it (Private or Public)
+    does not matter: until 1.0.0.14 a network Windows called Public was refused, which stopped sessions whenever
+    Windows decided a home network was new, and asked people to change a Windows setting they never otherwise need.
+    The firewall rules admit only the local subnet, on any network, and a headset PC still has to be paired before
+    it can start anything (launcher/session_link.py).
+    With the local address a client actually reached: it must be a home-network (private IPv4) address of this PC.
     """
     if local_address is not None:
         address=ipaddress.IPv4Address(local_address)
-        if address.is_loopback or address.is_unspecified or address.is_multicast:
-            raise ValueError('The headset client did not arrive on a LAN address.')
-        command=("$index=@(Get-NetIPAddress -AddressFamily IPv4 -IPAddress '"+str(address)+"' -ErrorAction Stop | "
-                 "Select-Object -ExpandProperty InterfaceIndex); @(Get-NetConnectionProfile -InterfaceIndex $index | "
-                 "Select-Object Name,NetworkCategory) | ConvertTo-Json -Compress")
-    else:
-        command = "@(Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -ne 'Disconnected' -or $_.IPv6Connectivity -ne 'Disconnected' } | Select-Object Name,NetworkCategory) | ConvertTo-Json -Compress"
+        if address.is_loopback or address.is_unspecified or address.is_multicast or not address.is_private:
+            raise ValueError('The headset client did not arrive on a home-network address.')
+        return [{'address':str(address)}]
+    command = "@(Get-NetConnectionProfile | Where-Object { $_.IPv4Connectivity -ne 'Disconnected' -or $_.IPv6Connectivity -ne 'Disconnected' } | Select-Object Name,NetworkCategory) | ConvertTo-Json -Compress"
     result = subprocess.run(['powershell','-NoProfile','-Command',command], capture_output=True,
                             text=True, timeout=12, creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
     if result.returncode:
-        raise ValueError('Windows network privacy could not be checked. Save a report or turn automatic connection off.')
+        raise ValueError('Windows could not say whether this PC is connected to a network. Save a report or turn automatic connection off.')
+    try:
+        profiles=json.loads(result.stdout or '[]')
+        if isinstance(profiles,dict):profiles=[profiles]
+        rows=[{'name':str(profile.get('Name','')), 'category':profile['NetworkCategory']} for profile in profiles]
+    except (ValueError,KeyError,TypeError,AttributeError):
+        raise ValueError('Windows returned an unreadable network profile. Turn automatic connection off to use manual pairing.')
+    if not rows:
+        raise ValueError('This PC is not connected to a network yet.')
+    return rows
+
+
+def pairing_network_private(local_address):
+    """1.0.0.14: automatic pairing of a NEW headset PC still needs the adapter it arrived on to be a network Windows
+    classes as Private (or a domain network). Paired headset PCs start sessions on any network type; this only keeps a
+    stranger on a cafe or hotel network from pairing itself while automatic connection is on. Raises ValueError."""
+    address=ipaddress.IPv4Address(local_address)
+    command=("$index=@(Get-NetIPAddress -AddressFamily IPv4 -IPAddress '"+str(address)+"' -ErrorAction Stop | "
+             "Select-Object -ExpandProperty InterfaceIndex); @(Get-NetConnectionProfile -InterfaceIndex $index | "
+             "Select-Object Name,NetworkCategory) | ConvertTo-Json -Compress")
+    result=subprocess.run(['powershell','-NoProfile','-Command',command],capture_output=True,text=True,timeout=12,
+                          creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+    if result.returncode:raise ValueError('Windows network type could not be checked for a new headset PC.')
     try:
         profiles=json.loads(result.stdout or '[]')
         if isinstance(profiles,dict):profiles=[profiles]
         categories=[profile['NetworkCategory'] for profile in profiles]
-    except (ValueError,KeyError,TypeError):
-        raise ValueError('Windows returned an unreadable network profile. Turn automatic connection off to use manual pairing.')
-    # PowerShell serializes NetworkCategory as its enum number: Public=0, Private=1,
-    # DomainAuthenticated=2. Accept strings too for compatibility with fixtures.
-    private=[value in (1,'Private') for value in categories]
-    if local_address is not None:
-        if not private or not all(private):
-            name=next((str(p.get('Name','')) for p in profiles if p.get('NetworkCategory') not in (1,'Private')),'')
-            raise ValueError('The headset client reached this PC through a network Windows classes as Public'+(' ("'+name[:80]+'")' if name else '')+
-                             '. Set that connection to Private in Windows Network settings.')
-    elif not any(private):
-        raise ValueError('Automatic connection needs a Private home network. Set your trusted home connection to Private in Windows Network settings, or turn automatic connection off here.')
-    return [{'name':str(profile.get('Name','')), 'category':profile['NetworkCategory']} for profile in profiles]
+    except (ValueError,KeyError,TypeError,AttributeError):
+        raise ValueError('Windows returned an unreadable network profile.')
+    # PowerShell serializes NetworkCategory as its enum number: Public=0, Private=1, DomainAuthenticated=2.
+    if not categories or not all(value in (1,2,'Private','DomainAuthenticated') for value in categories):
+        name=next((str(p.get('Name','')) for p in profiles if p.get('NetworkCategory') not in (1,2,'Private','DomainAuthenticated')),'')
+        raise ValueError('A new headset PC pairs automatically only on a network Windows classes as Private'+
+                         (' ("'+name[:80]+'" is Public)' if name else '')+'. Set it to Private once to pair; '
+                         'headset PCs already paired work on any network.')
+    return True
 
 
 def windows():

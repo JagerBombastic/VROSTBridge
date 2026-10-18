@@ -10,7 +10,7 @@ Attach the five packages, the three source archives and `SHA256SUMS.txt`, which 
   `VROSTBridge-1.0.0.13-bazzite-client-source.zip`
 - `SHA256SUMS.txt`
 
-Push the source first: the tag has to point at the commit the source archives were made from. See [PUBLISHING.md](PUBLISHING.md).
+Push the source first: the tag has to point at the commit the source archives were made from. See [PUBLISHING.md](../PUBLISHING.md).
 
 ---
 

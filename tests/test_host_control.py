@@ -8,7 +8,7 @@ import time
 import unittest
 from unittest.mock import Mock, patch
 
-from host.control import AlvrApi, HostControl, installed_api_version, require_private_home_network
+from host.control import AlvrApi, HostControl, installed_api_version, require_home_network
 
 
 class DriverFixture:
@@ -187,33 +187,41 @@ class HostControlTests(unittest.TestCase):
         self.assertFalse(self.driver.calls[0][1][0]['value'])
         self.assertEqual(self.driver.calls[1],('/api/session/client-connections',['1.client.local.','RemoveEntry']))
         self.assertFalse(self.control.snapshot()['auto_connect'])
-    def test_private_network_guard_rejects_public_or_missing_networks(self):
+    def test_the_network_guard_needs_a_network_not_a_private_one(self):
         from types import SimpleNamespace
-        # RC2: a Private home network plus an unrelated Public adapter (VPN,
-        # WSL, direct cable) is accepted; per-request adapter checks are below.
-        for profiles in ([],[{'NetworkCategory':0}]):
-            with patch('host.control.subprocess.run',return_value=SimpleNamespace(returncode=0,stdout=json.dumps(profiles))):
-                with self.assertRaises(ValueError):require_private_home_network()
-        with patch('host.control.subprocess.run',return_value=SimpleNamespace(returncode=0,stdout='{"Name":"Home","NetworkCategory":1}')):
-            self.assertEqual(require_private_home_network(),[{'name':'Home','category':1}])
-        mixed=[{'Name':'Home','NetworkCategory':1},{'Name':'Tailscale','NetworkCategory':0}]
+        # 1.0.0.14: Windows' Private/Public category no longer stops the host; only having no network does.
+        with patch('host.control.subprocess.run',return_value=SimpleNamespace(returncode=0,stdout='[]')):
+            with self.assertRaisesRegex(ValueError,'not connected'):require_home_network()
+        for stdout in ('{"Name":"Home","NetworkCategory":1}','{"Name":"Home","NetworkCategory":0}'):
+            with patch('host.control.subprocess.run',return_value=SimpleNamespace(returncode=0,stdout=stdout)):
+                self.assertEqual(len(require_home_network()),1)
+        mixed=[{'Name':'Home','NetworkCategory':0},{'Name':'Tailscale','NetworkCategory':0}]
         with patch('host.control.subprocess.run',return_value=SimpleNamespace(returncode=0,stdout=json.dumps(mixed))):
-            self.assertEqual(len(require_private_home_network()),2)
-    def test_session_adapter_must_be_private(self):
+            self.assertEqual(len(require_home_network()),2)
+    def test_a_session_arrives_on_a_home_network_address_without_a_windows_query(self):
+        with patch('host.control.subprocess.run') as query:
+            self.assertEqual(require_home_network('192.168.1.20'),[{'address':'192.168.1.20'}])
+            query.assert_not_called()
+        for bad in ("1.2.3.4'; Remove-Item x; '",'127.0.0.1','0.0.0.0','::1','not-an-ip','8.8.8.8'):
+            with patch('host.control.subprocess.run') as query:
+                with self.assertRaises(ValueError):require_home_network(bad)
+                query.assert_not_called()
+    def test_a_new_headset_pc_pairs_itself_only_from_a_private_network(self):
         from types import SimpleNamespace
+        from host.control import pairing_network_private
         def run(stdout):
             return patch('host.control.subprocess.run',return_value=SimpleNamespace(returncode=0,stdout=stdout))
-        with run('{"Name":"Home","NetworkCategory":1}') as query:
-            self.assertEqual(require_private_home_network('192.168.1.20'),[{'name':'Home','category':1}])
-            command=query.call_args.args[0][-1]
-            self.assertIn("-IPAddress '192.168.1.20'",command);self.assertIn('-InterfaceIndex $index',command)
-        for stdout in ('[]','{"Name":"Unidentified network","NetworkCategory":0}'):
+        for stdout in ('{"Name":"Home","NetworkCategory":1}','{"Name":"Work","NetworkCategory":2}'):
+            with run(stdout) as query:
+                self.assertTrue(pairing_network_private('192.168.1.20'))
+                command=query.call_args.args[0][-1]
+                self.assertIn("-IPAddress '192.168.1.20'",command);self.assertIn('-InterfaceIndex $index',command)
+        for stdout in ('[]','{"Name":"Cafe","NetworkCategory":0}'):
             with run(stdout):
-                with self.assertRaisesRegex(ValueError,'Private'):require_private_home_network('192.168.1.20')
-        for bad in ("1.2.3.4'; Remove-Item x; '",'127.0.0.1','0.0.0.0','::1','not-an-ip'):
-            with patch('host.control.subprocess.run') as query:
-                with self.assertRaises(ValueError):require_private_home_network(bad)
-                query.assert_not_called()
+                with self.assertRaisesRegex(ValueError,'already paired work on any network'):pairing_network_private('192.168.1.20')
+        with patch('host.control.subprocess.run') as query:
+            with self.assertRaises(ValueError):pairing_network_private("1.2.3.4'; Remove-Item x; '")
+            query.assert_not_called()
     def test_loopback_only_and_no_unknown_command(self):
         for port in ('9943','https://evil.test',True,0):
             with self.assertRaises(ValueError):AlvrApi(port)

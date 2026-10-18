@@ -133,6 +133,8 @@ public:
                ? &latest_
                : nullptr;
   }
+  // 1.0.0.14: when the sample last returned by sample() was stamped by the companion (its receipt time).
+  uint64_t timestamp() const { return timestamp_; }
   // The latest valid sample if it is under 100 ms old (local display only; never logged).
   bool shown(VrostQuat &q, uint64_t now, uint64_t &ageMs) const {
     std::lock_guard<std::mutex> lock(shownMutex_);

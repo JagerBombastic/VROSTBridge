@@ -27,7 +27,7 @@ ROOT=Path(sys.executable).resolve().parent if getattr(sys,'frozen',False) else P
 PACKAGED=(ROOT/'PACKAGED.json').is_file()
 sys.path.insert(0,str(ROOT))
 from host.profile import configure,manual_client,write_session,session_client_address
-from host.control import HostControl, require_private_home_network
+from host.control import HostControl, require_home_network, pairing_network_private
 from launcher.client_identity import ClientIdentity
 from launcher.client_network import ClientNetwork
 from launcher.network_path import NetworkMonitor
@@ -36,6 +36,7 @@ from launcher.timeline import SessionTimeline
 from launcher.client_runtime import ClientRuntime, runtime_processes, steam_environment, process_identity, runtime_name
 from launcher.client_runtime import crash_details as windows_crash_details
 from launcher.session_link import SessionHost, SessionClient, SessionError, SessionVersionError, session_settings, QUALITY_CAPABILITY, PIPELINE_CAPABILITY, TIMING_LOCK_CAPABILITY, STREAM_CAPABILITY, RECOVERY_CAPABILITY, CLIENT_HOSTNAME, STREAM_STATES, ENCODER_PRESETS
+from launcher.session_link import PORT as SESSION_PORT, _source_connection as session_link_connect
 from launcher.headset import CLIENT_CODECS, CLIENT_RESOLUTIONS, FOVEATION_CHOICES, client_stream_preferences, resolve_stream_preferences, display_status, headset_metadata, headset_family, foveation_choice, foveation_parameters, foveated_size, stream_size
 from launcher.stream_budget import BitrateGovernor, quality_ceiling_mbps
 from launcher.session_tuning import SessionTuning
@@ -43,13 +44,14 @@ from launcher.gaze_provider import GazeCentre
 from launcher.base_stations import BaseStations
 from launcher.link_test import MIN_MBPS as LINK_MIN_MBPS, SEND_FRACTION as LINK_SEND_FRACTION
 from launcher.headset import FOVEATION_REGIONS, FOVEATION_EDGES, FOVEATION_REGION_LABELS, FOVEATION_EDGE_LABELS, SHARPENING_LEVELS
-from launcher.headset import BEYOND_LIGHTER_MODE, FAMILY_MODES, MODES, family_headset, requested_refresh
+from launcher.headset import BEYOND_LIGHTER_MODE, FAMILY_MODES, MODES, family_headset, parse_decoder_profiles, requested_refresh
 from launcher.fovea import LiveView as FoveaView, parse_line as parse_fovea, view as fovea_view_checked
 from launcher.session_power import SessionPower, system_environment
 from launcher.steamvr_async import AsyncReprojectionCheck
+from launcher.network_settings import NetworkSettings
 from launcher.headset_audio import HeadsetAudio
 from launcher.wifi_diagnostics import WifiDiagnostics
-from launcher.adapter_counters import AdapterCounters
+from launcher.adapter_counters import AdapterCounters, elsewhere as adapter_elsewhere
 from launcher.wake_host import HostWaker, learn_mac, local_interfaces, normalise_mac, wake_targets
 from launcher.network_test import NetworkTest, link_info, lossless_rate, pacing_mbps, path_tested, remember as remember_network_test, saved_for as saved_network_test
 from launcher.network_test import MAX_AGE_S as NETWORK_TEST_MAX_AGE_S, failed_tests as network_test_failures, needs_retest as needs_network_retest, sender_timed as network_test_sender_timed
@@ -60,6 +62,7 @@ from host.stream_options import driver_features, stream_config, write_stream_con
 from host.stream_recovery import StreamRecovery
 from host.audio import microphone_status
 from host.events import HostEvents
+from launcher.last_session import LastSessionRecord, driver_statistics
 from launcher.diagnostics import Journal, DiagnosticServer, RemoteDiagnostics, steamvr_logs, clean
 from launcher.baballonia import BaballoniaManager, data_root as baballonia_data_root
 from launcher.eye_tracking import EyeCameras, EyeTracking
@@ -296,7 +299,7 @@ class DesktopInstance:
             self.handle.close();self.handle=None
 
 class HostNetworkNotReady(ValueError):
-    """Only a read-only Private-network check may be retried at sign-in."""
+    """Only a read-only network check may be retried at sign-in."""
 
 
 def timing_number(timings,key,kind=float):
@@ -340,7 +343,7 @@ class Application:
         self.client=self.native_client_path()
         self.settings={'microphone':False,'gaze':False,'software':False,'codec':'H264','bitrate':80}
         self.session_link=None;self.network_monitor=None;self.performance_monitor=None;self.host_prepared=False;self.host_preparation_attempted=False;self.closing=threading.Event();self.network_guard_lock=threading.Lock();self.network_guard_time=0;self.shutdown_started=threading.Event()
-        if role=='client':self.settings.update(lightweight=True,host_ip='',late_frame_catchup=True,motion_prediction=True,codec='Auto',resolution='automatic',encoder='speed',timing_lock=True,cached_headset=None,
+        if role=='client':self.settings.update(lightweight=True,host_ip='',late_frame_catchup=True,motion_prediction=True,codec='Auto',resolution='automatic',encoder='speed',timing_lock=True,cached_headset=None,decoder_profiles=None,prediction_acceleration=True,
                                                foveation='auto',ten_bit=True,intra_refresh=False,auto_bitrate=True,pacing=True,keep_warm_minutes=0,keep_awake=True,
                                                headset_audio=True,wake_host=True,headset_hud=False,host_mac='',network_tests={},headset_profiles={},
                                                pause_other_wifi=True,stay_on_access_point=True,reaim=True,
@@ -392,6 +395,9 @@ class Application:
                 elif key=='cached_headset' and isinstance(saved.get(key),dict):
                     try:self.settings[key]=headset_metadata(saved[key])
                     except ValueError:pass
+                elif key=='decoder_profiles' and isinstance(saved.get(key),dict) and isinstance(saved[key].get('hevc'),bool):  # 1.0.0.14
+                    self.settings[key]={name:bool(saved[key].get(name)) for name in ('h264','hevc','hevc_main10','av1','av1_10bit')}
+                    self.settings[key].update(backend=str(saved[key].get('backend',''))[:16],device=str(saved[key].get('device',''))[:96])
                 elif key=='session_client_addresses' and isinstance(saved.get(key),dict):
                     self.settings[key]={name:value for name,value in list(saved[key].items())[-8:]
                                         if isinstance(name,str) and CLIENT_HOSTNAME.fullmatch(name) and isinstance(value,str) and len(value)<=15}
@@ -410,6 +416,8 @@ class Application:
         if self.session_tuning:
             threading.Thread(target=self.session_tuning.recover,daemon=True,name='VROSTBridge-tuning-recover').start()
         self.async_reprojection=AsyncReprojectionCheck(log=self.log,state_directory=self.log_path.parent) if role=='client' else None
+        self.network_settings=NetworkSettings(log=self.log) if role=='client' else None  # 1.0.0.14: one network twice, the receive buffer
+        self.video_path_warned=False;self.video_path_checked=0.0;self.video_path=None
         self.headset_audio=HeadsetAudio(log=self.log) if role=='client' else None
         self.wifi_diagnostics=WifiDiagnostics(log=self.log) if role=='client' else None
         self.host_waker=HostWaker(log=self.log) if role=='client' else None
@@ -497,6 +505,8 @@ class Application:
         self.diagnostic_server=DiagnosticServer(lambda:self.process.pid if self.process and self.process.poll() is None else None,self.diagnostic_summary,self.local_report,self.log,session_peer=lambda:self.session_link.snapshot() if self.session_link else {}) if role=='client' else None
         self.remote_diagnostics=RemoteDiagnostics(self.log_path.parent,lambda:self.host_control.snapshot()['clients'],self.host_control.apply_playspace,self.log,session_peer=lambda:self.session_link.snapshot() if self.session_link else {}) if role=='host' else None
         self.host_events=HostEvents(lambda:self.host_control.api if self.host_control.active and self.host_control.snapshot()['available'] else None,self.journal) if role=='host' else None
+        # 1.0.0.14: the host's last streamed session, kept across restarts for the report (launcher/last_session.py).
+        self.last_session=LastSessionRecord(self.log_path.parent) if role=='host' else None;self.host_streamed=False
         # RC4.3 eye-tracked foveation panel: the live view, in memory only (launcher/fovea.py).
         self.fovea_view=FoveaView();self._gaze_rate=None
         if role=='host':
@@ -716,6 +726,18 @@ class Application:
               if display and display.get('stream_width') else '')
         return ('SteamVR runs the Index at '+('%g'%running)+' Hz, not the '+('%g'%wanted)+' Hz chosen'+
                 (': 144 Hz is experimental, and this graphics card or its driver may not drive it.' if wanted>=144 else '.')+size)
+    def remember_decoders(self,profiles):
+        """1.0.0.14: what this PC's video decoder handles, from the native client's decoder-profile line, kept in the
+        settings so Auto codec can choose from it at the next Start (launcher/headset.py automatic_codec) and the report
+        can say. Logged when it changes."""
+        if not isinstance(profiles,dict):return
+        with self.lock:
+            if self.settings.get('decoder_profiles')==profiles:return
+            self.settings['decoder_profiles']=profiles
+        self.save_settings()
+        self.log('DECODERS '+profiles.get('backend','?')+' on '+(profiles.get('device') or 'this GPU')+': '
+                 +', '.join(name for name in ('h264','hevc','hevc_main10','av1','av1_10bit') if profiles.get(name))
+                 +('' if profiles.get('hevc') else '; no HEVC, so Auto codec means H.264 here from the next Start'))
     def remember_profile(self,family=None):
         family=family or self.current_family()
         if family:
@@ -1338,6 +1360,7 @@ class Application:
             return dict(value) if isinstance(value,dict) else {}
         test=state(getattr(self,'network_test',None))
         return {'power':state(self.session_power),'async_reprojection':state(self.async_reprojection),
+                'network_settings':state(self.network_settings),'video_path':self.video_path,  # 1.0.0.14
                 'headset_audio':state(self.headset_audio),
                 'wake':dict(state(self.host_waker),mac_known=bool(self.settings.get('host_mac'))),
                 'network_test':{key:test.get(key) for key in ('state','message')},
@@ -1421,6 +1444,7 @@ class Application:
                 except (ValueError,TypeError):pass
             if line.startswith('TIMING '):
                 self.timings=dict(item.split('=',1) for item in line.split()[1:] if '=' in item)
+                self.check_video_path()
                 self.timeline.timing(self.timings)
                 if getattr(self,'session_tuning',None) is not None:self.session_tuning.note_timing(self.timings)
                 governor=getattr(self,'bitrate_governor',None)
@@ -1459,6 +1483,7 @@ class Application:
                 self.runtime_quit_requested=process  # a quit, not a crash: no automatic restart
             elif line.startswith('STATUS SteamVR compositor frames stopped advancing'):self.compositor_stalled=True
             elif line.startswith('STATUS SteamVR compositor frames are advancing again'):self.compositor_stalled=False
+            elif line.startswith('STATUS ') and 'decoder profiles' in line:self.remember_decoders(parse_decoder_profiles(line))
         code=process.wait()
         with self.lock:
             if self.process is process:
@@ -1618,6 +1643,10 @@ class Application:
             if isinstance(status,dict) and status.get('state') in ('missing','disabled','disabled_driver'):
                 self.log('SteamVR asynchronous reprojection is unavailable on this PC: '+str(status.get('message',''))[:300])
         except Exception as error:self.log('Asynchronous reprojection check skipped: '+str(error)[:200])
+        try:  # 1.0.0.14: one network twice (the video can arrive over Wi-Fi), or a receive buffer too small for the stream
+            settings=self.network_settings.check() if self.network_settings else {}
+            if settings.get('state')=='needed':self.log('NETWORK '+str(settings.get('message'))[:600])
+        except Exception as error:self.log('Network settings check skipped: '+str(error)[:200])
     def end_client_session_helpers(self):
         """Undo the session-only system changes (sleep block, audio defaults, Wi-Fi sampling)."""
         self.client_generation+=1
@@ -1686,14 +1715,17 @@ class Application:
             gaze=((result['host_events'].get('statistics') or {}).get('GazeFoveation') or {}).get('values')
             if isinstance(gaze,dict):
                 for key in ('left','right'):gaze.pop(key,None)
-        if self.role=='host':result['host_addons']=self.host_addons()
+        if self.role=='host':
+            result['host_addons']=self.host_addons()
+            # 1.0.0.14: no session has streamed since this companion started: the last one's record, kept across restarts.
+            if self.last_session and not self.host_streamed:result['host_last_session']=self.last_session.load()
         if self.role=='client':
             result.update(client_runtime=self.client_runtime.status(),platform=platform_name(),
                           game_mode=self.lease_runtime.status() if self.lease_runtime else None,
                           game_mode_setup=self.game_mode_setup.status() if self.game_mode_setup else None,wifi=self.wifi_status(),
                           game_mode_last_start=self.game_mode_log.load() if self.game_mode_log else None,  # 1.0.0.10
                           wifi_radio=self.wifi_diagnostics.summary(),power=self.session_power.status(),headset_audio=self.headset_audio.status(),
-                          async_reprojection=self.async_reprojection.status(),wake=self.host_waker.status(),network_test=self.network_test.status(),
+                          async_reprojection=self.async_reprojection.status(),network_settings=self.network_settings.status(),video_path=self.video_path,wake=self.host_waker.status(),network_test=self.network_test.status(),
                           other_wifi=self.other_wifi.status(),
                           network_tests=dict(self.settings.get('network_tests') or {}),
                           connection=self.connection_status(),wifi_roaming=self.ap_lock.status(),
@@ -2171,26 +2203,31 @@ class Application:
 
     def private_session_allowed(self, local_address=None):
         if not self.host_prepared or self.closing.is_set():return False
-        # Firewall independently enforces Private/LocalSubnet on every packet.
+        # The firewall independently admits only the local subnet on every packet (any network type, 1.0.0.14).
         # Cache this slow Windows query briefly, including across pair + start.
         # A request supplies the local address it arrived on; only that adapter
-        # must be Private (unrelated VPN/WSL/direct-cable adapters may be Public).
+        # must be a home-network address (1.0.0.14: Windows' Private/Public category no longer matters).
         with self.network_guard_lock:
             if local_address is None:
                 if time.monotonic()-self.network_guard_time>15:
-                    require_private_home_network();self.network_guard_time=time.monotonic()
+                    require_home_network();self.network_guard_time=time.monotonic()
             else:
                 checked=getattr(self,'network_guard_addresses',None)
                 if checked is None:checked=self.network_guard_addresses={}
                 if time.monotonic()-checked.get(local_address,-1e9)>15:
-                    require_private_home_network(local_address);checked[local_address]=time.monotonic()
+                    require_home_network(local_address);checked[local_address]=time.monotonic()
         return True
 
     def allow_session_pairing(self, local_address=None):
-        return self.settings['auto_connect'] and self.private_session_allowed(local_address)
+        # 1.0.0.14: paired headset PCs start on any network type; a new one pairs itself only from a Private network.
+        if not (self.settings['auto_connect'] and self.private_session_allowed(local_address)):return False
+        if local_address is None:return True
+        try:return pairing_network_private(local_address)
+        except (OSError,ValueError,subprocess.SubprocessError) as error:
+            self.log('Pairing refused: '+str(error)[:240]);return False
 
     def prepare_host(self):
-        try:require_private_home_network()
+        try:require_home_network()
         except (OSError,ValueError,subprocess.SubprocessError) as error:
             raise HostNetworkNotReady(str(error)) from error
         if self.closing.is_set():raise ValueError('The host companion is closing.')
@@ -2230,7 +2267,7 @@ class Application:
                     self.prepare_host()
             except HostNetworkNotReady as error:
                 if self.closing.is_set():return
-                message='Waiting for a Private home network: '+str(error)
+                message='Waiting for a home network: '+str(error)
                 if not self.startup_error or self.startup_error==owned_error:
                     if self.startup_error!=message:self.log('Companion preparation: '+message)
                     self.startup_error=owned_error=message
@@ -2274,8 +2311,23 @@ class Application:
         try:self.wifi_session.begin(interface,self.session_link.snapshot().get('host_ip',''),network_environment.get('VROSTBRIDGE_BIND_IP',''))
         except Exception as error:self.log('Wi-Fi session preparation skipped: '+str(error)[:200])
         self.adapter_counters.begin(interface)  # 1.0.0.13: the adapters' drop counters from here on
-        # A second Wi-Fi adapter on the same network shares the channel and confuses reconnection.
-        try:self.other_wifi.begin(interface,network_environment.get('VROSTBRIDGE_BIND_IP',''),self.settings['pause_other_wifi'])
+        self.video_path_warned=False;self.video_path=None;self.video_path_checked=time.monotonic()
+        # A second Wi-Fi adapter on the same network shares the channel, confuses reconnection and, on Linux, can take
+        # the video (one network twice). 1.0.0.14: a wired stream leaves it connected where the system keeps the stream
+        # on the cable, and a pause that cuts the stream adapter off from the host is undone at once.
+        source_ip=network_environment.get('VROSTBRIDGE_BIND_IP','')
+        wired=self.wifi_session.status().get('state')=='wired'
+        try:
+            separated=self.network_settings.separated(interface) if self.network_settings else True
+            if self.network_settings:self.network_settings.check(interface)
+        except Exception:separated=False
+        try:
+            other=self.other_wifi.begin(interface,source_ip,self.settings['pause_other_wifi'],wired=wired,separated=separated)
+            if other.get('state')=='paused' and not self.host_reachable(interface,source_ip,cancel):
+                self.log('NETWORK '+self.route_diagnosis(interface,source_ip))
+                self.other_wifi.resume_now('pausing it cut this PC off from the host over '+interface+(
+                    '; the video may arrive over Wi-Fi. Fix this PC\'s network settings on the page to keep it on the cable'
+                    if wired else ''))
         except Exception as error:self.log('Other Wi-Fi adapter check skipped: '+str(error)[:200])
         if self.wifi_session.status().get('state') not in ('wired','unknown') and interface:self.begin_wifi_diagnostics(interface)
         self.network_monitor.refresh()
@@ -2285,6 +2337,47 @@ class Application:
         try:self.learn_host_mac()
         except Exception as error:self.log('Wake-on-LAN address not learnt: '+str(error)[:160])
         return network_environment
+
+    def host_reachable(self,interface,source_ip,cancel,attempts=4):
+        """1.0.0.14: after pausing Wi-Fi, can this PC still reach the host's session port over the stream adapter?"""
+        host_ip=(self.session_link.snapshot() or {}).get('host_ip') or self.settings.get('host_ip') or ''
+        if not host_ip or not source_ip:return True
+        for attempt in range(attempts):
+            if cancel.is_set():return True
+            try:
+                connection=session_link_connect((host_ip,SESSION_PORT),2.0,(source_ip,0),interface)
+                connection.close();return True
+            except OSError as error:
+                last=error
+            cancel.wait(1.0)
+        self.log('NETWORK the host '+host_ip+' cannot be reached over '+interface+' from '+source_ip+': '+str(last)[:160])
+        return False
+
+    def route_diagnosis(self,interface,source_ip):
+        """The kernel's route to the host as the stream adapter would use it, for the log (Linux; read-only)."""
+        host_ip=(self.session_link.snapshot() or {}).get('host_ip') or ''
+        if not sys.platform.startswith('linux') or not host_ip:return 'route not read'
+        try:
+            result=subprocess.run(['ip','-4','route','get',host_ip,'from',source_ip,'oif',interface],capture_output=True,text=True,timeout=3)
+            routes=subprocess.run(['ip','-4','route','show'],capture_output=True,text=True,timeout=3)
+        except (OSError,subprocess.SubprocessError) as error:return 'route not read: '+str(error)[:120]
+        shown=' | '.join(line.strip() for line in (routes.stdout or '').splitlines()[:8])
+        return ('route to the host over '+interface+': '+((result.stdout or result.stderr or '').strip()[:200] or 'none')+
+                '; routes: '+shown[:600])
+
+    def check_video_path(self):
+        """1.0.0.14: say once per session when the video arrives on another adapter than the stream's (every 15 s)."""
+        now=time.monotonic()
+        if self.role!='client' or self.video_path_warned or now-self.video_path_checked<15:return
+        self.video_path_checked=now
+        try:found=adapter_elsewhere(self.adapter_counters.snapshot())
+        except Exception:return
+        if not found:return
+        self.video_path_warned=True;self.video_path=found
+        self.log('VIDEO_PATH The video is arriving over '+found['adapter']+' ('+str(found['packets'])+' packets), not over '
+                 +found['stream_adapter']+' ('+str(found['stream_packets'])+'), which VROSTBridge chose for the stream. '
+                 'This PC is on the home network more than once: Fix this PC\'s network settings on the page, or turn the '
+                 'other connection off.')
 
     def wait_for_address(self,interface,cancel,timeout=15):
         """After a Wi-Fi reconnect, wait until the adapter has its home-network address again."""
@@ -2493,7 +2586,22 @@ class Application:
         if stream:summary=dict(summary,stream=stream)
         if self.stream_recovery and self.stream_recovery.restarts:
             summary=dict(summary,recovery={'restarts':self.stream_recovery.restarts,'reason':self.stream_recovery.last_reason[:160]})
+        self.host_streamed=True
+        last_session=getattr(self,'last_session',None)
+        if last_session and last_session.due():self.keep_last_session()
         return summary
+    def keep_last_session(self):
+        """1.0.0.14 (host): write what this session has measured so far, for a report made after a restart."""
+        if not self.last_session:return
+        try:
+            events=self.host_events.status() if self.host_events else {}
+            gaze=((events.get('statistics') or {}).get('GazeFoveation') or {}).get('values')
+            if isinstance(gaze,dict):
+                for key in ('left','right'):gaze.pop(key,None)
+            self.last_session.keep({'version':role_version(self.role),'host_events':events,'session':self.evidence.report(),
+                                    'adapter_counters':self.adapter_counters.snapshot() if getattr(self,'adapter_counters',None) else None,
+                                    'driver_statistics':driver_statistics(self.host/'session_log.txt')})
+        except Exception as error:self.log('Last session record not written: '+str(error)[:160])
 
     def host_addons(self):
         now=time.monotonic()
@@ -2540,7 +2648,7 @@ class Application:
             self.ensure_host_stopped()
             executable=self.host/'ALVR Dashboard.exe'
             if not executable.exists():raise ValueError('Repair or reinstall VROSTBridge Host.')
-            require_private_home_network()
+            require_home_network()
             if not self.host_prepared:self.prepare_host()
             loader=host_loader_check(executable)
             if not loader['ok']:raise ValueError('The host runtime could not load. '+loader['detail'])
@@ -2562,8 +2670,11 @@ class Application:
             addons=self.host_addons()
             if addons:self.log('Other SteamVR add-ons load on this host and may act on the virtual headset: '+', '.join(item['name'] for item in addons)+'. Disable them in SteamVR > Settings > Startup / Shutdown > Manage Add-ons.')
             if preferences.get('headset'):
-                hmd=preferences['headset'];width=doc['session_settings']['video']['transcoding_view_resolution']['Absolute']['width']
-                self.log('Host headset identity: '+hmd['model']+' via VROSTBridge. Requested stream width: '+str(width)+' pixels per eye; physical display '+str(hmd['refresh_hz'])+' Hz.')
+                hmd=preferences['headset'];video=doc['session_settings']['video'];width=video['transcoding_view_resolution']['Absolute']['width']
+                rendered=video['emulated_headset_view_resolution']['Absolute']['width']
+                self.log('Host headset identity: '+hmd['model']+' via VROSTBridge. Requested stream width: '+str(width)+' pixels per eye'
+                         +(', rendered at '+str(rendered)+' (the headset PC\'s recommended size, scaled down for the encoder)' if rendered!=width else '')
+                         +'; physical display '+str(hmd['refresh_hz'])+' Hz.')
             doc=self.session_client(doc,self.session_link.lease_details() if self.session_link else None)
             self.mark_session_gaze(gaze and not own_gaze)
             write_session(self.host/'session.json',doc)
@@ -2656,6 +2767,7 @@ class Application:
     def stop_host_session(self):
         with self.action_lock:
             self.adapter_counters.end()
+            if self.host_streamed:self.keep_last_session()  # 1.0.0.14: the session's final figures
             if self.remote_diagnostics:self.remote_diagnostics.capture()
             forced,self.force_full_stop=self.force_full_stop,False
             runtime=self.host_control.snapshot()
@@ -2849,6 +2961,12 @@ class Application:
                 self.host_waker.discover=answered
                 result=self.host_waker.wake_and_wait(self.settings['host_mac'],wake_targets(host_ip,local_interfaces(lan_addresses())),timeout=120,cancel=self.session_cancelled)
                 self.log(result['message']);return
+            if action=='fix-network' and self.role=='client':  # 1.0.0.14
+                if not self.network_settings:raise ValueError('Only the headset PC has these network settings.')
+                result=self.network_settings.repair()
+                if result.get('state')!='ok':raise ValueError(result.get('message') or 'The network settings were not changed.')
+                if self.running():self.log('The network settings apply at once; a Wi-Fi adapter paused for this session reconnects at Stop.')
+                return
             if action=='repair-async' and self.role=='client':
                 if self.client_runtime.processes():raise ValueError('Close SteamVR on this PC first; the repair applies when it next starts.')
                 result=self.async_reprojection.repair()
@@ -3014,6 +3132,8 @@ class Application:
                         if self.settings['software']:args.append('--software-decode')
                         if not self.settings['late_frame_catchup']:args.append('--no-late-frame-catchup')
                         if not self.settings['motion_prediction']:args.append('--no-prediction')
+                        # 1.0.0.14: the hands' acceleration folded into the poses the host extrapolates; a settings-file switch for comparison.
+                        if self.settings.get('prediction_acceleration') is False:args.append('--no-acceleration')
                         if not self.settings['reaim']:args.append('--no-reaim')
                         if not self.settings['one_pass']:args.append('--two-pass')
                         if not self.settings.get('lens_area',True):args.append('--full-frame')
@@ -3040,7 +3160,7 @@ class Application:
                 self.ensure_host_stopped();self.host.mkdir(parents=True,exist_ok=True)
                 self.settings['auto_connect']=body.get('auto_connect',self.settings['auto_connect']) is True
                 self.save_settings()
-                # Saving preferences cannot enable auto-trust until the Private-network check at Start.
+                # Saving preferences cannot enable auto-trust until the network check at Start.
                 doc=configure(self.session(),body.get('microphone',False),body.get('gaze',False),body.get('codec','H264'),int(body.get('bitrate',80)),auto_connect=False)
                 if body.get('client_ip'):doc=manual_client(doc,body.get('client_hostname',''),body['client_ip'])
                 self.mark_session_gaze(False)  # this PC's own choice from now on

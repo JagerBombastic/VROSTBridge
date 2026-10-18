@@ -8,8 +8,8 @@ shipped patch set. No downloads or compilers are needed on either user's PC.
 import argparse,hashlib,json,os,re,shutil,subprocess,zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
-VERSION='1.0.0.13'
-CLIENT_VERSION='1.0.0.13'
+VERSION='1.0.0.14'
+CLIENT_VERSION='1.0.0.14'
 PRODUCT='VROSTBridge'
 PIN='f5023f8e78fa14ea57fb1038548d7820289a8524'
 

@@ -9,6 +9,13 @@ stream adapter's subnet (`nmcli device disconnect`), and reconnects them when th
 session stops (`nmcli device connect`). The stream adapter, wired adapters and
 adapters on other networks are never touched.
 
+1.0.0.14: a wired stream leaves Wi-Fi alone where the system already keeps the stream on the cable: on Windows, which
+answers ARP only on the adapter that has the address, and on Linux once arp_ignore/arp_announce are set (launcher/
+network_settings.py). Pausing remains for a Wi-Fi stream (airtime) and for a Linux PC without those settings, where
+the host could otherwise send the video to the Wi-Fi card. The caller checks the host is still reachable over the
+stream adapter after a pause and undoes it at once if not (resume_now): on one PC disconnecting Wi-Fi left the
+cable without a route, and every Start failed.
+
 A receipt file records what was paused, so a companion that ends unexpectedly
 reconnects those adapters the next time it starts. Every failure is reported and
 none blocks a session.
@@ -121,12 +128,26 @@ class OtherWifiPause:
         except OSError as error:
             self.log('WIFI Could not record the paused adapters: ' + str(error)[:160])
 
-    def begin(self, interface, source_ip, enabled=True):
-        """Pause other same-network Wi-Fi adapters for this session (enabled) or only warn."""
+    def begin(self, interface, source_ip, enabled=True, wired=False, separated=False):
+        """Pause other same-network Wi-Fi adapters for this session (enabled) or only warn. A wired stream leaves them
+        connected when the system keeps the stream on the cable anyway (`separated`, always on Windows)."""
         with self.operation:
-            return self._begin(interface, source_ip, enabled)
+            return self._begin(interface, source_ip, enabled, wired, separated or sys.platform == 'win32')
 
-    def _begin(self, interface, source_ip, enabled):
+    def resume_now(self, reason):
+        """Reconnect what this session paused, at once (the pause cut the stream adapter off)."""
+        with self.operation:
+            with self.lock:
+                paused, self.paused = self.paused, []
+            if not paused:
+                return self.status()
+            failed = self._reconnect(paused, reason)
+            self.unrestored = failed
+            self._write_receipt(failed)
+            self._set('resumed', 'Reconnected ' + ', '.join(paused) + ': ' + reason + '.')
+            return self.status()
+
+    def _begin(self, interface, source_ip, enabled, wired=False, separated=False):
         self._end(retry=False)  # never delay a start for an adapter an earlier run left down
         if not interface or not source_ip:
             return self.status()
@@ -137,6 +158,9 @@ class OtherWifiPause:
             self._set('none', '')
             return self.status()
         names = ', '.join(others)
+        if wired and separated:
+            self._set('kept', 'Wi-Fi (' + names + ') stays connected: the cable carries the stream.')
+            return self.status()
         if not enabled:
             self._set('warning', 'Another Wi-Fi adapter (' + names + ') is on the same network as the stream adapter ' +
                       interface + '. It shares the radio channel and can stop a reconnection; turn it off, or let '

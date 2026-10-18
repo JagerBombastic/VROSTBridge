@@ -1,6 +1,7 @@
 """Bounded physical-headset metadata and explicit stream-size selection."""
 import json
 import math
+import re
 import struct
 
 TEXT_FIELDS = ('model', 'manufacturer', 'tracking_system', 'serial', 'render_model',
@@ -87,6 +88,36 @@ def client_stream_preferences(value):
     return {'codec': codec, 'bitrate': bitrate, 'resolution': resolution}
 
 
+DECODER_PROFILES = ('h264', 'hevc', 'hevc_main10', 'av1', 'av1_10bit')
+
+
+def parse_decoder_profiles(line):
+    """1.0.0.14: the native client's decoder-profile line (Windows: 'STATUS SteamVR's GPU for D3D11VA: … decoder
+    profiles h264=1 hevc=1 …'; Linux: 'STATUS VA-API decoder profiles on /dev/dri/renderD128: h264=1 …') as
+    {'backend', 'device', 'h264', …}, or None for any other line."""
+    if not isinstance(line, str) or 'decoder profiles' not in line or not line.startswith('STATUS '):
+        return None
+    head, _, tail = line.partition('decoder profiles')
+    found = dict(re.findall(r'\b(h264|hevc|hevc_main10|av1|av1_10bit)=([01])\b', tail))
+    if 'hevc' not in found:
+        return None
+    result = {key: found.get(key) == '1' for key in DECODER_PROFILES}
+    result['backend'] = 'D3D11VA' if 'D3D11VA' in head else 'VA-API' if 'VA-API' in head else 'unknown'
+    device = re.search(r'D3D11VA: (.+?) \(DXGI adapter', head) or re.search(r' on (/dev/dri/\S+):', tail)
+    result['device'] = device.group(1)[:96] if device else ''
+    return result
+
+
+def automatic_codec(decoders=None):
+    """1.0.0.14: the codec Auto means: HEVC (10-bit where the decoder has it), for every headset. Until 1.0.0.13 Auto
+    was H.264 on everything but a Beyond, a choice from the days of weak decoders that left Index users with the
+    weakest codec and no 10-bit. H.264 only where the headset PC's decoder was found to lack HEVC (the native
+    client's decoder profiles, remembered by the companion)."""
+    if isinstance(decoders, dict) and decoders.get('hevc') is False and decoders.get('h264') is not False:
+        return 'H264'
+    return 'Hevc'
+
+
 def family_headset(family):
     """1.0.0.13: a known headset seen only by its display, described as SteamVR would before it has (DISPLAY_ONLY)."""
     manufacturer, model, width, height, hz = DISPLAY_ONLY[family]
@@ -153,7 +184,7 @@ def resolve_stream_preferences(value, headset):
     # as Auto does, and stays saved for the headset it was made for.
     chosen = result['resolution'] if result['resolution'] in offered_resolutions(family) else 'automatic'
     if result['codec'] == 'Auto':
-        result['codec'] = 'Hevc' if family == 'beyond' else 'H264'
+        result['codec'] = automatic_codec(value.get('decoder_profiles'))
     if chosen == 'automatic':
         # Conservative for other headsets; the full runtime recommendation stays selectable. Never equate the render
         # recommendation with panel pixels. 1.0.0.13: a Beyond or an Index streams the mode it runs (until 1.0.0.12
@@ -248,7 +279,7 @@ def resolution_options(preferences, headset=None, source='detected'):
         physical = None
     family = headset_family(physical) if physical else None
     codec = preferences.get('codec', 'Auto')
-    effective_codec = ('Hevc' if family == 'beyond' else 'H264') if codec == 'Auto' else codec
+    effective_codec = automatic_codec(preferences.get('decoder_profiles')) if codec == 'Auto' else codec
     current = preferences.get('resolution', 'automatic')
     labels = {'automatic': 'Auto', 'sharp': 'High', 'compatibility': 'Standard' if effective_codec == 'H264' else 'Custom',
               'recommended': 'SteamVR app size', **{key: mode['label'] for key, mode in MODES.items()}}

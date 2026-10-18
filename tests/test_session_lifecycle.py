@@ -328,7 +328,7 @@ class SessionLifecycleTests(unittest.TestCase):
     def test_opening_host_ui_prepares_listener_without_starting_steamvr(self):
         app = self.app('host')
         with patch('launcher.app.check_machine',return_value={'checks':[]}), \
-             patch('launcher.app.require_private_home_network'), \
+             patch('launcher.app.require_home_network'), \
              patch.object(app,'setup_host') as setup:
             app.autostart()
         setup.assert_called_once_with('Firewall')

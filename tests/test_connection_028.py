@@ -56,7 +56,7 @@ class AppMicrophoneTests(SessionLifecycleTests):
         doc=profile();doc['session_settings']['audio']['microphone']['enabled']=True
         app.session=Mock(return_value=doc);app.settings['microphone']=True
         app.host_prepared=True;app.ensure_host_stopped=Mock();app.setup_host=Mock()
-        with patch('launcher.app.require_private_home_network'),patch('launcher.app.host_loader_check',return_value={'ok':True}),patch('host.audio.subprocess.run') as probe:
+        with patch('launcher.app.require_home_network'),patch('launcher.app.host_loader_check',return_value={'ok':True}),patch('host.audio.subprocess.run') as probe:
             app.start_host_session({'codec':'H264','bitrate':80,'microphone':False})
         saved=json.loads((app.host/'session.json').read_text())['session_settings']['audio']
         self.assertFalse(saved['microphone']['enabled']);self.assertTrue(saved['game_audio']['enabled']);probe.assert_not_called();app.host_control.start.assert_called_once()

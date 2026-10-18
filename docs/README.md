@@ -31,7 +31,7 @@ cup of tea.
 | ↳ [Security and privacy](TECHNICAL_REFERENCE.md#17-security-and-privacy) | What is protected, what isn't, and what happens to eye data |
 | ↳ [Where VROSTBridge differs](TECHNICAL_REFERENCE.md#part-2--where-vrostbridge-differs) | From ALVR, a directly connected headset, SteamVR's defaults and Baballonia's usual setup |
 | ↳ [Settings](TECHNICAL_REFERENCE.md#28-settings-and-their-defaults), [files](TECHNICAL_REFERENCE.md#29-files-and-folders) and [log lines](TECHNICAL_REFERENCE.md#30-log-lines) | Reference tables |
-| [Project specification](PROJECT_SPEC.md) ([PDF](PROJECT_SPEC.pdf)) | Every requirement and decision, release by release |
+| [Project specification](PROJECT_SPEC.md) ([PDF](PROJECT_SPEC.pdf)) | Every requirement and design decision, with the reasons behind it |
 | [Implementation status](IMPLEMENTATION_STATUS.md) | What is implemented, what has been confirmed on hardware and what hasn't |
 
 ## Building, contributing and licences
@@ -50,15 +50,15 @@ cup of tea.
 | Document | What's in it |
 | --- | --- |
 | [Changelog](../CHANGELOG.md) | Each version in a few lines, newest first |
-| [Release notes for 1.0.0.13](RELEASE_1.0.0.13.md) | The current release in detail, with how to test it and its known limits |
-| [Build verification](BUILD_VERIFICATION.md) and its [evidence](evidence/) | How each release was built and checked, with hashes and test results |
-| [Development checkpoint](DEVELOPMENT_CHECKPOINT.md) | The developer's handoff: what each release changed in the code, and what comes next |
+| [Release notes for 1.0.0.14](RELEASE_1.0.0.14.md) | The current release in detail, with how to test it and its known limits |
+| [Build verification](BUILD_VERIFICATION.md) and its [evidence](evidence/) | How the current release was built and checked, with hashes and test results |
+| [Development checkpoint](DEVELOPMENT_CHECKPOINT.md) | The developer's handoff: the current state of the code, how the parts fit, and what comes next |
 | [Publishing on GitHub](PUBLISHING.md) | The maintainer's checklist for a release |
-| [The 1.0.0.13 release page](GITHUB_RELEASE_1.0.0.13.md) | The text for the GitHub release page, with the files to attach |
+| [The 1.0.0.14 release page](GITHUB_RELEASE_1.0.0.14.md) | The text for the GitHub release page, with the files to attach |
 
 ## History
 
 [`history/`](history/) keeps the project's earlier records: release notes from the first release candidates to
-1.0.0.10, release reviews, test reports and research notes. They are kept for the record. Where they differ from the
+1.0.0.13, the earlier parts of the build verification, status, development record and changelog, release reviews, test reports and research notes. They are kept for the record. Where they differ from the
 documents above, the documents above are right. The [complete index](DOCUMENTATION_INDEX.md) lists every document,
 old and new, with a line on each.

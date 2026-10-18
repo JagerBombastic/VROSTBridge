@@ -1,4 +1,7 @@
 #include "client/platform/linux/video.hpp"
+#ifndef _WIN32
+#include "client/platform/linux/vaapi_profiles.hpp"
+#endif
 extern "C" {
 #include <libavutil/pixdesc.h>
 }
@@ -137,6 +140,17 @@ void VulkanVideo::open(OpenVRDevice &runtime,
             minor(st.st_rdev) == drm.renderMinor)
           renderNode = entry.path();
       }
+  }
+  {
+    // 1.0.0.14: what this GPU's VA-API decoder handles, for the companion's Auto codec and the report
+    // (the Windows client reports its D3D11 decoder profiles the same way in openWindows()).
+    const auto profiles = vaapiDecoderProfiles(renderNode);
+    if (profiles.queried)
+      diagnosticLine("STATUS VA-API decoder profiles on " + renderNode + ": h264=" + std::to_string(profiles.h264) +
+                     " hevc=" + std::to_string(profiles.hevc) + " hevc_main10=" + std::to_string(profiles.hevcMain10) +
+                     " av1=" + std::to_string(profiles.av1) + " av1_10bit=" + std::to_string(profiles.av1TenBit));
+    else
+      diagnosticLine("STATUS VA-API decoder profiles not read: " + profiles.problem);
   }
 #endif
   VkCommandPoolCreateInfo pool{VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO};

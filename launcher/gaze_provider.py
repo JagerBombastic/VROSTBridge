@@ -356,7 +356,12 @@ class GazeRelay:
         self.outgoing = self.outgoing_udp = None
         self._sockets = threading.Lock()
         self.incoming = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try: self.incoming.bind(('127.0.0.1', port))
+        try:
+            # 1.0.0.14: room for a few hundred OSC messages when this thread is held off (the kernel caps it at
+            # net.core.rmem_max, launcher/network_settings.py); a full buffer drops samples and shows as gaze gaps.
+            try: self.incoming.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 * 1024 * 1024)
+            except (OSError, AttributeError): pass  # a stand-in socket module in a test
+            self.incoming.bind(('127.0.0.1', port))
         except BaseException: self.incoming.close(); raise
         self.incoming.settimeout(.1)
         # Linux: the native client's AF_UNIX datagram socket. Windows' Python has no AF_UNIX (an AttributeError):

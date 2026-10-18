@@ -398,6 +398,21 @@ const base = {
   assert.equal(rc4.elements.get('bitrate').disabled,true,'Automatic bitrate replaces the manual value');
   assert.equal(rc4.elements.get('repair-async').classList.contains('hidden'),false);
   assert.equal(rc4.elements.get('wifi-fix').classList.contains('hidden'),false);
+  // 1.0.0.14: the network settings: the fix shows only while this PC needs it, allowed during a session.
+  assert.equal(rc4.elements.get('fix-network').classList.contains('hidden'),true,'No fix before the check says one is needed');
+  rc4.state.value.system.network_settings={state:'needed',message:'This PC is on the home network more than once (enp1, wlp1).',needs:['arp']};
+  rc4.state.value.system.video_path={adapter:'wlp1',stream_adapter:'enp1',packets:7545476,stream_packets:77653};
+  await rc4.run('update()');
+  assert.equal(rc4.elements.get('fix-network').classList.contains('hidden'),false);
+  assert(rc4.elements.get('network-settings-status').textContent.startsWith('The video is arriving over wlp1, not over enp1. '));
+  assert(rc4.elements.get('network-settings-status').textContent.includes('more than once'));
+  await rc4.run("act('fix-network')");
+  assert.deepEqual(rc4.calls.at(-1).body,{action:'fix-network'});
+  assert.equal(rc4.elements.get('notice').textContent,'Network settings fixed; Wi-Fi can stay connected during sessions.');
+  rc4.state.value.system.network_settings={state:'ok',message:''};rc4.state.value.system.video_path=null;
+  await rc4.run('update()');
+  assert.equal(rc4.elements.get('fix-network').classList.contains('hidden'),true);
+  assert.equal(rc4.elements.get('network-settings-status').textContent,'');
   assert.equal(rc4.elements.get('wake-now').disabled,false);
   assert.equal(rc4.elements.get('keep_warm_minutes').value,'15');
   await rc4.run("act('start')");

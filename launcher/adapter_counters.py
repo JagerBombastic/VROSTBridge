@@ -7,6 +7,11 @@ carried the stream is plain to see) and every drop and error counter that moved.
 receive errors (a socket that overflowed) and, for the stream's adapter, its driver's own drop counters (ethtool).
 A counter an adapter does not keep is left out. The host reads the headset PC's report during the session, so the
 figures are measured when a report is made, and kept as they were when the session ended.
+
+1.0.0.14: the first session with these counters answered the question: the adapters and the driver dropped nothing,
+and the kernel's RcvbufErrors rose 9,349 times. The report now also carries each socket's own drop count (the stream's
+and the gaze relay's, from /proc/net/udp), so a full buffer is pinned to the socket that filled, and the receive buffer
+limit itself (launcher/network_settings.py), which the page offers to raise where it is too small.
 """
 import os
 from pathlib import Path
@@ -70,6 +75,30 @@ def linux_udp(path='/proc/net/snmp'):
     return result
 
 
+def linux_udp_sockets(ports, paths=('/proc/net/udp', '/proc/net/udp6')):
+    """1.0.0.14: {port: datagrams the kernel dropped at the sockets bound to that local port} (the last column of
+    /proc/net/udp, which counts a full receive buffer per socket; the system's RcvbufErrors cannot say which socket)."""
+    wanted = {int(port) for port in ports}
+    result = {}
+    for path in paths:
+        try:
+            lines = Path(path).read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for line in lines:
+            fields = line.split()
+            if len(fields) < 13:
+                continue
+            try:
+                port = int(fields[1].rsplit(':', 1)[1], 16)
+                drops = int(fields[-1])
+            except (IndexError, ValueError):
+                continue
+            if port in wanted:
+                result[port] = result.get(port, 0) + drops
+    return result
+
+
 def _ethtool():
     found = shutil.which('ethtool')
     if found:
@@ -103,13 +132,22 @@ def linux_driver(interface, runner=None, ethtool=None):
     return result
 
 
+# 1.0.0.14: the sockets whose own drop counts the report names: the stream (UDP 9944) and the gaze relay (9005).
+SOCKETS = {'stream': 9944, 'gaze': 9005}
+
+
 def default_reader():
     if sys.platform == 'win32':
         def read():
             from launcher import windows_network
-            return {'adapters': windows_network.adapter_counters(), 'udp': {}}
+            return {'adapters': windows_network.adapter_counters(), 'udp': {}, 'sockets': {}}
         return read, lambda interface: {}
-    return (lambda: {'adapters': linux_adapters(), 'udp': linux_udp()}), linux_driver
+
+    def read():
+        by_port = linux_udp_sockets(SOCKETS.values())
+        return {'adapters': linux_adapters(), 'udp': linux_udp(),
+                'sockets': {name: by_port[port] for name, port in SOCKETS.items() if port in by_port}}
+    return read, linux_driver
 
 
 def _gained(before, after, keep=()):
@@ -140,6 +178,7 @@ def gained(start, now):
         if name not in now['adapters']:
             adapters[name] = {'gone': True}
     return {'adapters': adapters, 'udp': _gained(start['udp'], now['udp']),
+            'sockets': _gained(start.get('sockets') or {}, now.get('sockets') or {}),  # 1.0.0.14
             'driver': _gained(start['driver'], now['driver'])}
 
 
@@ -148,6 +187,26 @@ def stream_drops(change, interface):
     row = change['adapters'].get(interface) or {}
     return sum(value for key, value in row.items()
                if key not in PACKETS and isinstance(value, int) and not isinstance(value, bool))
+
+
+def elsewhere(snapshot, least=3000):
+    """1.0.0.14: the video arriving on another adapter than the stream's. A headset PC on one network by cable and
+    Wi-Fi can answer the host's ARP on the Wi-Fi card (launcher/network_settings.py): the stream is then received there
+    while the companion believes it is wired. Returns that adapter and both packet counts once it has received at
+    least `least` packets and more than twice what the stream adapter received; otherwise None."""
+    interface = (snapshot or {}).get('stream_interface')
+    adapters = (snapshot or {}).get('adapters') or {}
+    if not interface or interface not in adapters:
+        return None
+    mine = int((adapters.get(interface) or {}).get('rx_packets') or 0)
+    name, most = '', 0
+    for other, row in adapters.items():
+        packets = int((row or {}).get('rx_packets') or 0)
+        if other != interface and packets > most:
+            name, most = other, packets
+    if name and most >= least and most > 2 * mine:
+        return {'adapter': name, 'packets': most, 'stream_adapter': interface, 'stream_packets': mine}
+    return None
 
 
 class AdapterCounters:
@@ -173,7 +232,7 @@ class AdapterCounters:
         except Exception:
             driver = {}
         return {'adapters': dict(value.get('adapters') or {}), 'udp': dict(value.get('udp') or {}),
-                'driver': dict(driver or {})}
+                'sockets': dict(value.get('sockets') or {}), 'driver': dict(driver or {})}
 
     def begin(self, interface=''):
         """A session starts: note every counter now. `interface` is the adapter carrying the stream, if known."""

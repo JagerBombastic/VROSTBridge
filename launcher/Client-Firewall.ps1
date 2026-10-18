@@ -1,5 +1,5 @@
-# VROSTBridge client: Windows Firewall rules that let the rendering host reach this headset PC on the private
-# home network. Modelled on host/Host-Setup.ps1 -Action Firewall; launcher/client_network.py runs it.
+# VROSTBridge client: Windows Firewall rules that let the rendering host reach this headset PC on the
+# home network (local subnet, any network type from 1.0.0.14). Modelled on host/Host-Setup.ps1 -Action Firewall; launcher/client_network.py runs it.
 #   -Action Check           read-only, no elevation: one JSON line describing the rules
 #   -Action Firewall        create or replace the rules (asks for administrator permission once)
 #   -Action RemoveFirewall  remove only the rules VROSTBridge created (for the uninstaller)
@@ -75,7 +75,7 @@ function Get-RuleState($expected) {
     $rule=Get-NetFirewallRule -Name $expected.Name -ErrorAction SilentlyContinue
     if (-not $rule) {return 'missing'}
     if ($rule.Description -ne $ownership) {return 'foreign'}
-    if ($rule.Enabled -ne 'True' -or $rule.Action -ne 'Allow' -or $rule.Direction -ne 'Inbound' -or $rule.Profile -ne 'Private') {return 'different'}
+    if ($rule.Enabled -ne 'True' -or $rule.Action -ne 'Allow' -or $rule.Direction -ne 'Inbound' -or $rule.Profile -ne 'Any') {return 'different'}
     $ports=$rule | Get-NetFirewallPortFilter
     $addresses=$rule | Get-NetFirewallAddressFilter
     $application=$rule | Get-NetFirewallApplicationFilter
@@ -127,7 +127,7 @@ if ($Action -eq 'Check') {
 # -Action Firewall
 $states=@(foreach ($expected in (Get-ExpectedRules)) {Get-RuleState $expected})
 if ($states -contains 'foreign') {throw 'A firewall rule named VROSTBridge.Client.* already exists without the VROSTBridge ownership marker. It was not changed.'}
-if (-not ($states | Where-Object {$_ -ne 'ready'})) {Write-Output 'Client private-LAN firewall rules are already configured.';exit 0}
+if (-not ($states | Where-Object {$_ -ne 'ready'})) {Write-Output 'Client home-network firewall rules are already configured.';exit 0}
 if (-not (Test-Administrator)) {
     Invoke-Elevated ('-Action Firewall -ClientExecutable '+(Format-Literal $ClientExecutable)+' -PythonExecutable '+(Format-Literal $PythonExecutable))
 }
@@ -136,7 +136,7 @@ foreach ($expected in (Get-ExpectedRules)) {
     # Check again immediately before replacement, including after elevation.
     if ($rule -and $rule.Description -ne $ownership) {throw "Firewall rule $($expected.Name) is not owned by VROSTBridge; it was not changed."}
     if ($rule) {$rule | Remove-NetFirewallRule}
-    New-NetFirewallRule -Name $expected.Name -DisplayName "$($expected.Name) (private LAN)" -Description $ownership -Program $expected.Program -Direction Inbound -Action Allow -Protocol $expected.Protocol -LocalPort $expected.Ports -Profile Private -RemoteAddress LocalSubnet | Out-Null
+    New-NetFirewallRule -Name $expected.Name -DisplayName "$($expected.Name) (home network)" -Description $ownership -Program $expected.Program -Direction Inbound -Action Allow -Protocol $expected.Protocol -LocalPort $expected.Ports -Profile Any -RemoteAddress LocalSubnet | Out-Null
 }
-Write-Output 'Client private-LAN rules configured: VROSTBridge client streaming TCP 9943 and UDP 9944 and mDNS UDP 5353; companion diagnostics TCP 9945, network test UDP 9944 and session discovery UDP 9946. Private networks and the local subnet only.'
+Write-Output 'Client home-network rules configured (local subnet only): VROSTBridge client streaming TCP 9943 and UDP 9944 and mDNS UDP 5353; companion diagnostics TCP 9945, network test UDP 9944 and session discovery UDP 9946. Private networks and the local subnet only.'
 exit 0

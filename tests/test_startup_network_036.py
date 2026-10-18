@@ -44,7 +44,7 @@ class HostNetworkStartupTests(unittest.TestCase):
 
     def test_network_arriving_after_sign_in_prepares_once_without_starting_runtime(self):
         app = self.app()
-        with patch('launcher.app.require_private_home_network',
+        with patch('launcher.app.require_home_network',
                    side_effect=[ValueError('No network'), ValueError('No network'), []]) as query, \
              patch('launcher.app.open_desktop') as browser:
             app.autostart(); app.autostart()
@@ -61,7 +61,7 @@ class HostNetworkStartupTests(unittest.TestCase):
     def test_public_network_never_bypasses_guard_or_floods_logs(self):
         closing = FastWake(lambda wake: wake.set() if len(wake.delays) == 8 else None)
         app = self.app(closing)
-        with patch('launcher.app.require_private_home_network', side_effect=ValueError('Public network')):
+        with patch('launcher.app.require_home_network', side_effect=ValueError('Public network')):
             app.autostart()
         self.assertEqual(closing.delays, [1, 2, 4, 8, 16, 30, 30, 30])
         app.setup_host.assert_not_called()
@@ -73,7 +73,7 @@ class HostNetworkStartupTests(unittest.TestCase):
     def test_failed_firewall_permission_is_attempted_only_once(self):
         app = self.app()
         app.setup_host.side_effect = ValueError('Firewall permission declined')
-        with patch('launcher.app.require_private_home_network', side_effect=[ValueError('No LAN'), []]) as query:
+        with patch('launcher.app.require_home_network', side_effect=[ValueError('No LAN'), []]) as query:
             app.autostart()
             app.prepare_host_after_network()
         self.assertEqual(query.call_count, 2)
@@ -84,7 +84,7 @@ class HostNetworkStartupTests(unittest.TestCase):
     def test_readiness_recovery_does_not_clear_an_unrelated_error(self):
         app = self.app()
         app.closing.after_wait = lambda _: setattr(app, 'startup_error', 'Tray failed')
-        with patch('launcher.app.require_private_home_network', side_effect=[ValueError('No LAN'), []]):
+        with patch('launcher.app.require_home_network', side_effect=[ValueError('No LAN'), []]):
             app.autostart()
         self.assertTrue(app.host_prepared)
         self.assertEqual(app.startup_error, 'Tray failed')
@@ -93,7 +93,7 @@ class HostNetworkStartupTests(unittest.TestCase):
         app = self.app()
         app.startup_error = 'Native runtime files damaged'
         app.setup_host.side_effect = ValueError('Firewall permission declined')
-        with patch('launcher.app.require_private_home_network', return_value=[]):
+        with patch('launcher.app.require_home_network', return_value=[]):
             app.autostart()
         self.assertEqual(app.startup_error, 'Native runtime files damaged')
         app.setup_host.assert_called_once_with('Firewall')
@@ -103,7 +103,7 @@ class HostNetworkStartupTests(unittest.TestCase):
         def manual(_):
             app.prepare_host()
         app.closing.after_wait = manual
-        with patch('launcher.app.require_private_home_network', side_effect=[ValueError('No LAN'), []]) as query:
+        with patch('launcher.app.require_home_network', side_effect=[ValueError('No LAN'), []]) as query:
             app.autostart()
         self.assertEqual(query.call_count, 2)
         app.setup_host.assert_called_once_with('Firewall')
@@ -117,7 +117,7 @@ class HostNetworkStartupTests(unittest.TestCase):
         def no_network():
             entered.set()
             raise ValueError('No network')
-        with patch('launcher.app.require_private_home_network', side_effect=no_network) as query:
+        with patch('launcher.app.require_home_network', side_effect=no_network) as query:
             worker = threading.Thread(target=app.autostart)
             worker.start()
             self.assertTrue(entered.wait(1))
@@ -131,7 +131,7 @@ class HostNetworkStartupTests(unittest.TestCase):
         app = self.app()
         def ready_but_closing():
             app.closing.set()
-        with patch('launcher.app.require_private_home_network', side_effect=ready_but_closing):
+        with patch('launcher.app.require_home_network', side_effect=ready_but_closing):
             app.autostart()
         app.setup_host.assert_not_called()
         self.assertFalse(app.host_prepared)

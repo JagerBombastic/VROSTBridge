@@ -705,7 +705,8 @@ class GameModeScreenTests(unittest.TestCase):
                    'eye-remove',
                    'eye-reach-reset',  # 1.0.0.6: the Eye tracking page's Gaze reach row
                    # 1.0.0.8: the live switches, base stations, recommended settings, centring, previous calibration
-                   'client-option', 'base-stations', 'recommended-settings', 'gaze-centre-reset', 'eye-calibration'}
+                   'client-option', 'base-stations', 'recommended-settings', 'gaze-centre-reset', 'eye-calibration',
+                   'fix-network'}  # 1.0.0.14: one network twice, the receive buffer (Linux)
         host_or_desktop_only = {'host-power', 'qos', 'set-startup', 'configure', 'firewall', 'unregister', 'build-host',
                                 'trust-client', 'forget-client', 'add-client', 'allow-client-network', 'camera-start',
                                 'camera-stop', 'check', 'steam-add', 'steam-remove', 'microphone-setup', 'microphone-check',

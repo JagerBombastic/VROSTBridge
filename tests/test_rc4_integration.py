@@ -314,8 +314,9 @@ class ClientIntegrationTests(SessionLifecycleTests):
                                                       'recommendation': {'recommended_mbps': 180, 'clean_mbps': 250}})
         with patch('launcher.app.link_info', return_value={'kind': 'wired', 'speed_mbps': 2500}):
             prefs = app.host_preferences({'codec': 'Hevc', 'bitrate': 80, 'headset': BEYOND})
-        # 1.0.0.8: the measured 180 Mbit/s, held to what this stream's picture needs (launcher/stream_budget.py).
-        self.assertEqual(prefs['bitrate'], 56)
+        # 1.0.0.8: the measured 180 Mbit/s, held to what this stream's picture needs (launcher/stream_budget.py);
+        # 1.0.0.14 raised HEVC's ceiling from 0.22 to 0.30 bits per pixel (56 became 76).
+        self.assertEqual(prefs['bitrate'], 76)
         self.assertEqual(prefs['pacing_mbps'], 2300)
         self.assertTrue(prefs['foveation']['gaze'])
         self.assertNotIn('gaze', prefs, 'only hosts listing session-gaze accept the field')
@@ -433,7 +434,7 @@ class HostIntegrationTests(SessionLifecycleTests):
         prefs = dict({'codec': 'Hevc', 'bitrate': 120, 'microphone': False, 'ten_bit': True, 'pacing_mbps': 2300,
                       'keep_warm_minutes': 15,
                       'foveation': foveation_parameters('balanced', False, ('optical-centre',))}, **extra)
-        with patch('launcher.app.require_private_home_network'), \
+        with patch('launcher.app.require_home_network'), \
                 patch('launcher.app.host_loader_check', return_value={'ok': True}), patch('host.audio.subprocess.run'):
             app.start_host_session(prefs)
 

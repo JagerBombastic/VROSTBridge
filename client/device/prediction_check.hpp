@@ -40,9 +40,15 @@ public:
 
   // One controller sample (monotonic ns, metres, metres per second) and the stream's current
   // prediction step. A sample within half a tracking interval of now - horizon is used.
-  void add(uint64_t now, const float position[3], const float velocity[3], uint64_t horizonNs) {
+  // 1.0.0.14: `sentPosition` and `sentVelocity`, when given, are what the host receives for this sample (the
+  // acceleration folded in, acceleration.hpp); the extrapolation starts from them and is still measured against
+  // where the controller really is.
+  void add(uint64_t now, const float position[3], const float velocity[3], uint64_t horizonNs,
+           const float *sentPosition = nullptr, const float *sentVelocity = nullptr) {
     if (!finite3(position) || !finite3(velocity)) return;
-    history_[next_] = {now, {position[0], position[1], position[2]}, {velocity[0], velocity[1], velocity[2]}};
+    const float *from = sentPosition && finite3(sentPosition) ? sentPosition : position;
+    const float *rate = sentVelocity && finite3(sentVelocity) ? sentVelocity : velocity;
+    history_[next_] = {now, {from[0], from[1], from[2]}, {rate[0], rate[1], rate[2]}};
     next_ = (next_ + 1) % kHistory;
     if (count_ < kHistory) ++count_;
     if (!horizonNs || horizonNs > 200000000ULL || now <= horizonNs) return;

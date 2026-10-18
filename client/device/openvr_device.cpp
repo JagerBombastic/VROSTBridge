@@ -320,6 +320,7 @@ void OpenVRDevice::trackingLoop(void *t) {
   };
   std::array<HandDiagnostics, 2> handDiagnostics{};
   PairCheck controllerPair;  // 1.0.0.6: the controllers' distance while held still (prediction_check.hpp)
+  std::array<MotionAcceleration, 3> accelerations{};  // 1.0.0.14: head, left, right (acceleration.hpp)
   uint64_t skeletonAt = 0;
   const uint64_t skeletonPeriod = uint64_t(1000000000.0 / std::min(refresh,120.f));
   std::array<std::vector<float>, 2> previous;
@@ -335,7 +336,8 @@ void OpenVRDevice::trackingLoop(void *t) {
     vrost_buttons(t, updates.data(), updates.size());
   };
   diagnosticLine(std::string("STATUS Motion prediction: ") +
-                 (prediction_ ? "on (current poses; the host predicts once by the measured latency)"
+                 (prediction_ ? (acceleration_ ? "on (current poses with their acceleration folded in; the host predicts once by the measured latency)"
+                                               : "on (current poses; the host predicts once by the measured latency)")
                               : "off (current poses, timestamped now)"));
   // Even pose timing: sample on a grid locked to this display's refresh so the host
   // gets a pose of the same age for every frame (see tracking_schedule.hpp).
@@ -394,6 +396,7 @@ void OpenVRDevice::trackingLoop(void *t) {
     const bool active = online && hmdConnected;
     if (!active) {
       previousSample=0;
+      for (auto &a : accelerations) a.reset();
       for (auto &d : handDiagnostics) {
         d.skeleton.clear(); d.native.clear();
         d.prediction.clear();
@@ -480,9 +483,21 @@ void OpenVRDevice::trackingLoop(void *t) {
         m.pose = quaternion(copy(raw[d].mDeviceToAbsoluteTracking));
         std::memcpy(m.linear, raw[d].vVelocity.v, sizeof(m.linear));
         std::memcpy(m.angular, raw[d].vAngularVelocity.v, sizeof(m.angular));
+        // 1.0.0.14: the acceleration, folded into the pose and velocity the host extrapolates by its prediction step.
+        const VrostMotion measured = m;
+        accelerations[i].observe(sampleNow, m.linear, m.angular);
+        if (acceleration_ && prediction_ && predictionNs.load()) {
+          accelerations[i].apply(m, double(predictionNs.load()) * 1e-9);
+          if (i > 0) {
+            const uint64_t mm = uint64_t(accelerations[i].magnitude() * 1000.f);
+            if (mm > accelerationMaxMm.load()) accelerationMaxMm = mm;
+            ++accelerationSamples;
+          }
+        }
         motions.push_back(m);
         if (i > 0)
-          handDiagnostics[i - 1].prediction.add(sampleNow, m.pose.position, m.linear, predictionNs);
+          handDiagnostics[i - 1].prediction.add(sampleNow, measured.pose.position, measured.linear, predictionNs,
+                                                m.pose.position, m.linear);
         if (i == 2 && motions.size() >= 2 && motions[motions.size() - 2].id == ids[1])
           controllerPair.add(motions[motions.size() - 2].pose.position, motions[motions.size() - 2].linear,
                              m.pose.position, m.linear);
@@ -529,8 +544,23 @@ void OpenVRDevice::trackingLoop(void *t) {
         }
       }
       if (!motions.empty() && motions[0].id == ids[0]) {
+        // 1.0.0.14: the gaze turned against the head's motion over the time until the frame is shown (the sample's
+        // age plus the host's prediction step), so the sharp region lands where the eyes will be, not where they were.
+        const VrostQuat *gazeSample = gaze_.sample(sampleNow);
+        VrostQuat predictedGaze{};
+        if (gazeSample) {
+          const uint64_t age = sampleNow > gaze_.timestamp() ? sampleNow - gaze_.timestamp() : 0;
+          const double ahead = double(age + predictionNs.load()) * 1e-9;
+          predictedGaze = predictGaze(*gazeSample, motions[0].pose.orientation, motions[0].angular, ahead);
+          const float dot = std::fabs(predictedGaze.x * gazeSample->x + predictedGaze.y * gazeSample->y +
+                                      predictedGaze.z * gazeSample->z + predictedGaze.w * gazeSample->w);
+          const uint64_t turnMrad = uint64_t(2000.0 * std::acos(std::min(1.0f, dot)));
+          if (turnMrad > gazeTurnMaxMrad.load()) gazeTurnMaxMrad = turnMrad;
+          ++gazePredicted;
+          gazeSample = &predictedGaze;
+        }
         vrost_tracking_native(t, timestamp, motions.data(), motions.size(),
-                    gaze_.sample(sampleNow), skeletonPointers[0], skeletonPointers[1],
+                    gazeSample, skeletonPointers[0], skeletonPointers[1],
                     nativePointers[0], nativePointers[1]);
         ++headPoses;
       } else {

@@ -3,8 +3,8 @@
 1 ICON "../launcher/brand/vrostbridge.ico"
 
 1 VERSIONINFO
-FILEVERSION 1,0,0,13
-PRODUCTVERSION 1,0,0,13
+FILEVERSION 1,0,0,14
+PRODUCTVERSION 1,0,0,14
 FILEOS 0x40004
 FILETYPE 0x1
 BEGIN
@@ -13,12 +13,12 @@ BEGIN
     BLOCK "040904B0"
     BEGIN
       VALUE "FileDescription", "VROSTBridge Host"
-      VALUE "FileVersion", "1.0.0.13"
+      VALUE "FileVersion", "1.0.0.14"
       VALUE "InternalName", "VROSTBridge Host"
       VALUE "LegalCopyright", "Copyright (c) 2026 JagerBombastic. MIT licence."
       VALUE "OriginalFilename", "VROSTBridge Host.exe"
       VALUE "ProductName", "VROSTBridge"
-      VALUE "ProductVersion", "1.0.0.13"
+      VALUE "ProductVersion", "1.0.0.14"
     END
   END
   BLOCK "VarFileInfo"

@@ -1,6 +1,6 @@
 # VROSTBridge 1.0.0.13
 
-Follow-ups from 1.0.0.12's first session on real hardware, and the stream chosen before a session: an Index's refresh rate, set in SteamVR for it, and a Beyond's stream following the mode it is in. Every package carries **1.0.0.13**, and the [1.0.0.12 notes](history/RELEASE_1.0.0.12.md) still apply.
+Follow-ups from 1.0.0.12's first session on real hardware, and the stream chosen before a session: an Index's refresh rate, set in SteamVR for it, and a Beyond's stream following the mode it is in. Every package carries **1.0.0.13**, and the [1.0.0.12 notes](RELEASE_1.0.0.12.md) still apply.
 
 **Install** over 1.0.0.12 on each PC: `VROSTBridge-Host-Setup-1.0.0.13.exe` on the rendering PC, and `VROSTBridge-Bazzite-Installer-1.0.0.13.zip` or `VROSTBridge-Client-Setup-1.0.0.13.exe` on the headset PC. Settings, pairing, the network test, Baballonia and its calibration stay. Either PC still works with the other at 1.0.0.12; a Beyond in its 90 Hz mode then streams 2016 per eye, as 1.0.0.12 did.
 
@@ -21,4 +21,4 @@ Play as before, wired, with *Use recommended settings*, and send both reports. T
 - VROSTBridge doesn't switch a Beyond between its 75 and 90 Hz modes: set the mode with Bigscreen's Beyond Utility on a Windows PC. 144 Hz on an Index is experimental: if SteamVR won't start at it, choose 120 Hz.
 - Game Mode on Bazzite doesn't start sessions yet, and the Windows client hasn't run on real hardware.
 
-Build and test evidence: [evidence/vrostbridge-build-1.0.0.13.json](evidence/vrostbridge-build-1.0.0.13.json).
+Build and test evidence: [evidence/vrostbridge-build-1.0.0.13.json](../evidence/vrostbridge-build-1.0.0.13.json).

@@ -79,8 +79,9 @@ class VersionTests(unittest.TestCase):
 class QualityCeilingTests(unittest.TestCase):
     def test_the_ceiling_follows_codec_size_and_rate(self):
         # 1.0.0.5's clean session: 2432 x 1216 HEVC at 75 Hz streamed at about 50 Mbit/s.
-        self.assertEqual(quality_ceiling_mbps('Hevc', 2432, 1216, 75), 49)
-        self.assertEqual(quality_ceiling_mbps('Hevc', 4032, 2016, 75), 134)
+        self.assertEqual(quality_ceiling_mbps('Hevc', 2432, 1216, 75), 67)  # 1.0.0.14: 0.30 bit per pixel (49 at 0.22)
+        self.assertEqual(quality_ceiling_mbps('Hevc', 4032, 2016, 75), 183)
+        self.assertEqual(quality_ceiling_mbps('Hevc', 2816, 1408, 75), 89)
         self.assertGreater(quality_ceiling_mbps('H264', 2432, 1216, 75), quality_ceiling_mbps('Hevc', 2432, 1216, 75))
         self.assertLess(quality_ceiling_mbps('AV1', 2432, 1216, 75), quality_ceiling_mbps('Hevc', 2432, 1216, 75))
         self.assertEqual(quality_ceiling_mbps('Hevc', 640, 480, 60), stream_budget.MIN_MBPS)
@@ -341,15 +342,15 @@ class CompanionTests(SessionLifecycleTests):
         app.session_link.host_id = 'h'
         app.session_link.network_status.return_value = {'interface': '', 'source_interface': 'eth9'}
         app.settings['network_tests'] = remember({}, {'time': time.time(), 'host_id': 'h', 'interface': 'eth9',
-                                                      'recommendation': {'recommended_mbps': 250, 'clean_mbps': 300}})
+                                                      'recommendation': {'recommended_mbps': 400, 'clean_mbps': 500}})
         for features, active in ((['pacing', 'link-test'], False), (['pacing', 'link-test', 'bitrate-control'], True)):
             app.session_link.host_features = features
             with patch('launcher.app.link_info', return_value={'kind': 'wired', 'speed_mbps': 2500}):
                 prefs = app.host_preferences({'codec': 'Hevc', 'bitrate': 80, 'headset': HEADSET,
                                               'resolution': 'compatibility'})
             ceiling = app.stream_ceiling(prefs)
-            self.assertTrue(ceiling and ceiling < 250, ceiling)
-            self.assertEqual(prefs['bitrate'], ceiling, 'the measured 250 Mbit/s held to what the picture needs')
+            self.assertTrue(ceiling and ceiling < 400, ceiling)  # 2144 per eye unfoveated at 90 Hz: 274 Mbit/s (1.0.0.14)
+            self.assertEqual(prefs['bitrate'], ceiling, 'the measured 400 Mbit/s held to what the picture needs')
             self.assertEqual(app.bitrate_governor.active, active, features)
         self.assertEqual(app.bitrate_governor.ceiling, ceiling)
         # Manual bitrate: the governor stays out of it.

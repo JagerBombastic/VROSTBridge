@@ -4,7 +4,8 @@ TCP/UDP 9946 is a small companion broker, not the ALVR streaming transport.
 UDP only discovers hosts. The authenticated HTTP action allowlist is start,
 heartbeat, stop and status; there are no URLs, paths or commands in requests.
 Pairing also requires the caller's private, directly attached subnet and the
-host's explicit Windows Private-network/automatic-connection policy callback.
+host's automatic-connection policy callback (1.0.0.14: a new client pairs only from
+a network Windows classes as Private; paired clients start on any network type).
 Tokens are bearer credentials for this trusted LAN, not Internet transport.
 
 Integration: construct SessionHost while the host page is open. Its
@@ -13,7 +14,7 @@ using validated client codec/bitrate and the host's remaining configuration.
 Start requests return immediately with a lease and state=starting. SessionClient.start() automatically maintains that lease; call
 stop() if local runtime startup fails, on Stop and when native streaming exits.
 Call close() before closing either companion. Keep the host's firewall scoped
-to Private/LocalSubnet and include TCP + UDP 9946. Status never exposes tokens.
+to LocalSubnet (any network type from 1.0.0.14) and include TCP + UDP 9946. Status never exposes tokens.
 """
 import base64
 import hashlib
@@ -644,7 +645,7 @@ class SessionHost:
         if action == '/pair' and known is None:
             # The policy may run PowerShell; do not hold the status mutex.
             if not self._policy(self.allow_pairing, local):
-                raise SessionError('Enable automatic connection on the host Private home network first.')
+                raise SessionError('The host did not pair this headset PC automatically: turn automatic connection on there, and pair from a network Windows classes as Private (the host log says which).')
             with self.lock:
                 known = self.peers.get(client_id)
                 if known is None:
@@ -660,8 +661,8 @@ class SessionHost:
             self.log('Headset companion paired on the private LAN.')
         if known is None or not secrets.compare_digest(known, digest):
             raise SessionError('Companion is not paired with this host.')
-        # Check the private-network policy on every new start too, so saved
-        # credentials do not bypass a later Public-network change.
+        # Check the network policy on every new start too (a home-network address of the host; 1.0.0.14:
+        # any Windows network type).
         if action in ('/start', '/linktest', '/report') and not self._policy(self.allow_start, local):
             raise SessionError('Host automatic connection is unavailable on this network.')
         settings = session_settings(value.get('settings')) if action == '/start' else None

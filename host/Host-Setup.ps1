@@ -64,7 +64,7 @@ if ($Action -eq 'Firewall') {
     if (-not (Test-Path $sessionProgram -PathType Leaf)) {throw 'The bundled host Python runtime is missing. Repair or reinstall VROSTBridge Host before enabling session discovery.'}
     $sessionProgram=(Resolve-Path $sessionProgram).Path
     # Session control is served by the companion's bundled Python, not vrserver.
-    # Keep both programs confined to Private networks and directly attached LANs.
+    # Keep both programs confined to the directly attached LAN (local subnet), on any network type (1.0.0.14).
     $rules=@(
         @{Name='VROSTBridge.VR.TCP';Protocol='TCP';Ports=@(9943,9944);Program=$program},
         @{Name='VROSTBridge.VR.UDP';Protocol='UDP';Ports=@(9943,9944);Program=$program},
@@ -76,13 +76,13 @@ if ($Action -eq 'Firewall') {
     foreach($expected in $rules) {
         $rule=Get-NetFirewallRule -Name $expected.Name -ErrorAction SilentlyContinue
         if ($rule -and $rule.Description -ne $ownership) {throw "Firewall rule $($expected.Name) already exists without the VROSTBridge ownership marker. It was not changed."}
-        if (-not $rule -or $rule.Enabled -ne 'True' -or $rule.Action -ne 'Allow' -or $rule.Direction -ne 'Inbound' -or $rule.Profile -ne 'Private') {$complete=$false;continue}
+        if (-not $rule -or $rule.Enabled -ne 'True' -or $rule.Action -ne 'Allow' -or $rule.Direction -ne 'Inbound' -or $rule.Profile -ne 'Any') {$complete=$false;continue}
         $ports=$rule | Get-NetFirewallPortFilter
         $addresses=$rule | Get-NetFirewallAddressFilter
         $application=$rule | Get-NetFirewallApplicationFilter
         if ($ports.Protocol -ne $expected.Protocol -or (@($ports.LocalPort) -join ',') -ne (@($expected.Ports) -join ',') -or (@($addresses.RemoteAddress) -join ',') -ne 'LocalSubnet' -or $application.Program -ne $expected.Program) {$complete=$false}
     }
-    if ($complete) {Write-Output 'Private-LAN firewall rules are already configured.';exit}
+    if ($complete) {Write-Output 'Home-network firewall rules are already configured.';exit}
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent()
     $principal=New-Object Security.Principal.WindowsPrincipal($identity)
     if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -93,7 +93,7 @@ if ($Action -eq 'Firewall') {
         $encoded=[Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($command))
         $elevated=Start-Process -FilePath 'powershell.exe' -Verb RunAs -Wait -PassThru -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded)
         if ($elevated.ExitCode -ne 0) {throw 'Windows firewall setup failed or permission was declined.'}
-        Write-Output 'Private-LAN firewall setup completed.'
+        Write-Output 'Home-network firewall setup completed.'
         exit
     }
     foreach($expected in $rules) {
@@ -101,9 +101,9 @@ if ($Action -eq 'Firewall') {
         # Check again immediately before replacement, including after elevation.
         if ($rule -and $rule.Description -ne $ownership) {throw "Firewall rule $($expected.Name) is not owned by VROSTBridge; it was not changed."}
         if ($rule) {$rule | Remove-NetFirewallRule}
-        New-NetFirewallRule -Name $expected.Name -DisplayName "$($expected.Name) (private LAN)" -Description $ownership -Program $expected.Program -Direction Inbound -Action Allow -Protocol $expected.Protocol -LocalPort $expected.Ports -Profile Private -RemoteAddress LocalSubnet | Out-Null
+        New-NetFirewallRule -Name $expected.Name -DisplayName "$($expected.Name) (home network)" -Description $ownership -Program $expected.Program -Direction Inbound -Action Allow -Protocol $expected.Protocol -LocalPort $expected.Ports -Profile Any -RemoteAddress LocalSubnet | Out-Null
     }
-    Write-Output 'Private-LAN rules configured: SteamVR streaming 9943/9944, mDNS UDP 5353 and companion session discovery/control TCP/UDP 9946. The desktop web UI stays on loopback.'
+    Write-Output 'Home-network rules configured (local subnet only): SteamVR streaming 9943/9944, mDNS UDP 5353 and companion session discovery/control TCP/UDP 9946. The desktop web UI stays on loopback.'
     exit
 }
 $state=Join-Path $HostDirectory 'vrostbridge-registration.json'

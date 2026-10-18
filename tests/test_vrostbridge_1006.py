@@ -294,7 +294,7 @@ class ControllerPredictionTests(unittest.TestCase):
     def test_the_native_check_is_built_and_reported(self):
         source = read('client/device/openvr_device.cpp')
         self.assertIn('#include "client/device/prediction_check.hpp"', source)
-        self.assertIn('handDiagnostics[i - 1].prediction.add(sampleNow, m.pose.position, m.linear, predictionNs);',
+        self.assertIn('handDiagnostics[i - 1].prediction.add(sampleNow, measured.pose.position, measured.linear, predictionNs,',  # 1.0.0.14: measured against the real pose
                       source)
         self.assertIn('",\\"prediction\\":{\\"samples\\":"', source)
         self.assertIn('",\\"pair\\":{\\"still_samples\\":" << pair.stillSamples', source)

@@ -587,6 +587,8 @@ class View:
             self.action('wake-host', 'Wake-up sent.')
         elif name == 'repair-async':
             self.action('repair-async', 'SteamVR reprojection repaired; it applies when SteamVR next starts.')
+        elif name == 'fix-network':
+            self.action('fix-network', 'Network settings fixed; Wi-Fi can stay connected during sessions.')
         elif name == 'wifi-powersave-off':
             self.action('wifi-powersave-off', 'Wi-Fi power saving is off for your home network.')
         elif name == 'sync-playspace':
@@ -1105,7 +1107,7 @@ class View:
                                         str(display.get('refresh_text') or ''), str(display.get('refresh_note') or ''))
                       if part).replace(' x ', ' × ')),
             ('codec', 'Video codec', CODEC_LABELS.get(settings.get('codec', 'Auto'), 'Auto'), not locked,
-             'Auto picks HEVC for the Beyond and H.264 for the Index. AV1 needs AV1 on both PCs.'),
+             'Auto picks HEVC, 10-bit where this PC decodes it; H.264 only on a PC without HEVC decoding. AV1 needs AV1 on both PCs.'),
             ('quality', 'Bitrate', bitrate, not locked,
              bitrate_note(rate, running) or
              'Auto tests the network to your host once per adapter, asks only for what the picture needs, and steps '
@@ -1293,6 +1295,9 @@ class View:
         if repair.get('state') in ('missing', 'disabled'):
             rows.append(('repair-async', 'Fix SteamVR reprojection', '', not locked,
                          repair.get('message') or 'Lets SteamVR smooth a late frame instead of halving the frame rate.'))
+        if (system.get('network_settings') or {}).get('state') == 'needed':  # 1.0.0.14
+            rows.append(('fix-network', 'Fix this PC\'s network settings', '', not busy,
+                         system['network_settings'].get('message') or ''))
         if running:
             rows.append(('sync-playspace', 'Resend play area', '', not busy,
                          "Sends this PC's play area to the host again."))

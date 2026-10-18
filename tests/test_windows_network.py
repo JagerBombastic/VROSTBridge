@@ -1282,12 +1282,11 @@ class ClientNetworkWindowsTests(WindowsCase):
         status = network.refresh()
         self.assertEqual(status['state'], 'error')
         self.assertIn('block this program (python.exe)', status['message'])
+        # 1.0.0.14: the rules apply on any network type (local subnet only), so a Public network needs nothing more.
         self.blocking, self.profiles = [], [{'alias': 'Wi-Fi 2', 'category': 'Public'}]
         status = network.refresh()
-        self.assertEqual(status['state'], 'error')
-        self.assertIn('treats the network on Wi-Fi 2 as Public', status['message'])
-        self.profiles.append({'alias': 'Ethernet 3', 'category': 'Private'})
-        self.assertEqual(network.refresh()['state'], 'ready')
+        self.assertEqual(status['state'], 'ready')
+        self.assertNotIn('Public', status['message'])
         self.firewall[1]['enabled'] = 'False'
         self.assertEqual(network.refresh()['state'], 'inactive')
 
@@ -1359,7 +1358,7 @@ class FirewallScriptTests(unittest.TestCase):
 
     def test_rules_are_private_local_subnet_inbound_allow_per_program(self):
         self.assertIn('-Program $expected.Program -Direction Inbound -Action Allow -Protocol $expected.Protocol '
-                      '-LocalPort $expected.Ports -Profile Private -RemoteAddress LocalSubnet', self.TEXT)
+                      '-LocalPort $expected.Ports -Profile Any -RemoteAddress LocalSubnet', self.TEXT)
         for line in ("Protocol='TCP';Ports=@('9943');Program=$ClientExecutable",
                      "Protocol='UDP';Ports=@('9944');Program=$ClientExecutable",
                      "Protocol='UDP';Ports=@('5353');Program=$ClientExecutable",
