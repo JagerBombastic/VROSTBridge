@@ -158,7 +158,10 @@ RECOVERY_CAPABILITY = 'quality-4'
 RECOVERY_FIELDS = ('host_prediction', 'client_hostname')
 FEATURES = ('ten-bit', 'av1', 'foveation', 'gaze-foveation', 'optical-centre', 'pacing', 'intra-refresh',
             'link-test', 'quick-resume', 'host-power', 'prediction-switch', 'init-config', 'stream-recovery',
-            'report-upload', 'fovea-view', 'session-gaze', 'bitrate-control', 'display-modes')
+            'report-upload', 'fovea-view', 'session-gaze', 'bitrate-control', 'display-modes', 'driver-unblock')
+# 1.0.0.15: 'driver-unblock' hosts turn VROSTBridge's driver back on in SteamVR at a paired client's request
+# (/unblock, between sessions, with SteamVR closed): SteamVR's safe mode turns it off after a crash, and the
+# rendering PC is usually in another room (host/steamvr_driver.py).
 # 1.0.0.13: 'display-modes' hosts know the Beyond's 90 Hz size ('beyond-90', 1920 per eye) in session_settings().
 # 1.0.0.8: 'bitrate-control' hosts accept a 'bitrate' (whole Mbit/s) in heartbeats and set the running stream to
 # it at once: the headset client's bitrate governor (launcher/stream_budget.py) steps it down when decoding falls
@@ -351,7 +354,7 @@ class SessionHost:
                  allow_pairing, log, port=PORT, *, allow_start=None, address_provider=network_addresses,
                  test_peer=None, clock=time.monotonic, capabilities=(QUALITY_CAPABILITY, PIPELINE_CAPABILITY),
                  telemetry=None, features=(), link_test=None, host_info=None, report=None, fovea=None,
-                 bitrate=None):
+                 bitrate=None, unblock=None):
         # test_peer is an explicit dependency injection for loopback tests only.
         # features: callable or list of FEATURES this host offers (driver dependent).
         # link_test(request, peer_ip, cancel) runs a network test towards the asking client only.
@@ -368,6 +371,9 @@ class SessionHost:
         # bitrate(mbps) sets the running stream's bitrate (1.0.0.8, 'bitrate-control'); applied on a thread of its
         # own, the latest request only, at most every BITRATE_SPACING_S.
         self.bitrate_callback = bitrate
+        # unblock() turns VROSTBridge's driver back on in SteamVR (1.0.0.15, 'driver-unblock') and returns a message;
+        # it raises ValueError when it can't (SteamVR open, the host busy).
+        self.unblock_callback = unblock
         self.bitrate_wanted = None
         self.bitrate_signal = threading.Event()
         self.report_lock = threading.Lock()
@@ -433,7 +439,8 @@ class SessionHost:
                 if not self.guard():
                     self.reply(403, {'error': 'Private LAN companion access required.'})
                     return
-                if self.path not in ('/pair', '/start', '/heartbeat', '/stop', '/status', '/linktest', '/report', '/fovea'):
+                if self.path not in ('/pair', '/start', '/heartbeat', '/stop', '/status', '/linktest', '/report', '/fovea',
+                                     '/unblock'):
                     self.reply(404, {'error': 'Unknown endpoint.'})
                     return
                 if self.path != '/report':
@@ -555,6 +562,8 @@ class SessionHost:
         if self.bitrate_callback:
             value.append('bitrate-control')  # 1.0.0.8: heartbeats may carry 'bitrate'
         value.append('display-modes')  # 1.0.0.13: session_settings() accepts 'beyond-90'
+        if self.unblock_callback:
+            value.append('driver-unblock')  # 1.0.0.15: /unblock
         return sorted({item for item in value if item in FEATURES})
 
     def hello(self):
@@ -663,7 +672,7 @@ class SessionHost:
             raise SessionError('Companion is not paired with this host.')
         # Check the network policy on every new start too (a home-network address of the host; 1.0.0.14:
         # any Windows network type).
-        if action in ('/start', '/linktest', '/report') and not self._policy(self.allow_start, local):
+        if action in ('/start', '/linktest', '/report', '/unblock') and not self._policy(self.allow_start, local):
             raise SessionError('Host automatic connection is unavailable on this network.')
         settings = session_settings(value.get('settings')) if action == '/start' else None
         stream = None
@@ -683,6 +692,8 @@ class SessionHost:
             return self._receive_report(value, peer)
         if action == '/fovea':
             return self._receive_fovea(client_id, value)
+        if action == '/unblock':
+            return self._unblock(local)
         with self.lock:
             if self.closed.is_set():
                 raise SessionError('The host companion is closing.')
@@ -737,6 +748,21 @@ class SessionHost:
             else:
                 self._queue_stop_locked('Stopping host SteamVR at the headset client’s request.')
             return self._snapshot_locked(local)
+
+    def _unblock(self, local):
+        """1.0.0.15: turn VROSTBridge's driver back on in SteamVR for a paired client, between sessions only."""
+        if not self.unblock_callback:
+            raise SessionError('This host can\'t turn its driver back on from here. Install this release on the host PC.')
+        with self.lock:
+            if self.lease and self.state not in ('error', 'waiting'):
+                raise SessionError('A session is running on the host; stop it first.')
+        try:
+            message = self.unblock_callback()
+        except ValueError as error:
+            raise SessionError(str(error)[:300]) from None
+        self.log('Headset companion asked to turn the driver back on in SteamVR: ' + str(message)[:200])
+        with self.lock:
+            return dict(self._snapshot_locked(local), unblock_message=str(message)[:300])
 
     def _link_test(self, client_id, request, peer, local):
         """Send network test traffic to the paired client that asked, never to another address.
@@ -1380,6 +1406,24 @@ class SessionClient:
         self.last_seen = time.monotonic()
         self.state = result.get('state', 'error')
         self.message = result.get('message', '')
+
+    def unblock_driver(self, host_ip=''):
+        """1.0.0.15: ask the host to turn VROSTBridge's driver back on in SteamVR. Returns the host's message."""
+        with self.actions:
+            with self.lock:
+                ip = host_ip or self.host_ip
+                if not ip or not self.host_id:
+                    raise SessionError('This PC has not found its rendering host yet: start a session once first.')
+                if 'driver-unblock' not in (self.host_features or ()):
+                    raise SessionError('The host can\'t do this from here. Install this release on the host PC, or turn '
+                                       'alvr_server on in SteamVR there (Settings › Startup / Shutdown › Manage Add-ons).')
+                credentials = self._credentials()
+            result = self._request(ip, '/unblock', credentials, timeout=15)
+            with self.lock:
+                if result.get('host_id') == self.host_id:
+                    self.last_reply = result
+                    self.last_seen = time.monotonic()
+            return str(result.get('unblock_message') or '')
 
     def send_fovea(self, view):
         """Share the live eye-tracking view with the host page (RC4.3 hosts list 'fovea-view')."""

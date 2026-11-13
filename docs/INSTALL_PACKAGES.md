@@ -1,27 +1,27 @@
-# Installable packages — VROSTBridge 1.0.0.14
+# Installable packages — VROSTBridge 1.0.0.15
 
 The [quick start](QUICK_START.md) is the short route; this page says what each package installs, how upgrades and removal work, and where things go. What has been confirmed on hardware is in [hardware acceptance](HARDWARE_ACCEPTANCE.md).
 
-There is one package for each kind of PC, all carrying version 1.0.0.14:
+There is one package for each kind of PC, all carrying version 1.0.0.15:
 
-- **VROSTBridge-Host-Setup-1.0.0.14.exe** for the rendering PC (Windows);
-- **VROSTBridge-Bazzite-Installer-1.0.0.14.zip** for a headset PC with Bazzite;
-- **VROSTBridge-Client-Setup-1.0.0.14.exe** for a headset PC with Windows 10 or 11 (64-bit).
+- **VROSTBridge-Host-Setup-1.0.0.15.exe** for the rendering PC (Windows);
+- **VROSTBridge-Bazzite-Installer-1.0.0.15.zip** for a headset PC with Bazzite;
+- **VROSTBridge-Client-Setup-1.0.0.15.exe** for a headset PC with Windows 10 or 11 (64-bit).
 
-`VROSTBridge-Host-Portable-1.0.0.14.zip` and `VROSTBridge-Client-Portable-1.0.0.14.zip` hold the same files as the two Windows setups, without an installer. `SHA256SUMS.txt` lists each file's SHA-256.
+`VROSTBridge-Host-Portable-1.0.0.15.zip` and `VROSTBridge-Client-Portable-1.0.0.15.zip` hold the same files as the two Windows setups, without an installer. `SHA256SUMS.txt` lists each file's SHA-256.
 
 ## Upgrading
 
-Install the host and a client of the same version together. 1.0.0.14 installs over any release from 1.0.0.1 on (the Windows client over any from 1.0.0.7), and either PC still works with the other at 1.0.0.13. Install over the previous version rather than uninstalling first: settings, pairing, the network test result, reports, the client's ALVR identity, and Baballonia with its settings and calibration are all kept. A test build from before 1.0.0.1 is the exception: remove it with its own uninstaller first ([why](history/RELEASE_1.0.0.1.md#before-you-install-remove-earlier-test-builds)).
+Install the host and a client of the same version together. 1.0.0.15 installs over any release from 1.0.0.1 on (the Windows client over any from 1.0.0.7), and either PC still works with the other at 1.0.0.14. Install over the previous version rather than uninstalling first: settings, pairing, the network test result, reports, the client's ALVR identity, and Baballonia with its settings and calibration are all kept. A test build from before 1.0.0.1 is the exception: remove it with its own uninstaller first ([why](history/RELEASE_1.0.0.1.md#before-you-install-remove-earlier-test-builds)).
 
 Stop any session and choose **Quit** on both pages before upgrading. Each installer checks the new files before replacing anything, closes the running companion through its own authenticated page, switches to the new version, then removes old files it can identify as its own. If the old companion cannot close, or the rendering PC's SteamVR blocks the driver update, installation stops with the old version intact: close what it names and run the installer again rather than deleting folders by hand. Running the same installer again repairs an installation.
 
-After upgrading to 1.0.0.14, the host asks once for administrator permission when it first starts, to update its firewall rules so they apply on any network type.
+After upgrading from a release before 1.0.0.14, the host asks once for administrator permission when it first starts, to update its firewall rules so they apply on any network type.
 
 ## Windows rendering PC
 
 1. Install Steam and SteamVR.
-2. Run **VROSTBridge-Host-Setup-1.0.0.14.exe**. It installs for the current user and adds **VROSTBridge Host** to the Start menu's *VROSTBridge* folder. If the Microsoft x64 Visual C++ runtime is missing, select the installer's optional runtime installation (Microsoft's own installer, with its own prompt).
+2. Run **VROSTBridge-Host-Setup-1.0.0.15.exe**. It installs for the current user and adds **VROSTBridge Host** to the Start menu's *VROSTBridge* folder. If the Microsoft x64 Visual C++ runtime is missing, select the installer's optional runtime installation (Microsoft's own installer, with its own prompt).
 3. Open **VROSTBridge Host**. It opens its page in your browser, asks once for administrator permission to add its firewall rules, and waits in the tray. SteamVR starts only when a headset PC starts a session. Opening the shortcut again brings back the same page.
 
 The package carries its own Python and the patched ALVR host: no Python, compiler or package manager is needed. SteamVR and the GPU driver are prerequisites. The installer and launcher are not code-signed, so SmartScreen may say *Windows protected your PC*: choose **More info**, then **Run anyway**.
@@ -44,7 +44,7 @@ The host driver is built from ALVR revision `f5023f8e78fa14ea57fb1038548d7820289
 
 ## Bazzite headset PC
 
-1. In Desktop Mode, download **VROSTBridge-Bazzite-Installer-1.0.0.14.zip** and extract the **whole ZIP** into a normal folder.
+1. In Desktop Mode, download **VROSTBridge-Bazzite-Installer-1.0.0.15.zip** and extract the **whole ZIP** into a normal folder.
 2. Open **Install VROSTBridge.desktop** (allow it to run if KDE asks), keeping the `payload` folder beside it.
 3. Open **VROSTBridge Client** from the application menu and select **Start session**. Before the first session, check that the headset works in SteamVR on this PC.
 
@@ -70,10 +70,10 @@ The menu entries are `io.vrostbridge.Client.desktop`, `io.vrostbridge.GameMode.d
 The Windows client has not run on Windows hardware yet. Its Python parts are covered by unit tests, its native programs by their tests under Wine, and its installer, companion and page have run under Wine. Expect first-run problems, and send reports.
 
 1. Install Steam and SteamVR. Connect the headset, run SteamVR once, finish its room setup and check both controllers, then close SteamVR.
-2. Run **VROSTBridge-Client-Setup-1.0.0.14.exe**. It needs 64-bit Windows 10 or 11, installs for the current user without administrator rights, and may need **More info → Run anyway**. The optional **Start when I sign in** component stays off unless you tick it.
+2. Run **VROSTBridge-Client-Setup-1.0.0.15.exe**. It needs 64-bit Windows 10 or 11, installs for the current user without administrator rights, and may need **More info → Run anyway**. The optional **Start when I sign in** component stays off unless you tick it.
 3. Open **VROSTBridge Client** from the Start menu. It opens its page and waits in the system tray. Select **Allow home-network connection** (one administrator prompt), then **Start session**.
 
-The program goes to `%LOCALAPPDATA%\VROSTBridge\Client\1.0.0.14` (about 63 MB), with **VROSTBridge Client**, *Client startup logs*, *Client open-source credits* and *Uninstall VROSTBridge Client* in the Start menu's *VROSTBridge* folder. It carries its own Python, the native client with its libraries (the transport built on ALVR's client core, FFmpeg's decoders with their source, OpenVR's), the companion and the notices. The native programs link the C runtime statically, so no Visual C++ runtime is needed. Settings, pairing and logs live in `%LOCALAPPDATA%\VROSTBridge`.
+The program goes to `%LOCALAPPDATA%\VROSTBridge\Client\1.0.0.15` (about 63 MB), with **VROSTBridge Client**, *Client startup logs*, *Client open-source credits* and *Uninstall VROSTBridge Client* in the Start menu's *VROSTBridge* folder. It carries its own Python, the native client with its libraries (the transport built on ALVR's client core, FFmpeg's decoders with their source, OpenVR's), the companion and the notices. The native programs link the C runtime statically, so no Visual C++ runtime is needed. Settings, pairing and logs live in `%LOCALAPPDATA%\VROSTBridge`.
 
 Close SteamVR before installing. Setup runs the new launcher's self-test against the package's `SHA256SUMS` first; if it fails, the installed version stays and `client-native.log` says why. A failed copy puts the previous files back.
 
@@ -81,11 +81,11 @@ Close SteamVR before installing. Setup runs the new launcher's self-test against
 
 **At sign-in.** *Start when I sign in* (the installer component, or *Start VROSTBridge Client when I sign in* under *This PC*) writes this user's sign-in entry `VROSTBridgeClient`, which starts the client quietly in the tray: no browser and no SteamVR. It never replaces an entry of that name that another program wrote.
 
-**Silent install.** `VROSTBridge-Client-Setup-1.0.0.14.exe /S`, with `/STARTUP` to turn the sign-in start on. `Uninstall.exe /S` in the program folder uninstalls and keeps the downloaded Baballonia; add `/REMOVEEYETRACKING` to remove it.
+**Silent install.** `VROSTBridge-Client-Setup-1.0.0.15.exe /S`, with `/STARTUP` to turn the sign-in start on. `Uninstall.exe /S` in the program folder uninstalls and keeps the downloaded Baballonia; add `/REMOVEEYETRACKING` to remove it.
 
 **Removing.** Close SteamVR and use **Uninstall VROSTBridge Client** in the Start menu or *Settings → Apps*. It asks about a Baballonia it downloaded (**Yes** keeps it, the default; **No** removes it; **Cancel** stops), restores SteamVR settings a session changed if they are still held, and removes its firewall rules (one administrator prompt; declining stops the uninstall). Settings, pairing and logs, Baballonia's settings and calibration in `%APPDATA%\ProjectBabble`, and a Baballonia you installed yourself stay.
 
-**Portable.** `VROSTBridge-Client-Portable-1.0.0.14.zip` holds the same files in a `VROSTBridge-Client` folder: extract it whole and open `VROSTBridge Client.exe`. It has no Start menu entries and no uninstaller: turn off its sign-in start on the page, quit it and delete the folder; remove its `VROSTBridge.Client.…` firewall rules by hand.
+**Portable.** `VROSTBridge-Client-Portable-1.0.0.15.zip` holds the same files in a `VROSTBridge-Client` folder: extract it whole and open `VROSTBridge Client.exe`. It has no Start menu entries and no uninstaller: turn off its sign-in start on the page, quit it and delete the folder; remove its `VROSTBridge.Client.…` firewall rules by hand.
 
 **Host and client on one PC.** Both can be installed side by side, each with its own program folder (`%LOCALAPPDATA%\VROSTBridge\Host\<version>` and `…\Client\<version>`), *Settings → Apps* entry, sign-in entry, firewall rules and files in the shared settings folder. Uninstalling one leaves the other.
 

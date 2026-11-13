@@ -1,4 +1,4 @@
-# Quick start — VROSTBridge 1.0.0.14
+# Quick start — VROSTBridge 1.0.0.15
 
 These steps use the installable release packages; the source is for developers ([BUILDING.md](BUILDING.md)). Install the same version on both PCs. A new version installs over the previous one and keeps your settings, pairing, network test, and Baballonia with its calibration: install over it rather than uninstalling first ([installing and upgrading](INSTALL_PACKAGES.md)).
 
@@ -9,14 +9,14 @@ The headset PC runs Bazzite or Windows 10 or 11 (64-bit). The Windows client has
 ### Rendering PC (Windows)
 
 1. Install Steam, SteamVR and the graphics driver. No headset is needed on this PC. To wake it from the headset PC, connect it by Ethernet and enable *Wake on Magic Packet* for that adapter (the host page says what to change).
-2. Install **VROSTBridge-Host-Setup-1.0.0.14.exe**. It is not code-signed, so Windows may say *Windows protected your PC*: choose **More info**, then **Run anyway**.
+2. Install **VROSTBridge-Host-Setup-1.0.0.15.exe**. It is not code-signed, so Windows may say *Windows protected your PC*: choose **More info**, then **Run anyway**.
 3. Open **VROSTBridge Host** and accept the one administrator prompt for its firewall rules (they admit only your local subnet). Leave it waiting in the tray; turn on *Launch at Windows sign-in* if it should be ready after a restart.
 4. For the headset microphone in Discord or games, open the host page's **Headset microphone** card and select **Set up headset microphone**: VROSTBridge downloads VB-CABLE from VB-Audio (donationware) and opens its setup; select *Install Driver* and restart Windows if asked. Then choose **CABLE Output (VB-Audio Virtual Cable)** as the microphone in your apps.
 
 ### Headset PC with Bazzite
 
 1. On the Bazzite desktop, check that the headset shows SteamVR and that both controllers work. Finish SteamVR's room setup before room-scale play. The headset, its USB and DisplayPort cables and its drivers belong on this PC.
-2. Extract the whole **VROSTBridge-Bazzite-Installer-1.0.0.14.zip** and open **Install VROSTBridge.desktop**, keeping the payload folder beside it.
+2. Extract the whole **VROSTBridge-Bazzite-Installer-1.0.0.15.zip** and open **Install VROSTBridge.desktop**, keeping the payload folder beside it.
 3. Open **VROSTBridge Client** and select **Allow home-network connection** if the page offers it (your password).
 4. If the page offers **Fix this PC's network settings**, use it once (your password). It appears when this PC is on the home network by cable and Wi-Fi at once, and keeps the video on the cable with Wi-Fi left connected.
 5. If the page offers **Fix SteamVR reprojection**, use it once with SteamVR closed (again after a SteamVR update).
@@ -25,7 +25,7 @@ The headset PC runs Bazzite or Windows 10 or 11 (64-bit). The Windows client has
 ### Headset PC with Windows
 
 1. Install Steam, SteamVR and the graphics driver. Connect the headset, run SteamVR once, finish its room setup and check both controllers, then close SteamVR. Until SteamVR has run once, **Start session** says it is not set up yet.
-2. Run **VROSTBridge-Client-Setup-1.0.0.14.exe**. It installs for your Windows account only, without administrator rights. Choose **More info → Run anyway** if Windows asks. Tick *Start when I sign in* if the client should wait in the tray.
+2. Run **VROSTBridge-Client-Setup-1.0.0.15.exe**. It installs for your Windows account only, without administrator rights. Choose **More info → Run anyway** if Windows asks. Tick *Start when I sign in* if the client should wait in the tray.
 3. Open **VROSTBridge Client** from the Start menu and select **Allow home-network connection** (one administrator prompt). The rules admit only your local subnet.
 
 ### Pairing

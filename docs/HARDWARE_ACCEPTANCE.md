@@ -1,4 +1,4 @@
-# Physical acceptance — VROSTBridge 1.0.0.14
+# Physical acceptance — VROSTBridge 1.0.0.15
 
 This page says what has been confirmed on real hardware, what is still open, and what to record. Automated tests prove the code does what it was written to do; only a headset on a head proves it feels right, so each item here counts once its result repeats.
 
@@ -19,7 +19,16 @@ What the latest sessions showed, wired on Bazzite with a Beyond 2e: with *Fix th
 
 ## Open checks
 
-Use **1.0.0.14** on both PCs ([release notes](RELEASE_1.0.0.14.md)); over Wi-Fi, turn off Wi-Fi power saving on the client page and run the network test again first.
+Use **1.0.0.15** on both PCs ([release notes](RELEASE_1.0.0.15.md)); over Wi-Fi, turn off Wi-Fi power saving on the client page and run the network test again first.
+
+New in 1.0.0.15:
+
+- **Volume in the headset:** SteamVR's dashboard slider changes the game's volume smoothly, without clicks; the host log's `VROST_AUDIO_CAPTURE volume_db=` lines follow it.
+- **SteamVR's safe mode:** after SteamVR on the rendering PC has started in safe mode, a Start says so within seconds, and *Turn the driver back on* from the headset PC lets the next Start stream.
+- **The headset's USB:** on a dock, the page says nothing about hubs while the headset works, and names a hub nested too deep at Start when one is; a USB dropout ends the session with that message, not error 105.
+- **Controllers in the cold:** a controller that can't see the base stations gets *not tracked: wipe the sensors* in the headset within about ten seconds, and the note goes once it tracks.
+- **The bitrate's start and the audio's aim:** the second session of a stream starts where the first settled (*Bitrate: starting at*), and the page's game-audio aim stays near its starting value through a long wired session.
+- **A lower power limit:** with the power limit set below the last smooth session's, a session short of frames says so with both figures.
 
 Picture and motion:
 
@@ -28,7 +37,7 @@ Picture and motion:
 - **The picture's edges:** nothing at the edges of the view looks cut off or dark, also while turning the head quickly; the client log's `VISIBLE_AREA` line gives each eye's share of computed pixels, and its `STATUS Lens area` line how the headset's mesh was used. If the edges look wrong, compare with *Skip what the lenses never show* off.
 - **Keeping the frame rate:** where the headset PC cannot hold the refresh at the full size, the page shows *Shown at 90 %* (or 80 %) beside the frame rate instead of the stream dropping to half rate, the log has a `SCALE` line with the reason, and the full size comes back once there is room; with *Keep the frame rate when this PC falls behind* off, the size stays at 100 %.
 - **Display modes:** before Start the stream list shows the headset's choices. On an Index, 120 Hz and then 144 Hz run at that rate, and SteamVR's own refresh setting is back after Stop; on a Beyond there is nothing to choose, and the stream is 2560 in its 75 Hz mode and 1920 in its 90 Hz mode, as set with the Beyond Utility.
-- **The rendering PC's stalls:** in a game, play five minutes with eye tracking on and five with it off, with reports from both PCs: the host report's `VROST_HOST_ACQUIRE` lines and SteamVR's `WaitForAcquire` warnings say whether the stalls follow the game or the gaze.
+- **The rendering PC's stalls:** in a game, play five minutes with eye tracking on and five with it off, with reports from both PCs: the host report's `capture_stalls` (each second with skipped frames, beside the encoder's send time), its `VROST_HOST_ACQUIRE` lines and SteamVR's `WaitForAcquire` warnings say whether the stalls follow the network, the game or the gaze.
 
 Network and bitrate:
 
@@ -84,7 +93,7 @@ You need a headset PC with Windows 10 or 11 (64-bit), Steam and SteamVR, and the
 
 Record for each Windows run, as well as the items under *Record each run*: the Windows edition, version and build; the headset PC's GPU and its driver version (and which GPU drives the headset if there are two); the client's `STATUS SteamVR's GPU for D3D11VA` and `STATUS Video decoding` lines; whether the PC was on its charger; Wi-Fi or Ethernet.
 
-1. Run `VROSTBridge-Client-Setup-1.0.0.14.exe`. It is not code-signed, so Windows SmartScreen may say *Windows protected your PC*: choose **More info → Run anyway**, and record whether it asked. It passes when it installs without an administrator prompt into `%LOCALAPPDATA%\VROSTBridge\Client\1.0.0.14`, the Start menu has *VROSTBridge Client*, the page shows *VROSTBridge Client 1.0.0.14*, and running the setup again (a repair) keeps settings and pairing. `VROSTBridge-Client-Portable-1.0.0.14.zip`, unpacked whole, opens the same page from its `VROSTBridge Client.exe`. On a PC where SteamVR has never run, if you have one, Start must stop with *SteamVR is not set up on this PC yet*.
+1. Run `VROSTBridge-Client-Setup-1.0.0.15.exe`. It is not code-signed, so Windows SmartScreen may say *Windows protected your PC*: choose **More info → Run anyway**, and record whether it asked. It passes when it installs without an administrator prompt into `%LOCALAPPDATA%\VROSTBridge\Client\1.0.0.14`, the Start menu has *VROSTBridge Client*, the page shows *VROSTBridge Client 1.0.0.14*, and running the setup again (a repair) keeps settings and pairing. `VROSTBridge-Client-Portable-1.0.0.14.zip`, unpacked whole, opens the same page from its `VROSTBridge Client.exe`. On a PC where SteamVR has never run, if you have one, Start must stop with *SteamVR is not set up on this PC yet*.
 2. Press **Allow home-network connection** and accept the one administrator (UAC) prompt. It passes when the page's card then reads *Home-network firewall rules are in place (local subnet only)*, and Windows Defender Firewall's inbound rules hold exactly five `VROSTBridge.Client.* (home network)` rules, each for every network profile and the local subnet only: TCP 9943, UDP 9944 and UDP 5353 for `VROSTBridgeClient.exe`, and TCP 9945 and UDP 9944 and 9946 for the companion's `python.exe`. Declining the prompt must change nothing and say so.
 3. Discovery and pairing: with *Allow home-network clients* on in the host page, start a session on the client. It passes when the client finds the host by itself, without an address typed, pairs, and the host page lists it; the next Start reuses the pairing.
 4. D3D11VA decoding on SteamVR's GPU: with *CPU decoding* off, start a session. It passes when the client's log has `STATUS SteamVR's GPU for D3D11VA: <GPU> (DXGI adapter <n>); decoder profiles h264=… hevc=… hevc_main10=… av1=… av1_10bit=…`, then `STATUS Video decoding: D3D11VA on <GPU>, copied to Vulkan` and `STATUS Video decoder opened successfully: backend=D3D11VA …`, all naming the GPU the headset is connected to (on a PC with two GPUs, the one SteamVR renders with), the page's video details say *decoded with D3D11VA*, and the picture in the headset is right. The adapter is matched by its LUID, which the log does not print: its name and DXGI number identify it. Record the decoder profiles line. `STATUS SteamVR's GPU for D3D11VA not found`, `STATUS Video decoding: D3D11VA unavailable` or a `FATAL` D3D11VA line is a failure. Then turn on *CPU decoding* and start an H.264 or HEVC session: the log must say `STATUS Video decoding: CPU, uploaded to Vulkan` and the picture must be right (without foveation); record its frame rate, as CPU decoding is a troubleshooting fallback.

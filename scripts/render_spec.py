@@ -89,15 +89,15 @@ def chrome(canvas, doc):
         canvas.drawString(50, HEIGHT-30, 'VROSTBRIDGE  /  PROJECT SPECIFICATION')
         canvas.setFont('Spec', 7.5)
         canvas.setFillColor(MUTED)
-        canvas.drawRightString(WIDTH-50, HEIGHT-30, 'Host and client 1.0.0.14')
+        canvas.drawRightString(WIDTH-50, HEIGHT-30, 'Host and client 1.0.0.15')
     canvas.setFont('Spec', 7.5)
     canvas.setFillColor(MUTED)
-    canvas.drawString(50, 29, 'Documentation 2026-10-18 / 1.0.0.14')
+    canvas.drawString(50, 29, 'Documentation 2026-11-13 / 1.0.0.15')
     canvas.drawRightString(WIDTH-50, 29, f'{doc.page}')
     canvas.restoreState()
 
 doc = SpecDoc(str(OUTPUT), pagesize=A4, title='VROSTBridge - Full Project Specification',
-              author='JagerBombastic', subject='VROSTBridge host, Bazzite client and Windows client 1.0.0.14; documentation 2026-10-18',
+              author='JagerBombastic', subject='VROSTBridge host, Bazzite client and Windows client 1.0.0.15; documentation 2026-11-13',
               leftMargin=50, rightMargin=50, topMargin=59, bottomMargin=49)
 frame = Frame(50, 49, CONTENT, HEIGHT-108, leftPadding=0, rightPadding=0,
               topPadding=0, bottomPadding=0)
@@ -112,8 +112,8 @@ story += [logo, Spacer(1, 24)]
 cover_title = ParagraphStyle('cover', fontName='SpecBold', fontSize=34, leading=40, textColor=INK, spaceAfter=12)
 subtitle = ParagraphStyle('subtitle', fontName='Spec', fontSize=21, leading=29, textColor=BLUE, spaceAfter=26)
 story += [Paragraph('VROSTBridge', cover_title), Paragraph('Full project specification', subtitle)]
-story += [Paragraph('An open-source remote PCVR bridge<br/><i>VR Rendering OutSide The Box – Bridge</i><br/>Windows rendering host <b>1.0.0.14</b><br/>Bazzite headset client <b>1.0.0.14</b><br/>Windows headset client <b>1.0.0.14</b><br/>MIT licence, by JagerBombastic', styles['body']), Spacer(1, 22)]
-box = Table([[Paragraph('<b>Current handoff</b><br/>Architecture, requirements, implementation boundaries, build and install contracts, and release acceptance for 1.0.0.14: the current design and the reasons for it. Recent changes are in the release notes', styles['body'])]], colWidths=[CONTENT])
+story += [Paragraph('An open-source remote PCVR bridge<br/><i>VR Rendering OutSide The Box – Bridge</i><br/>Windows rendering host <b>1.0.0.15</b><br/>Bazzite headset client <b>1.0.0.15</b><br/>Windows headset client <b>1.0.0.15</b><br/>MIT licence, by JagerBombastic', styles['body']), Spacer(1, 22)]
+box = Table([[Paragraph('<b>Current handoff</b><br/>Architecture, requirements, implementation boundaries, build and install contracts, and release acceptance for 1.0.0.15: the current design and the reasons for it. Recent changes are in the release notes', styles['body'])]], colWidths=[CONTENT])
 box.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,-1),PALE),('BOX',(0,0),(-1,-1),.5,colors.HexColor('#c4d8e5')),('LEFTPADDING',(0,0),(-1,-1),16),('RIGHTPADDING',(0,0),(-1,-1),16),('TOPPADDING',(0,0),(-1,-1),14),('BOTTOMPADDING',(0,0),(-1,-1),9)]))
 story += [box, Spacer(1, 22), Paragraph('<b>Validation boundary</b><br/>Index and Beyond 2e streaming, tracking and game audio are confirmed on hardware through the bridge, with eye-tracked foveation at the headset\'s full resolution, calibration over the stream in Desktop Mode, packet repair and the menu button. The other features are contract-tested and listed as pending in section 16.2. The Windows client is built and tested in code only and has not yet run on Windows hardware; Game Mode sessions, calibrated gaze in Game Mode and the Beyond projection check are the remaining gates.', styles['body']), PageBreak()]
 story += [Paragraph('Contents', styles['h1'])]

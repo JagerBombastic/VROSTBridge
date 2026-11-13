@@ -22,6 +22,11 @@ Both settings go into one drop-in, /etc/sysctl.d/70-vrostbridge-network.conf, wr
 (one password prompt) and kept across reboots and system updates; the page offers it only when this PC needs one of
 them. check() reads the current values without privileges and the report carries them. Windows needs neither: it
 sizes socket buffers per socket and answers ARP only on the adapter that has the address.
+
+1.0.0.15: a check made while VROSTBridge had the other Wi-Fi adapter paused for a session found one adapter on the
+network and said all was well, and that stayed on the page and in reports after the adapter came back. Adapters a
+session has paused now count as on the stream's network (they were paused because they were), and a check older than
+a minute is made again when the page asks.
 """
 import ipaddress
 import os
@@ -29,6 +34,7 @@ from pathlib import Path
 import shutil
 import sys
 import tempfile
+import time
 
 from launcher.client_identity import lan_addresses
 from launcher.client_network import system_run
@@ -107,10 +113,17 @@ def drop_in_text():
 class NetworkSettings:
     """Check (and on request apply) the two settings. Linux only; elsewhere it reports 'not_needed'."""
 
-    def __init__(self, runner=system_run, log=print, proc=PROC, drop_in=DROP_IN, platform=None, addresses=lan_addresses):
+    STALE_S = 60  # status() checks again after this long
+
+    def __init__(self, runner=system_run, log=print, proc=PROC, drop_in=DROP_IN, platform=None, addresses=lan_addresses,
+                 paused=None, clock=time.monotonic):
         self.runner, self.log, self.proc, self.drop_in = runner, log, Path(proc), Path(drop_in)
         self.platform = sys.platform if platform is None else platform
         self.addresses = addresses
+        # 1.0.0.15: the Wi-Fi adapters a session has paused on the stream's network (launcher/wifi_others.py).
+        self.paused = paused if callable(paused) else (lambda: ())
+        self.clock = clock
+        self.checked = None
         self.interface = ''
         self.value = None
 
@@ -138,6 +151,13 @@ class NetworkSettings:
         except Exception:
             records = []
         shared = shared_network(records, self.interface) if self.interface else shared_network(records)
+        try:
+            paused = [name for name in (self.paused() or ()) if isinstance(name, str) and name][:8]
+        except Exception:
+            paused = []
+        if paused:  # paused for being on the stream adapter's network: the network is shared all the same
+            present = [name for name in shared or ([self.interface] if self.interface else []) if name not in paused]
+            shared = present + [name + ' (paused)' for name in paused]
         needs, parts = [], []
         if shared and not self.separated(self.interface):
             needs.append('arp')
@@ -162,10 +182,13 @@ class NetworkSettings:
                           rmem_default=values.get('rmem_default'), stream_buffer_bytes=effective,
                           needed_bytes=NEEDED_BYTES, arp_ignore=values.get('arp_ignore'),
                           arp_announce=values.get('arp_announce'), persistent=persistent, can_fix=self.can_fix())
+        self.checked = self.clock()
         return self.value
 
     def status(self):
-        return dict(self.value) if self.value else self.check()
+        if not self.value or self.checked is None or self.clock() - self.checked >= self.STALE_S:
+            return dict(self.check())
+        return dict(self.value)
 
     def repair(self):
         """Explicit user action: write the sysctl drop-in and apply it, both through pkexec, then check again."""

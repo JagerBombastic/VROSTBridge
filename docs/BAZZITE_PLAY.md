@@ -1,4 +1,4 @@
-# Bazzite Game Mode — VROSTBridge Client 1.0.0.14
+# Bazzite Game Mode — VROSTBridge Client 1.0.0.15
 
 Reviewed 2026-10-18. Game Mode has not yet been accepted on real hardware: test in Desktop Mode first (see [Validation boundary](#validation-boundary)).
 

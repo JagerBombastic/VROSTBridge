@@ -29,6 +29,7 @@ import urllib.request
 from host.profile import manual_client
 from host.stream_options import init_outcome
 from host.processes import identify, terminate
+from host import steamvr_driver
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -247,12 +248,16 @@ class SteamShutdownObserver:
     _months = {name: index + 1 for index, name in enumerate(
         ('jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'))}
 
+    # 1.0.0.15: SteamVR saying it will not load VROSTBridge's driver (host/steamvr_driver.py), timestamped as above.
+    _stamp = re.compile(r'^\w{3} ([A-Za-z]{3}) (\d{1,2}) (\d{4}) (\d{2}):(\d{2}):(\d{2})(?:[.](\d+))?')
+
     def __init__(self, paths=steamvr_server_logs, wall_clock=time.time):
         self.paths = paths
         self.wall_clock = wall_clock
         self.cursors = {}
         self.started_at = 0
         self.request = None
+        self.blocked = None
 
     @staticmethod
     def _guard(file, offset):
@@ -262,6 +267,7 @@ class SteamShutdownObserver:
     def reset(self):
         self.started_at = self.wall_clock()
         self.request = None
+        self.blocked = None
         self.cursors = {}
         for path in self.paths():
             try:
@@ -291,6 +297,15 @@ class SteamShutdownObserver:
                     self.cursors[path] = (current, offset, self._guard(file, offset), pending)
                 for raw_line in lines:
                     line = raw_line.decode('utf-8', errors='replace')
+                    blocked = steamvr_driver.log_block(line)
+                    stamp = self._stamp.match(line) if blocked else None
+                    if stamp:
+                        month, day, year, hour, minute, second, fraction = stamp.groups()
+                        when = datetime.datetime(int(year), self._months[month.lower()], int(day), int(hour), int(minute),
+                                                 int(second), int(((fraction or '') + '000000')[:6])).timestamp()
+                        if self.started_at - .002 <= when <= self.wall_clock() + 5:
+                            self.blocked = blocked
+                        continue
                     match = self._line.match(line)
                     if not match:
                         continue
@@ -333,6 +348,7 @@ class HostControl:
         self.launch = launch
         self.process_ids = process_ids
         self.quit = quit
+        self.driver_settings = steamvr_driver.settings_path  # 1.0.0.15: where SteamVR records its add-ons' switches
         self.lock = threading.RLock()
         self.playspace_lock = threading.Lock()
         self.stop_requested = threading.Event()
@@ -386,6 +402,12 @@ class HostControl:
             raise ValueError('The previous host session is still stopping.')
         if self.process_ids():
             raise ValueError('Close SteamVR on this host PC before starting VROSTBridge.')
+        # 1.0.0.15: SteamVR would not load the driver (an earlier safe-mode start, or turned off in its add-ons). Say
+        # so now: the headset PC would otherwise look for a host that never appears.
+        blocked=steamvr_driver.driver_block(self.driver_settings())
+        if blocked:
+            self.log('SteamVR has VROSTBridge\'s driver turned off ('+('safe mode' if blocked['reason']=='safe-mode' else 'add-ons')+'); not starting it.')
+            raise ValueError(blocked['message'])
         if os.name=='nt':
             expected=steamvr_startup().parent
             for name,pids in windows_runtime_process_ids().items():
@@ -630,6 +652,12 @@ class HostControl:
                 # is rebased at each launch and can only recognize a new Steam
                 # quit-all request, never a generic process-exit warning.
                 shutdown_request=self.shutdown_observer.poll()
+                # 1.0.0.15: SteamVR said it will not load the driver (safe mode, or turned off): say so now rather
+                # than after the start-up timeout, while the headset PC looks for a host that never appears.
+                blocked=getattr(self.shutdown_observer,'blocked',None)
+                if blocked and not ready_once:
+                    self.log('SteamVR did not load VROSTBridge\'s driver: '+('blocked by an earlier safe-mode start' if blocked=='safe-mode' else 'turned off in its add-ons')+'.')
+                    raise ValueError(steamvr_driver.REASONS[blocked])
                 if shutdown_request:
                     self._set(shutdown_reason='steam-quit', shutdown_request=shutdown_request,
                               available=False, runtime_state='stopping', runtime_phase='external-shutdown',

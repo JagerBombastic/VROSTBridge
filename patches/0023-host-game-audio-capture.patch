@@ -39,10 +39,10 @@ index cb4cb112..bd13f956 100644
                  AudioChannel::LowFrequency,
 diff --git a/alvr/audio/src/vrostbridge_loopback.rs b/alvr/audio/src/vrostbridge_loopback.rs
 new file mode 100644
-index 00000000..f2b6cfb9
+index 00000000..5dfaf12c
 --- /dev/null
 +++ b/alvr/audio/src/vrostbridge_loopback.rs
-@@ -0,0 +1,651 @@
+@@ -0,0 +1,821 @@
 +//! VROSTBridge: game-audio capture on the Windows host (WASAPI loopback).
 +//!
 +//! The pinned capture went through cpal, which hides the flags Windows attaches to each captured
@@ -60,6 +60,13 @@ index 00000000..f2b6cfb9
 +//! client's buffer stays filled and its timing steady). Surround mixes are folded to stereo by the
 +//! speaker positions Windows reports, with a soft limit instead of hard clipping. When the device
 +//! cannot be opened this way, the server falls back to the cpal capture.
++//!
++//! 1.0.0.15: a loopback stream is the device's mix before the device's own volume is applied, so
++//! the volume set for the device never reached the headset. That is the volume SteamVR's dashboard
++//! sets for the headset (the server names this device as the headset's audio output), and the one
++//! Windows' volume control sets. The capture now reads it and applies it, ramped over each packet
++//! so a change never clicks. Mute is not applied: the server mutes the device itself while it
++//! streams, so the PC's own speakers stay quiet.
 +
 +/// Speaker bits of WAVEFORMATEXTENSIBLE::dwChannelMask, in the order channels appear.
 +pub const SPEAKER_FRONT_LEFT: u32 = 0x1;
@@ -173,6 +180,47 @@ index 00000000..f2b6cfb9
 +    }
 +}
 +
++/// The gain for a device volume: `level_db` is its master level in dB, `scalar` the slider's
++/// position (0 to 1). The slider at zero is silence; a level above 0 dB (some drivers allow one)
++/// is not applied, so the soft limit is never driven harder than the mix itself drives it.
++pub fn endpoint_gain(level_db: f32, scalar: f32) -> f32 {
++    if !scalar.is_finite() || scalar <= 0.0 || !level_db.is_finite() {
++        return 0.0;
++    }
++    10f32.powf(level_db / 20.0).clamp(0.0, 1.0)
++}
++
++/// The gain over consecutive packets: each packet ramps from the previous packet's end to the
++/// newest volume, so a change takes one packet (about 10 ms) and never steps.
++#[derive(Clone, Copy, Debug, PartialEq)]
++pub struct GainRamp {
++    current: f32,
++    target: f32,
++}
++
++impl GainRamp {
++    pub fn new(gain: f32) -> Self {
++        Self { current: gain, target: gain }
++    }
++
++    pub fn set(&mut self, gain: f32) {
++        if gain.is_finite() {
++            self.target = gain.clamp(0.0, 1.0);
++        }
++    }
++
++    pub fn target(&self) -> f32 {
++        self.target
++    }
++
++    /// The gain at the start and the end of the next packet.
++    pub fn next(&mut self) -> [f32; 2] {
++        let span = [self.current, self.target];
++        self.current = self.target;
++        span
++    }
++}
++
 +/// Sample formats a shared-mode mix can have.
 +#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 +pub enum MixFormat {
@@ -218,6 +266,23 @@ index 00000000..f2b6cfb9
 +    silent: bool,
 +    out: &mut Vec<u8>,
 +) {
++    convert_to_stereo_i16_with_gain(data, frames, stride, channels, format, weights, silent, [1.0, 1.0], out);
++}
++
++/// As [`convert_to_stereo_i16`], with the device volume applied before the soft limit: `gain` is
++/// the gain at the start and at the end of the packet, ramped linearly in between.
++#[allow(clippy::too_many_arguments)]
++pub fn convert_to_stereo_i16_with_gain(
++    data: &[u8],
++    frames: usize,
++    stride: usize,
++    channels: usize,
++    format: MixFormat,
++    weights: &[[f32; 2]],
++    silent: bool,
++    gain: [f32; 2],
++    out: &mut Vec<u8>,
++) {
 +    if silent || data.len() < frames * stride {
 +        out.resize(out.len() + frames * 4, 0);
 +        return;
@@ -241,7 +306,12 @@ index 00000000..f2b6cfb9
 +            }
 +            (left, right)
 +        };
-+        for value in [left, right] {
++        let g = if gain[0] == gain[1] {
++            gain[1]
++        } else {
++            gain[0] + (gain[1] - gain[0]) * ((frame + 1) as f32 / frames as f32)
++        };
++        for value in [left * g, right * g] {
 +            let value = if value.is_finite() { soft_limit(value) } else { 0.0 };
 +            let sample = (value * 32_767.0).round().clamp(-32_768.0, 32_767.0) as i16;
 +            out.extend_from_slice(&sample.to_ne_bytes());
@@ -271,8 +341,8 @@ index 00000000..f2b6cfb9
 +            Media::Audio::{
 +                AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY, AUDCLNT_BUFFERFLAGS_SILENT,
 +                AUDCLNT_SHAREMODE_SHARED, AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
-+                AUDCLNT_STREAMFLAGS_LOOPBACK, IAudioCaptureClient, IAudioClient, IAudioRenderClient,
-+                IMMDevice, WAVEFORMATEX, WAVEFORMATEXTENSIBLE,
++                AUDCLNT_STREAMFLAGS_LOOPBACK, Endpoints::IAudioEndpointVolume, IAudioCaptureClient,
++                IAudioClient, IAudioRenderClient, IMMDevice, WAVEFORMATEX, WAVEFORMATEXTENSIBLE,
 +            },
 +            System::{
 +                Com::{self, CLSCTX_ALL, COINIT_MULTITHREADED},
@@ -294,6 +364,9 @@ index 00000000..f2b6cfb9
 +    const BUFFER_DURATION: i64 = 1_000_000;
 +    const WAIT_MS: u32 = 10;
 +    const REPORT_EVERY: Duration = Duration::from_secs(10);
++    /// How often the device volume is read, and at most how often a change of it is logged.
++    const VOLUME_EVERY: Duration = Duration::from_millis(50);
++    const VOLUME_LOG_EVERY: Duration = Duration::from_secs(1);
 +
 +    struct Event(HANDLE);
 +    impl Drop for Event {
@@ -366,7 +439,18 @@ index 00000000..f2b6cfb9
 +        capture: IAudioCaptureClient,
 +        event: Option<Event>,
 +        keep_alive: Option<(IAudioClient, IAudioRenderClient, u32)>,
++        /// The device's own volume control (1.0.0.15); without it the mix is sent at full level.
++        volume: Option<IAudioEndpointVolume>,
 +        layout: Layout,
++    }
++
++    /// The device volume as a gain, and its level in dB for the log.
++    unsafe fn read_volume(volume: &IAudioEndpointVolume) -> Option<(f32, f32)> {
++        unsafe {
++            let level = volume.GetMasterVolumeLevel().ok()?;
++            let scalar = volume.GetMasterVolumeLevelScalar().ok()?;
++            Some((endpoint_gain(level, scalar), level))
++        }
 +    }
 +
 +    impl LoopbackCapture {
@@ -438,7 +522,14 @@ index 00000000..f2b6cfb9
 +                        None
 +                    }
 +                };
-+                Ok(Self { device: device.clone(), client, capture, event, keep_alive, layout })
++                let volume = match imm_device.Activate::<IAudioEndpointVolume>(CLSCTX_ALL, None) {
++                    Ok(volume) => Some(volume),
++                    Err(e) => {
++                        info!("VROST_AUDIO_CAPTURE volume=0 reason=\"{e}\"");
++                        None
++                    }
++                };
++                Ok(Self { device: device.clone(), client, capture, event, keep_alive, volume, layout })
 +            }
 +        }
 +
@@ -464,9 +555,14 @@ index 00000000..f2b6cfb9
 +                if mute && self.device.supports_output() {
 +                    crate::windows::set_mute_windows_device(&self.device, true).ok();
 +                }
++                let initial = self.volume.as_ref().and_then(|volume| read_volume(volume));
++                let mut ramp = GainRamp::new(initial.map_or(1.0, |(gain, _)| gain));
++                let mut logged_db = initial.map(|(_, db)| db);
++                let mut volume_read = Instant::now();
++                let mut volume_logged = Instant::now();
 +                let started = self.client.Start();
 +                info!(
-+                    "VROST_AUDIO_CAPTURE device=\"{}\" rate={} channels={} format={:?} mask=0x{:x} event={} keep_alive={} mmcss={}",
++                    "VROST_AUDIO_CAPTURE device=\"{}\" rate={} channels={} format={:?} mask=0x{:x} event={} keep_alive={} mmcss={} volume_follow={} volume_db={:.1} gain={:.3}",
 +                    self.device.name().unwrap_or_default(),
 +                    layout.rate,
 +                    layout.channels,
@@ -475,6 +571,9 @@ index 00000000..f2b6cfb9
 +                    u8::from(self.event.is_some()),
 +                    u8::from(self.keep_alive.is_some()),
 +                    u8::from(mmcss.is_some()),
++                    u8::from(initial.is_some()),
++                    initial.map_or(0.0, |(_, db)| db),
++                    ramp.target(),
 +                );
 +
 +                let mut stats = Stats::default();
@@ -492,6 +591,24 @@ index 00000000..f2b6cfb9
 +                                WaitForSingleObject(event.0, WAIT_MS);
 +                            }
 +                            None => std::thread::sleep(Duration::from_millis(u64::from(WAIT_MS))),
++                        }
++
++                        if let Some(volume) = &self.volume
++                            && volume_read.elapsed() >= VOLUME_EVERY
++                        {
++                            volume_read = Instant::now();
++                            if let Some((gain, db)) = read_volume(volume) {
++                                ramp.set(gain);
++                                // A change is logged once it settles for a second (a dragged slider
++                                // moves in many small steps).
++                                if logged_db.is_none_or(|logged| (logged - db).abs() >= 0.5)
++                                    && volume_logged.elapsed() >= VOLUME_LOG_EVERY
++                                {
++                                    info!("VROST_AUDIO_CAPTURE volume_db={db:.1} gain={gain:.3}");
++                                    logged_db = Some(db);
++                                    volume_logged = Instant::now();
++                                }
++                            }
 +                        }
 +
 +                        if let Some((render, service, frames)) = &self.keep_alive {
@@ -523,7 +640,7 @@ index 00000000..f2b6cfb9
 +                                } else {
 +                                    std::slice::from_raw_parts(data, frames as usize * layout.stride)
 +                                };
-+                                convert_to_stereo_i16(
++                                convert_to_stereo_i16_with_gain(
 +                                    bytes,
 +                                    frames as usize,
 +                                    layout.stride,
@@ -531,6 +648,7 @@ index 00000000..f2b6cfb9
 +                                    layout.format,
 +                                    &weights,
 +                                    silent,
++                                    ramp.next(),
 +                                    &mut packet,
 +                                );
 +                                self.capture.ReleaseBuffer(frames)?;
@@ -552,12 +670,13 @@ index 00000000..f2b6cfb9
 +
 +                        if last_report.elapsed() >= REPORT_EVERY {
 +                            info!(
-+                                "VROST_AUDIO_CAPTURE packets={} silent={} discontinuities={} frames={} max_gap_ms={:.1}",
++                                "VROST_AUDIO_CAPTURE packets={} silent={} discontinuities={} frames={} max_gap_ms={:.1} gain={:.3}",
 +                                stats.packets,
 +                                stats.silent,
 +                                stats.discontinuities,
 +                                stats.frames,
-+                                stats.max_gap.as_secs_f64() * 1000.0
++                                stats.max_gap.as_secs_f64() * 1000.0,
++                                ramp.target()
 +                            );
 +                            stats.max_gap = Duration::ZERO;
 +                            last_report = Instant::now();
@@ -681,6 +800,57 @@ index 00000000..f2b6cfb9
 +        convert_to_stereo_i16(&pcm32, 1, 8, 2, MixFormat::I32, &downmix_weights(2, 0), false, &mut out);
 +        let got = decode(&out)[0];
 +        assert!((got[0] - 0.5).abs() < 1e-3 && (got[1] + 0.5).abs() < 1e-3, "{got:?}");
++    }
++
++    #[test]
++    fn the_device_volume_is_applied_before_the_limit_and_ramped() {
++        // Windows' levels: 0 dB at the top of the slider, about -10 dB at half on a typical device.
++        assert_eq!(endpoint_gain(0.0, 1.0), 1.0);
++        assert!((endpoint_gain(-6.0206, 0.6) - 0.5).abs() < 1e-3);
++        assert!((endpoint_gain(-20.0, 0.3) - 0.1).abs() < 1e-4);
++        // The slider at zero is silence, whatever level the device reports for it.
++        assert_eq!(endpoint_gain(-65.25, 0.0), 0.0);
++        // A boost above 0 dB is not applied, and nonsense from a driver is silence, not noise.
++        assert_eq!(endpoint_gain(6.0, 1.0), 1.0);
++        assert_eq!(endpoint_gain(f32::NAN, 0.5), 0.0);
++
++        let (data, channels) = frames_f32(&[&[0.8, -0.8], &[0.8, -0.8], &[0.8, -0.8], &[0.8, -0.8]]);
++        let weights = downmix_weights(channels, 0);
++        // Half volume: half the level.
++        let mut out = vec![];
++        convert_to_stereo_i16_with_gain(&data, 4, 8, 2, MixFormat::F32, &weights, false, [0.5, 0.5], &mut out);
++        for frame in decode(&out) {
++            assert!((frame[0] - 0.4).abs() < 1e-3 && (frame[1] + 0.4).abs() < 1e-3, "{frame:?}");
++        }
++        // A change ramps across the packet and ends exactly at the new gain.
++        let mut out = vec![];
++        convert_to_stereo_i16_with_gain(&data, 4, 8, 2, MixFormat::F32, &weights, false, [1.0, 0.0], &mut out);
++        let left: Vec<f32> = decode(&out).iter().map(|frame| frame[0]).collect();
++        assert!(left.windows(2).all(|pair| pair[1] < pair[0]), "{left:?}");
++        assert!((left[0] - 0.6).abs() < 1e-3 && left[3].abs() < 1e-3, "{left:?}");
++        // Full volume is the earlier conversion exactly.
++        let (mut plain, mut full) = (vec![], vec![]);
++        convert_to_stereo_i16(&data, 4, 8, 2, MixFormat::F32, &weights, false, &mut plain);
++        convert_to_stereo_i16_with_gain(&data, 4, 8, 2, MixFormat::F32, &weights, false, [1.0, 1.0], &mut full);
++        assert_eq!(plain, full);
++        // The gain comes before the limit: a loud surround fold turned down is not squashed.
++        let weights8 = downmix_weights(8, 0);
++        let (data8, _) = frames_f32(&[&[0.9f32; 8]]);
++        let mut out = vec![];
++        convert_to_stereo_i16_with_gain(&data8, 1, 32, 8, MixFormat::F32, &weights8, false, [0.25, 0.25], &mut out);
++        let got = decode(&out)[0];
++        let unlimited = 0.25 * 0.9 * (1.0 + 3.0 * MINUS_3_DB);
++        assert!((got[0] - unlimited).abs() < 2e-3, "{got:?} vs {unlimited}");
++
++        let mut ramp = GainRamp::new(1.0);
++        assert_eq!(ramp.next(), [1.0, 1.0]);
++        ramp.set(0.25);
++        assert_eq!(ramp.next(), [1.0, 0.25]);
++        assert_eq!(ramp.next(), [0.25, 0.25]);
++        ramp.set(f32::NAN);
++        assert_eq!(ramp.next(), [0.25, 0.25]);
++        ramp.set(3.0);
++        assert_eq!(ramp.target(), 1.0);
 +    }
 +
 +    #[test]

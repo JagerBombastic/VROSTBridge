@@ -22,6 +22,12 @@ STREAM_LINES = {'VROST_STREAM_CONFIG': 'StreamConfig', 'VROST_GAZE_FOVEATION': '
                 'VROST_CONTROLLER_PAIR': 'ControllerPair'}
 # Groups recorded in the journal every time (they are rare), not at most every 5 s.
 EVERY_LINE = ('VideoColour', 'NoHeadPose')
+# 1.0.0.15: the driver's capture skips SteamVR's frame when it can't take the frame's lock within 10 ms
+# (acquire_failed 0x102). In the 1.0.0.14 reports each skip came in the same second as the encoder's send stalling for
+# half a second or more (transmit_max_us 518 000 and 688 000): the network send held up the stream, and the capture
+# only showed it. Each second in which the skips went up is kept with the stage times beside it, for the report.
+STALLS_KEPT = 32
+SEND_STALL_US = 100000
 _ENCODER = re.compile(r'VROST_HOST_ENCODER selected backend=([A-Za-z]{2,16})\b')
 
 def parse_vsync_lock(content):
@@ -40,6 +46,7 @@ class HostEvents:
         self.lock=threading.Lock();self.connected=False;self.message='Waiting for the host runtime.'
         self.connection_error='';self.latest={};self.last_record={};self.log_window=0;self.log_count=0;self.skipped=0
         self.repeats=OrderedDict();self.coalesced=0;self.native_hands={};self.pipeline=PipelineStats()
+        self.stalls=[];self.last_capture=None;self.last_encoder=None
         self.thread=threading.Thread(target=self.run,daemon=True);self.thread.start()
     def accept(self,raw):
         event=json.loads(raw);kind=event.get('event_type',{})
@@ -59,7 +66,9 @@ class HostEvents:
             if native:
                 group={'VROST_HOST_AMF':'HostAMF','VROST_HOST_CAPTURE':'HostCapture','VROST_HOST_ENCODER':'HostEncoder'}[native[1]]
                 values={key:int(value) for key,value in re.findall(r'([a-z_]+)=([0-9]+)',native[2])}
-                with self.lock:self.latest[group]={'received_utc':time.time(),'values':values}
+                with self.lock:
+                    self.latest[group]={'received_utc':time.time(),'values':values}
+                    self.note_stall(group,values,now)
                 if now-self.last_record.get(group,0)>=1:
                     self.journal.record('native-'+group,values);self.last_record[group]=now
                 return
@@ -116,10 +125,36 @@ class HostEvents:
                 self.log_count+=1
             self.journal.record(event_name,recorded)
         # Session, Tracking, Buttons, Haptics, and unknown event types are ignored.
+    def note_stall(self,group,values,now):
+        """1.0.0.15: a second in which the capture skipped SteamVR's frame, with the encoder's send time beside it
+        (called with the lock held)."""
+        if group=='HostEncoder':
+            self.last_encoder=(now,values)
+            # The encoder's line for the same second can come just after the capture's.
+            send=values.get('transmit_max_us')
+            if self.stalls and self.stalls[-1].get('_at',-9)>=now-1.5 and isinstance(send,int):
+                row=self.stalls[-1]
+                if not isinstance(row.get('transmit_max_us'),int) or send>row['transmit_max_us']:
+                    row['transmit_max_us']=send
+                    row['cause']='network-send' if send>=SEND_STALL_US else row['cause']
+            return
+        if group!='HostCapture':return
+        previous,self.last_capture=self.last_capture,values
+        failures=values.get('acquire_failures')
+        if previous is None or failures is None or failures<=previous.get('acquire_failures',failures):return
+        encoder=self.last_encoder[1] if self.last_encoder and now-self.last_encoder[0]<=2 else {}
+        send=encoder.get('transmit_max_us')
+        row={'utc':round(time.time(),1),'skipped':failures-previous.get('acquire_failures',0),
+             'acquire_max_us':values.get('acquire_max_us'),'encoder_wait_max_us':values.get('encoder_wait_max_us'),
+             'mutex_held_max_us':values.get('mutex_held_max_us'),'transmit_max_us':send,
+             'cause':'network-send' if isinstance(send,int) and send>=SEND_STALL_US else 'unknown','_at':now}
+        self.stalls=(self.stalls+[row])[-STALLS_KEPT:]
+        self.journal.record('host-capture-stall',{key:value for key,value in row.items() if key!='_at'})
     def reset(self):
         with self.lock:
             self.connection_error='';self.latest={};self.repeats.clear();self.coalesced=0;self.native_hands={}
             self.skipped=0;self.log_count=0;self.log_window=0
+            self.stalls=[];self.last_capture=None;self.last_encoder=None
         self.pipeline.reset()
     def status(self):
         with self.lock:
@@ -128,7 +163,8 @@ class HostEvents:
             return {'connected':self.connected,'message':self.message,'statistics':copy.deepcopy(self.latest),
                     'rate_limited_logs':self.skipped,'coalesced_logs':self.coalesced,
                     'repeated_logs':sorted(repeats,key=lambda row:row['count'],reverse=True)[:16],
-                    'connection_error':self.connection_error,'pipeline':self.pipeline.summary(),'native_hands':{hand:dict(sample,report_age_s=max(0,time.monotonic()-sample['received_monotonic'])) for hand,sample in self.native_hands.items()}}
+                    'connection_error':self.connection_error,'pipeline':self.pipeline.summary(),
+                    'capture_stalls':[{key:value for key,value in row.items() if key!='_at'} for row in self.stalls],'native_hands':{hand:dict(sample,report_age_s=max(0,time.monotonic()-sample['received_monotonic'])) for hand,sample in self.native_hands.items()}}
     def run(self):
         while not self.stop_event.is_set():
             api=self.api()

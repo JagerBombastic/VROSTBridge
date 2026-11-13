@@ -32,33 +32,36 @@ UDP_TABLE = """  sl  local_address rem_address   st tx_queue rx_queue tr tm->whe
 
 
 class VersionTests(unittest.TestCase):
-    def test_every_program_is_1_0_0_14(self):
+    def test_every_program_carries_the_release_version(self):
+        """Every version mirror matches launcher/version.py; the exact number is pinned by the current release's test."""
         from launcher.version import CLIENT_VERSION, HOST_VERSION
-        self.assertEqual((CLIENT_VERSION, HOST_VERSION), ('1.0.0.14', '1.0.0.14'))
+        version_label = CLIENT_VERSION
+        self.assertEqual(CLIENT_VERSION, HOST_VERSION)
+        self.assertGreaterEqual(tuple(int(part) for part in version_label.split('.')), (1, 0, 0, 14))
         version = read('core/version.hpp')
-        self.assertIn('#define VROSTBRIDGE_CLIENT_VERSION "1.0.0.14"', version)
-        self.assertIn('#define VROSTBRIDGE_HOST_VERSION "1.0.0.14"', version)
-        self.assertIn('project(VROSTBridge VERSION 1.0.0.14 ', read('CMakeLists.txt'))
-        self.assertIn('version=1.0.0.14\n', read('packaging/install-bazzite.sh'))
+        self.assertIn('#define VROSTBRIDGE_CLIENT_VERSION "%s"' % version_label, version)
+        self.assertIn('#define VROSTBRIDGE_HOST_VERSION "%s"' % version_label, version)
+        self.assertIn('project(VROSTBridge VERSION %s ' % version_label, read('CMakeLists.txt'))
+        self.assertIn('version=%s\n' % version_label, read('packaging/install-bazzite.sh'))
         nsi = read('packaging/windows-installer.nsi')
-        for line in ('Name "VROSTBridge Host 1.0.0.14"', 'VIProductVersion "1.0.0.14"', '"DisplayVersion" "1.0.0.14"',
-                     'InstallDir "$LOCALAPPDATA\\VROSTBridge\\Host\\1.0.0.14"'):
-            self.assertIn(line, nsi)
+        for line in ('Name "VROSTBridge Host %s"', 'VIProductVersion "%s"', '"DisplayVersion" "%s"',
+                     'InstallDir "$LOCALAPPDATA\\VROSTBridge\\Host\\%s"'):
+            self.assertIn(line % version_label, nsi)
         self.assertNotIn('1.0.0.13', nsi)
         resource = read('packaging/windows-icon.rc')
-        self.assertIn('FILEVERSION 1,0,0,14', resource)
-        self.assertIn('PRODUCTVERSION 1,0,0,14', resource)
-        self.assertIn('native launcher 1.0.0.14 ---', read('packaging/windows-launcher.c'))
-        self.assertIn("VERSION = '1.0.0.14'", read('launcher/install_maintenance.py'))
-        self.assertIn("'VROSTBridge 1.0.0.14 / ALVR'", read('host/profile.py'))
+        self.assertIn('FILEVERSION ' + version_label.replace('.', ','), resource)
+        self.assertIn('PRODUCTVERSION ' + version_label.replace('.', ','), resource)
+        self.assertIn('native launcher %s ---' % version_label, read('packaging/windows-launcher.c'))
+        self.assertIn("VERSION = '%s'" % version_label, read('launcher/install_maintenance.py'))
+        self.assertIn("'VROSTBridge %s / ALVR'" % version_label, read('host/profile.py'))
         sys.path.insert(0, str(ROOT / 'packaging'))
         import build_distributions
         import build_windows_client
-        self.assertEqual(build_distributions.client_archive_name(), 'VROSTBridge-Bazzite-Installer-1.0.0.14.zip')
-        self.assertEqual(build_distributions.host_setup_name(), 'VROSTBridge-Host-Setup-1.0.0.14.exe')
-        self.assertEqual(build_windows_client.client_version(), '1.0.0.14')
-        self.assertEqual(build_windows_client.setup_name(), 'VROSTBridge-Client-Setup-1.0.0.14.exe')
-        self.assertEqual(build_windows_client.portable_name(), 'VROSTBridge-Client-Portable-1.0.0.14.zip')
+        self.assertEqual(build_distributions.client_archive_name(), 'VROSTBridge-Bazzite-Installer-%s.zip' % version_label)
+        self.assertEqual(build_distributions.host_setup_name(), 'VROSTBridge-Host-Setup-%s.exe' % version_label)
+        self.assertEqual(build_windows_client.client_version(), version_label)
+        self.assertEqual(build_windows_client.setup_name(), 'VROSTBridge-Client-Setup-%s.exe' % version_label)
+        self.assertEqual(build_windows_client.portable_name(), 'VROSTBridge-Client-Portable-%s.zip' % version_label)
         from launcher import install_maintenance
         self.assertTrue(install_maintenance._RELEASE_VERSION.fullmatch('1.0.0.14'))
 

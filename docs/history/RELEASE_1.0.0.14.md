@@ -1,6 +1,6 @@
 # VROSTBridge 1.0.0.14
 
-What the first external testers and 1.0.0.13's first session asked for: a sharper picture and hands that land where they were swung. Every package carries **1.0.0.14**, and the [1.0.0.13 notes](history/RELEASE_1.0.0.13.md) still apply.
+What the first external testers and 1.0.0.13's first session asked for: a sharper picture and hands that land where they were swung. Every package carries **1.0.0.14**, and the [1.0.0.13 notes](RELEASE_1.0.0.13.md) still apply.
 
 **Install** over 1.0.0.13 on each PC: `VROSTBridge-Host-Setup-1.0.0.14.exe` on the rendering PC, and `VROSTBridge-Bazzite-Installer-1.0.0.14.zip` or `VROSTBridge-Client-Setup-1.0.0.14.exe` on the headset PC. Settings, pairing, the network test, Baballonia and its calibration stay. Nothing on the wire changed, so either PC still works with the other at 1.0.0.13; each change below belongs to one PC and comes with that PC's package.
 
@@ -31,4 +31,4 @@ Play as before, wired, with *Use recommended settings* and *Pause other Wi-Fi ad
 - The rendering PC's occasional stalls are not fixed; they still cost no bitrate.
 - Starting a session from Game Mode on Bazzite is unconfirmed (use Desktop Mode), and the Windows client hasn't run on real hardware.
 
-Build and test evidence: [evidence/vrostbridge-build-1.0.0.14.json](evidence/vrostbridge-build-1.0.0.14.json).
+Build and test evidence: [evidence/vrostbridge-build-1.0.0.14.json](../evidence/vrostbridge-build-1.0.0.14.json).

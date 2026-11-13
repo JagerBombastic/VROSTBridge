@@ -589,6 +589,8 @@ class View:
             self.action('repair-async', 'SteamVR reprojection repaired; it applies when SteamVR next starts.')
         elif name == 'fix-network':
             self.action('fix-network', 'Network settings fixed; Wi-Fi can stay connected during sessions.')
+        elif name == 'host-unblock-driver':  # 1.0.0.15
+            self.action('host-unblock-driver', 'The host\'s driver is on again. Start the session again.')
         elif name == 'wifi-powersave-off':
             self.action('wifi-powersave-off', 'Wi-Fi power saving is off for your home network.')
         elif name == 'sync-playspace':
@@ -886,6 +888,10 @@ class View:
             # 1.0.0.5: without the headset's position the host has nothing to render for.
             return ("SteamVR on this PC can't see the headset, so no picture can come. Check that the base "
                     'stations are on and can see it, and that the headset is awake.')
+        hardware = s.get('headset_hardware') or {}
+        if hardware.get('message') and (hardware.get('state') in ('drop', 'deep') or s.get('running')):
+            # 1.0.0.15: the headset's USB (dropped out, or too many hubs deep) or a controller SteamVR can't see.
+            return hardware['message']
         if not s.get('running') and game.get('supported') is False and game.get('reason'):
             # RC4.2 greyed out Start here and showed "Ready to start a session." instead of why.
             return game['reason']
@@ -900,6 +906,9 @@ class View:
                            else 'Set it to automatic: Quick Access menu → Performance.'))
             return ("This PC's processor is held at " + str(held['cpu_mhz']) + ' MHz: raise the TDP limit and leave the '
                     'GPU clock automatic (Quick Access menu → Performance).')
+        if s.get('running') and power.get('state') == 'lower' and power.get('message'):
+            # 1.0.0.15: drawing much less power than the last smooth session, short of frames: a lower TDP limit.
+            return power['message']
         starved = graphics.get('starved') or {}
         if s.get('running') and graphics.get('state') == 'limited' and starved.get('clock_mhz'):
             # RC4.4: the power limit, not the stream size, is what to change first.
@@ -993,8 +1002,16 @@ class View:
         # (RC4.2 greyed it out without a reason).
         self.button('stop' if live else 'start', 'Stop session' if live else 'Start session', 48, 336, 580, 104,
                     primary=True, subtitle='Closes SteamVR on both PCs' if live else 'Opens SteamVR on both PCs and connects them')
-        self.button('host-menu', 'Open host menu', 652, 336, 580, 104, enabled=bool(running and not busy),
-                    subtitle='The host\'s SteamVR dashboard, in the headset')
+        driver = (((s.get('session_link') or {}).get('host') or {}).get('host_info') or {}).get('steamvr_driver') or {}
+        if not live and driver.get('state') in ('safe-mode', 'disabled'):
+            # 1.0.0.15: SteamVR's safe mode (or its add-on switch) has VROSTBridge's driver off on the host.
+            self.button('host-unblock-driver', 'Turn the driver back on', 652, 336, 580, 104,
+                        enabled=bool(driver.get('can_fix', True)), primary=True,
+                        subtitle=('On the rendering PC, in SteamVR\'s add-ons' if driver.get('can_fix', True)
+                                  else 'Close SteamVR on the rendering PC first'))
+        else:
+            self.button('host-menu', 'Open host menu', 652, 336, 580, 104, enabled=bool(running and not busy),
+                        subtitle='The host\'s SteamVR dashboard, in the headset')
         options = self.stream_options()
         chosen = next((o for o in options if o.get('id') == self.stream_choice()), None)
         stream = (chosen or {}).get('label', 'Auto').replace(' - ', ' · ').replace(' x ', ' × ')

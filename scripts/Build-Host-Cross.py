@@ -10,6 +10,10 @@ FFmpeg/x264 CPU encoder fallback (too slow for VR); AMD, NVIDIA and Intel hardwa
 encoders do not use FFmpeg. Pass --gpl to build the fallback; it then also needs
 FFmpeg 8.1 shared import libraries/headers and Vulkan headers under deps/windows.
 No existing binary is silently reused as a rebuilt native driver.
+
+1.0.0.15: build folders are written into the driver as /src, /cargo, /rustup and /target (Rust's
+--remap-path-prefix, clang's -ffile-prefix-map), as the Windows client's transport does, and a driver
+that still names a folder of the build machine is refused.
 """
 from __future__ import annotations
 import argparse
@@ -44,9 +48,19 @@ def main() -> None:
     for directory in required:
         if not directory.is_dir():
             parser.error(f"Required cross-build dependency is missing: {directory}")
+    # An explicit target directory makes the copied DLL unambiguous even when
+    # the developer has a global Cargo target-dir configuration.
+    target_dir = checkout / "target-vrostbridge-windows"
+    home = Path.home()
+    cargo_home = Path(os.environ.get("CARGO_HOME", home / ".cargo")).resolve()
+    rustup_home = Path(os.environ.get("RUSTUP_HOME", home / ".rustup")).resolve()
+    # rustc applies the last matching prefix, so the more specific folders come later.
+    remaps = [(ROOT, "/src"), (args.alvr.absolute(), "/src/upstream/ALVR"), (checkout, "/src/upstream/ALVR"),
+              (cargo_home, "/cargo"), (rustup_home, "/rustup"), (target_dir, "/target")]
     # cc-rs accepts shell-quoted flags. Avoid ambiguous SDK paths on Windows.
     import shlex
-    flags = " ".join(["--target=" + TARGET, *[f"/imsvc {shlex.quote(str(d))}" for d in includes]])
+    flags = " ".join(["--target=" + TARGET, *[f"/imsvc {shlex.quote(str(d))}" for d in includes],
+                      *[shlex.quote(f"/clang:-ffile-prefix-map={source}/={destination}/") for source, destination in remaps]])
     env = dict(os.environ)
     suffix = TARGET.replace("-", "_")
     env.update({
@@ -57,17 +71,20 @@ def main() -> None:
         "CXXFLAGS_" + suffix: flags + " /EHsc",
         "CARGO_TARGET_" + suffix.upper() + "_LINKER": args.lld_link,
         "CARGO_BUILD_JOBS": str(args.jobs),
-        "CARGO_ENCODED_RUSTFLAGS": "\x1f".join(["-C", "target-feature=+crt-static", *[flag for d in libraries for flag in ("-L", "native=" + str(d))]]),
+        "CARGO_ENCODED_RUSTFLAGS": "\x1f".join(["-C", "target-feature=+crt-static", *[flag for d in libraries for flag in ("-L", "native=" + str(d))],
+                                                 *[f"--remap-path-prefix={source}={destination}" for source, destination in remaps]]),
     })
-    # An explicit target directory makes the copied DLL unambiguous even when
-    # the developer has a global Cargo target-dir configuration.
-    target_dir = checkout / "target-vrostbridge-windows"
     features = ["--features", "gpl"] if args.gpl else []
     subprocess.run(["cargo", "build", "--release", "--locked", "-p", "alvr_server_openvr", "--target", TARGET,
                     *features, "--target-dir", str(target_dir)], cwd=checkout, env=env, check=True)
     source = target_dir / TARGET / "release/alvr_server_openvr.dll"
     if not source.is_file():
         raise RuntimeError("Cargo succeeded without producing the expected native driver")
+    data = source.read_bytes()
+    build_paths = {str(path) for path in (ROOT, checkout, args.alvr.absolute(), cargo_home, rustup_home, target_dir, sdk)}
+    build_paths.add(str(home) + os.sep)
+    if leaks := sorted(path for path in build_paths if path.encode() in data or path.encode("utf-16-le") in data):
+        raise RuntimeError("The driver contains build-machine paths: " + ", ".join(leaks))
     destination = args.overlay.resolve() / "bin/win64/driver_alvr_server.dll"
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, destination)

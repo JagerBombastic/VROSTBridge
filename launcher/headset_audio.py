@@ -34,14 +34,16 @@ _PROPERTIES = ('device.description', 'device.product.name', 'device.vendor.name'
 # (phrase, weight, identifies the headset on its own). Supporting words never
 # select a device alone: a Steam Deck's own sound card is called "Valve-Jupiter".
 # The Index's speakers are DisplayPort audio whose monitor name is "Index HMD";
-# its microphone is the USB "Valve VR Radio & HMD Mic". Beyond audio is USB.
+# its microphone is the USB "Valve VR Radio & HMD Mic". Beyond audio is USB. 1.0.0.15: speakers added to a
+# Beyond through its accessory port can name themselves after it ("Beyondex HD Audio"), one word with no
+# "beyond" in it, so the whole-word match missed them.
 _KEYWORDS = {
     ('index', 'sink'): (('valve index', 10, True), ('index hmd', 10, True),
                         ('index', 2, False), ('valve', 1, False)),
     ('index', 'source'): (('hmd mic', 10, True), ('valve vr radio', 10, True), ('valve index', 8, True),
                           ('index hmd', 6, True), ('valve vr', 6, True), ('index', 2, False), ('valve', 1, False)),
-    ('beyond', 'sink'): (('bigscreen beyond', 12, True), ('bigscreen', 10, True), ('beyond', 6, True),
-                         ('audio strap', 2, False)),
+    ('beyond', 'sink'): (('bigscreen beyond', 12, True), ('beyondex', 12, True), ('bigscreen', 10, True),
+                         ('beyond', 6, True), ('audio strap', 2, False)),
     ('beyond', 'source'): (('bigscreen beyond', 12, True), ('bigscreen', 10, True), ('beyond', 6, True),
                            ('audio strap', 2, False)),
 }

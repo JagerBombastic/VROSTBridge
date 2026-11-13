@@ -9,7 +9,8 @@
 # The source is the unmodified snapshot shipped in third_party/ffmpeg (checked by SHA-256). The build runs in
 # a work folder with the Vulkan headers copied beside the source and the prefix /ffmpeg (installed into
 # --output through DESTDIR), so the configure line FFmpeg embeds in the DLLs names no build-machine folder.
-# Linking without a time stamp makes the DLLs reproducible.
+# The DLLs carry no time stamp, so they are reproducible: they are linked without one, and installed with
+# SOURCE_DATE_EPOCH=0, because the install step strips them and strip otherwise stamps the current time.
 #
 #   scripts/Build-FFmpeg-Windows.sh [--work DIR] [--output DIR] [--vulkan-headers DIR] [--jobs N]
 #
@@ -47,6 +48,9 @@ tar -xJf "$tarball" -C "$source"
 mkdir -p "$source/vulkan-headers"
 cp -r "$headers/vulkan" "$headers/vk_video" "$source/vulkan-headers/"
 cd -- "$source"
+# FFmpeg names its version from `git describe` when its folder is inside a git work tree, so building inside a clone of
+# this repository labelled the libraries with this repository's commit. Keep git from looking above the source.
+export GIT_CEILING_DIRECTORIES="$(dirname -- "$source")"
 # Relative paths only from here on: they are recorded in the libraries (avcodec_configuration()).
 ./configure --prefix=/ffmpeg --target-os=mingw32 --arch=x86_64 --cross-prefix=x86_64-w64-mingw32- \
     --enable-cross-compile --pkg-config=false --enable-shared --disable-static --disable-programs --disable-doc \
@@ -59,13 +63,17 @@ cd -- "$source"
 grep -q 'License: LGPL version 2.1 or later' config.h 2>/dev/null || grep -q '"LGPL version 2.1 or later"' config.h \
     || { echo 'The configured FFmpeg is not LGPL 2.1 or later' >&2; exit 1; }
 make -j "$jobs"
-make install DESTDIR="$work/stage"
+SOURCE_DATE_EPOCH=0 make install DESTDIR="$work/stage"
 rm -rf "$output"
 mkdir -p "$output"
 cp -r "$work/stage/ffmpeg/bin" "$work/stage/ffmpeg/lib" "$work/stage/ffmpeg/include" "$output/"
 rm -rf "$output/lib/pkgconfig"
-# The DLLs must name no folder of this machine (their configure line is the one above).
+grep -q '^#define FFMPEG_VERSION "6.1.4"$' "$output/include/libavutil/ffversion.h" \
+    || { echo "The libraries do not say FFmpeg 6.1.4: $(tail -2 "$output/include/libavutil/ffversion.h" | head -1)" >&2; exit 1; }
+# The DLLs must name no folder of this machine (their configure line is the one above) and carry no time stamp.
 for dll in "$output"/bin/*.dll; do
     if grep -a -q -e "$work" -e "$root" -e "$headers/vulkan" "$dll"; then echo "Build path in $dll" >&2; exit 1; fi
+    stamp=$(od -An -tu4 -j "$(( $(od -An -tu4 -j 60 -N 4 "$dll") + 8 ))" -N 4 "$dll" | tr -d ' ')
+    if [ "$stamp" != 0 ]; then echo "Time stamp $stamp in $dll" >&2; exit 1; fi
 done
 sha256sum "$output"/bin/*.dll

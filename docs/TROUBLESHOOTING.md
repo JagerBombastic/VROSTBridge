@@ -71,6 +71,20 @@ base stations off or out of sight, or SteamVR on the headset PC not running. Bas
 ***Waiting for the headset’s position*** **(rendering PC).** The same problem seen from the other end: frames are
 rendered, but the headset PC isn't sending a head position. Look at the headset PC.
 
+***SteamVR on the rendering PC turned VROSTBridge's driver off after an earlier crash (safe mode).*** After a crash,
+SteamVR can start in safe mode, which turns add-on drivers off, and it keeps them off afterwards. The rendering PC's
+SteamVR runs without a window, so its own notice goes unseen; until 1.0.0.15 the headset PC just kept looking for the
+host. Choose **Turn the driver back on** (on the headset PC's page, in Game Mode, or on the rendering PC's page), then
+Start again. It works while SteamVR on the rendering PC is closed, which it is after a failed start. If it happens
+again straight away, something is crashing SteamVR there: save both reports. The same message, worded for SteamVR's
+add-ons, appears when the driver was switched off by hand in SteamVR's *Manage Add-ons*.
+
+***A USB hub on this PC is nested too deep*** **(Bazzite).** USB allows five hubs between the PC and a device, and
+Linux turns off a hub any deeper with everything plugged into it. A headset has hubs of its own (a Beyond three), so a
+dock with two of its own, or a PC whose ports already sit behind a hub, is enough: the headset half-appears and its
+controllers' radios are missing. Plug the headset's USB into a port on the PC itself, or into a dock or hub that plugs
+straight into the PC; on some docks only one port is shallow enough.
+
 **SteamVR doesn't start at 144 Hz (Index).** 144 Hz is experimental, and not every graphics card or driver drives
 it: the start fails after a minute with a message naming the rate VROSTBridge asked for. Choose *Native · 120 Hz*.
 
@@ -85,6 +99,23 @@ until a release says otherwise, and send the reports if you try it (they record 
 
 ## During a session
 
+***The headset's USB dropped out: the headset and its controllers disconnected at the same moment.*** The headset's
+USB lost power for a moment (the controllers' radios are in the headset, so they go with it), and SteamVR refused the
+next frame. Before 1.0.0.15 this ended as *SteamVR texture submission failed: 105*. It is usually the 5 V supply: a dock
+or hub that can't hold it under load (extras drawing power from the headset, such as speakers, make it more likely),
+or a loose cable. Plug the headset's USB into a port on the PC itself, or use a dock or hub with a stronger power
+supply.
+
+***SteamVR can't see the left controller (or the controllers): on but not tracked.*** The controller is connected but
+its sensors can't see the base stations while the headset can: its sensor windows have misted up (common when it has
+come in from somewhere cold; give it a few minutes to warm), something covers them, or the base stations are off or
+out of its view. The line in the headset goes as soon as it tracks again.
+
+**SteamVR's volume slider.** From 1.0.0.15 the dashboard's volume (and Windows' own volume for that device on the
+rendering PC) changes the game volume in the headset. If the headset is quieter than before, that device was turned
+down for the PC's speakers: turn it up in the dashboard. The rendering PC's speakers stay quiet while streaming either
+way.
+
 **Stutter, or the picture runs at half its usual smoothness.** Look at the *Fresh video* line on the page and any
 message under it.
 
@@ -93,7 +124,9 @@ message under it.
   a lighter choice if it keeps happening: an Index's next lower refresh rate, a Beyond's 90 Hz mode (set with
   Bigscreen's Beyond Utility), or a smaller stream on other headsets. On a handheld, keep it on the charger and raise its power limit (TDP):
   decoding, SteamVR and eye tracking share one power budget. If the page says *a power limit (TDP) or a fixed GPU clock
-  is holding it back*, **Set the GPU clock to automatic** (Bazzite) fixes the usual cause.
+  is holding it back*, **Set the GPU clock to automatic** (Bazzite) fixes the usual cause. *This PC is drawing about
+  12 W while streaming, against 21 W in its last smooth session* means its power limit is set lower than when it last
+  streamed smoothly (the TDP slider moved for another game, or a battery profile): raise it on the charger.
 - *Fewer frames are arriving from the host* means the rendering PC or the network is the limit: a heavy game, or a
   busy link. Try a lower bitrate or a smaller stream size.
 - Frames arriving in uneven bursts usually point at Wi-Fi. See below.

@@ -20,6 +20,11 @@ A receipt file records what was paused, so a companion that ends unexpectedly
 reconnects those adapters the next time it starts. Every failure is reported and
 none blocks a session.
 
+1.0.0.15: an adapter that is no longer on the PC (a USB Wi-Fi stick unplugged after a
+session paused it) is said once to be unplugged and forgotten. It used to stay in the
+receipt, and every Stop and start-up failed to reconnect it and asked for it to be
+reconnected from the network menu.
+
 Windows (no administrator rights needed): the other adapter's saved Wi-Fi profile is
 read from its connection (WlanQueryInterface, which needs Windows' location consent
 from Windows 11 24H2), then it is disconnected (WlanDisconnect) and later reconnected
@@ -232,13 +237,29 @@ class OtherWifiPause:
         except (OSError, ValueError, subprocess.SubprocessError):
             return False
 
+    def _present(self, name):
+        """Whether the adapter is still on this PC (an unplugged USB adapter is not); True when it can't be told."""
+        if sys.platform == 'win32':
+            try:
+                return bool(windows_network.adapter_for(name))
+            except windows_network.WindowsNetworkError:
+                return True
+        return (self.sys_class_net / name).exists()
+
     def _reconnect(self, names, reason):
-        restored, failed = [], []
+        restored, failed, gone = [], [], []
         for name in names:
             if not _valid_name(name):
                 continue
-            ok = self._connect(name)
-            (restored if ok else failed).append(name)
+            if self._connect(name):
+                restored.append(name)
+            elif not self._present(name):
+                gone.append(name)  # no adapter of that name any more: unplugged, nothing to reconnect
+            else:
+                failed.append(name)
+        if gone:
+            self.log('WIFI ' + ', '.join(gone) + (' are' if len(gone) > 1 else ' is') + ' no longer on this PC (unplugged), '
+                     'so there is nothing to reconnect; VROSTBridge forgets ' + ('them.' if len(gone) > 1 else 'it.'))
         if restored:
             self.log('WIFI Reconnected ' + ', '.join(restored) + ' ' + reason + '.')
         if failed:

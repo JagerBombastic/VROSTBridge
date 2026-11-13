@@ -29,10 +29,10 @@ index cff224f6..cb4cb112 100644
      anyhow::{self, Context, Result, bail},
 diff --git a/alvr/audio/src/vrostbridge_playback.rs b/alvr/audio/src/vrostbridge_playback.rs
 new file mode 100644
-index 00000000..50c30fac
+index 00000000..85d5813c
 --- /dev/null
 +++ b/alvr/audio/src/vrostbridge_playback.rs
-@@ -0,0 +1,862 @@
+@@ -0,0 +1,898 @@
 +//! VROSTBridge: game-audio playback for the desktop clients (Linux and Windows).
 +//!
 +//! The pinned playback had three weaknesses that showed up as audio that "lags, breaks up and
@@ -53,6 +53,11 @@ index 00000000..50c30fac
 +//! packet is bridged with a short cross-fade instead of emptying the buffer. When the buffer does
 +//! run dry, the sound fades out, the target grows by 10 ms (up to 150 ms) and shrinks back after
 +//! a quiet minute. What happens is counted for the client's logs and reports.
++//!
++//! 1.0.0.15: the target grows only when a slightly larger buffer would have bridged the gap. In
++//! wired sessions the buffer ran dry almost only in stalls of the whole stream (the video stalled
++//! at the same moments, for 70 to 220 ms); a buffer cannot bridge those at a sensible size, and
++//! growing it for each one left the sound up to 125 ms late for the rest of the session.
 +
 +use alvr_common::parking_lot::Mutex;
 +use std::{
@@ -74,6 +79,10 @@ index 00000000..50c30fac
 +const TARGET_STEP_DOWN_MS: f64 = 5.0;
 +const TARGET_RELAX_S: f64 = 60.0;
 +const MAX_TARGET_MS: f64 = 150.0;
++/// A gap longer than the target plus this is a stall of the whole stream: the buffer still runs
++/// dry (counted as an underrun), but the target stays, because one more step would not have
++/// bridged it and would only make the sound later.
++const STALL_MARGIN_MS: f64 = 30.0;
 +/// A silence this long between packets is the host pausing its sound, not a late packet.
 +const PAUSE_GAP: Duration = Duration::from_millis(300);
 +/// Speed correction: proportional to the (smoothed) distance from the target, at most this much.
@@ -238,8 +247,10 @@ index 00000000..50c30fac
 +                } else {
 +                    self.stats.underruns += 1;
 +                    self.last_underrun = Some(now);
-+                    self.relaxed_at = Some(now);
-+                    self.target_ms = (self.target_ms + TARGET_STEP_UP_MS).min(MAX_TARGET_MS);
++                    if gap.as_secs_f64() * 1000.0 <= self.target_ms + STALL_MARGIN_MS {
++                        self.relaxed_at = Some(now);
++                        self.target_ms = (self.target_ms + TARGET_STEP_UP_MS).min(MAX_TARGET_MS);
++                    }
 +                }
 +            }
 +        }
@@ -807,14 +818,39 @@ index 00000000..50c30fac
 +        assert_eq!(player.stats.trims, 0);
 +    }
 +
++    /// The arrival delay of packet `i` when the network holds everything sent from packet `first`
++    /// until `until_ms` and then lets it go at once (a stall), on time otherwise.
++    fn held(i: usize, first: usize, until_ms: f64) -> f64 {
++        let sent = i as f64 * 10.0;
++        if i >= first && sent < until_ms { until_ms - sent } else { 1.0 }
++    }
++
 +    #[test]
-+    fn a_stall_counts_as_an_underrun_and_raises_the_target_and_a_pause_does_not() {
++    fn late_packets_raise_the_target_a_stall_and_a_pause_do_not() {
 +        let mut player = JitterPlayer::new(RATE, RATE, 50);
-+        // Packets 500..510 arrive 110 ms late: the buffer runs dry once.
-+        run(&mut player, 10.0, RATE, 1.0, |i| Some(if (500..510).contains(&i) { 110.0 } else { 1.0 }));
++        // Packets from 500 are held until 5065 ms (a 74 ms gap): the buffer runs dry once, and one
++        // more step of buffer would have bridged it.
++        run(&mut player, 10.0, RATE, 1.0, |i| Some(held(i, 500, 5065.0)));
 +        assert_eq!(player.stats.underruns, 1);
 +        assert_eq!(player.stats.pauses, 0);
 +        assert_eq!(player.target_ms(), 60.0);
++
++        // 1.0.0.15: held until 5150 ms (a 159 ms stall of the whole stream): the buffer runs dry,
++        // but the target stays.
++        let mut player = JitterPlayer::new(RATE, RATE, 50);
++        run(&mut player, 10.0, RATE, 1.0, |i| Some(held(i, 500, 5150.0)));
++        assert_eq!(player.stats.underruns, 1);
++        assert_eq!(player.stats.pauses, 0);
++        assert_eq!(player.target_ms(), 50.0);
++
++        // A stall every five seconds for a minute never raises it either.
++        let mut player = JitterPlayer::new(RATE, RATE, 40);
++        run(&mut player, 60.0, RATE, 1.0, |i| {
++            let k = i / 500;
++            Some(if k >= 1 { held(i, k * 500, k as f64 * 5000.0 + 150.0) } else { 1.0 })
++        });
++        assert!(player.stats.underruns >= 10, "{:?}", player.stats);
++        assert_eq!(player.target_ms(), 40.0);
 +
 +        let mut player = JitterPlayer::new(RATE, RATE, 50);
 +        // The host sends nothing for a second (its sound stopped): a pause, the target stays.

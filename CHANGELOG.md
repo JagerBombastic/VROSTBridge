@@ -2,6 +2,21 @@
 
 Each version in a few lines, newest first. The release notes in `docs/` have the detail, the reasons and a *How to test* list. Every package shares one version (the host, the Bazzite client and the Windows client): install the host and your client of the same release together, over the previous one.
 
+## 1.0.0.15
+
+SteamVR's volume slider in the headset, and the faults that ended 1.0.0.14 sessions with the wrong explanation now say what happened.
+
+- **Volume from SteamVR's dashboard** (rendering PC). The game audio is captured from the headset's audio device before the device's own volume, so the dashboard's slider changed nothing. The capture applies that volume now, ramped so a change never clicks, before the soft limit; mute stays the host's own (it mutes the device while streaming). The first new host driver since 1.0.0.9.
+- **SteamVR's safe mode** (rendering PC). SteamVR turns add-on drivers off after a crash and keeps them off; the headset PC then searched for a host that never appeared. The host checks before starting SteamVR (and in SteamVR's log while it starts) and stops at once with the reason; *Turn the driver back on* fixes it from the headset PC or the host page while SteamVR is closed.
+- **The headset's USB** (headset PC). A hub nested too deep for Linux (five in a chain is the most, and a headset brings its own) is named at Start on Bazzite; the headset and its controllers disconnecting together is reported as the USB dropping out (its 5 V supply) instead of *texture submission failed: 105*.
+- **Controllers that can't see the base stations:** on but not tracked while the headset tracks (misted sensors, base stations off) gets a line in the headset and a note on the page.
+- **The bitrate starts where it settled** (headset PC): per stream, the bitrate the last session of two minutes or more spent longest at, and whether decoding followed the picture size, instead of stepping down from the ceiling at every Start.
+- **Game audio through stalls** (headset PC). The audio buffer grows only for gaps one step would have bridged; stalls of the whole stream no longer leave the sound late for the rest of the session (one 1.0.0.14 session ended 125 ms late).
+- **A lower power limit than before:** a session short of frames while drawing much less power than the last smooth session says so, with both figures.
+- **Smaller fixes:** the network settings check counts Wi-Fi adapters a session paused and checks again later; an unplugged Wi-Fi adapter is forgotten instead of asked for at every Stop; speakers added to a Beyond's accessory port under a name run into the Beyond's are its sound output; the host report lists the capture's skipped frames beside the encoder's send time; a second source build in one checkout goes ahead.
+- Version 1.0.0.15 for every package. The host's driver is rebuilt (patch 0023), the clients' transport (patch 0022) and native programs too.
+- [Release notes](docs/RELEASE_1.0.0.15.md)
+
 ## 1.0.0.14
 
 What the first external testers and 1.0.0.13's first session asked for: a sharper picture, and hands that land where they were swung.
@@ -17,7 +32,7 @@ What the first external testers and 1.0.0.13's first session asked for: a sharpe
 - **The host keeps its last session's statistics** (`host-last-session.json`), so a report made after the host's VROSTBridge restarted still carries them (`host_last_session`).
 - The menu button is confirmed: a short press opens the rendering PC's SteamVR menu.
 - Version 1.0.0.14 for every package. The clients' native program is rebuilt (the acceleration, the gaze prediction, VA-API's decoder profiles); the host's driver is 1.0.0.9's.
-- [Release notes](docs/RELEASE_1.0.0.14.md)
+- [Release notes](docs/history/RELEASE_1.0.0.14.md)
 
 ## 1.0.0.13
 

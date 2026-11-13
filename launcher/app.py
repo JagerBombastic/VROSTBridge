@@ -39,6 +39,7 @@ from launcher.session_link import SessionHost, SessionClient, SessionError, Sess
 from launcher.session_link import PORT as SESSION_PORT, _source_connection as session_link_connect
 from launcher.headset import CLIENT_CODECS, CLIENT_RESOLUTIONS, FOVEATION_CHOICES, client_stream_preferences, resolve_stream_preferences, display_status, headset_metadata, headset_family, foveation_choice, foveation_parameters, foveated_size, stream_size
 from launcher.stream_budget import BitrateGovernor, quality_ceiling_mbps
+from launcher.stream_budget import memory_key as bitrate_memory_key, remember as remember_settled_bitrate, valid_memory as valid_bitrate_memory
 from launcher.session_tuning import SessionTuning
 from launcher.gaze_provider import GazeCentre
 from launcher.base_stations import BaseStations
@@ -49,6 +50,7 @@ from launcher.fovea import LiveView as FoveaView, parse_line as parse_fovea, vie
 from launcher.session_power import SessionPower, system_environment
 from launcher.steamvr_async import AsyncReprojectionCheck
 from launcher.network_settings import NetworkSettings
+from launcher import headset_hardware
 from launcher.headset_audio import HeadsetAudio
 from launcher.wifi_diagnostics import WifiDiagnostics
 from launcher.adapter_counters import AdapterCounters, elsewhere as adapter_elsewhere
@@ -58,6 +60,7 @@ from launcher.network_test import MAX_AGE_S as NETWORK_TEST_MAX_AGE_S, failed_te
 from launcher.client_identity import lan_addresses
 from host.power import KeepAwake, SleepAfterStop, wake_readiness, wake_message, adapter_addresses, adapter_for_ip
 from host import qos as host_qos
+from host import steamvr_driver
 from host.stream_options import driver_features, stream_config, write_stream_config, write_init_hint, run_link_test
 from host.stream_recovery import StreamRecovery
 from host.audio import microphone_status
@@ -73,6 +76,8 @@ from launcher.connection_kind import describe as describe_connection
 from launcher.graphics_limit import GpuClocks, GraphicsLimit, NOTICE_S as GRAPHICS_NOTICE_S, advice as graphics_advice, frames_arriving as graphics_frames_arriving
 from launcher.output_scale import OutputScale
 from launcher.power_balance import CpuClocks, SteamOSPower, advice as power_advice, gpu_clock_hint
+from launcher.power_balance import (lower_power, recent_power, smooth_session, valid_power_record,
+                                    SHORT_SHARE as POWER_SHORT_SHARE)
 from host.microphone_setup import MicrophoneSetup
 from launcher.steam_shortcut import SteamShortcut
 from launcher.windows_startup import WindowsStartup
@@ -346,6 +351,8 @@ class Application:
         if role=='client':self.settings.update(lightweight=True,host_ip='',late_frame_catchup=True,motion_prediction=True,codec='Auto',resolution='automatic',encoder='speed',timing_lock=True,cached_headset=None,decoder_profiles=None,prediction_acceleration=True,
                                                foveation='auto',ten_bit=True,intra_refresh=False,auto_bitrate=True,pacing=True,keep_warm_minutes=0,keep_awake=True,
                                                headset_audio=True,wake_host=True,headset_hud=False,host_mac='',network_tests={},headset_profiles={},
+                                               bitrate_memory={},  # 1.0.0.15: where each stream's bitrate settled on this PC
+                                               smooth_power=None,  # 1.0.0.15: the power this PC drew in its last smooth session
                                                pause_other_wifi=True,stay_on_access_point=True,reaim=True,
                                                # 1.0.0.8: steer the GPU clock and power limit during sessions (Linux, steamos-manager);
                                                # the base stations off when VROSTBridge closes (and on when a session starts);
@@ -381,6 +388,8 @@ class Application:
                 elif key=='keep_warm_minutes' and saved.get(key) in KEEP_WARM_CHOICES and type(saved.get(key)) is int:self.settings[key]=saved[key]
                 elif key=='sleep_after_minutes' and saved.get(key) in SLEEP_AFTER_CHOICES and type(saved.get(key)) is int:self.settings[key]=saved[key]
                 elif key=='host_mac' and normalise_mac(saved.get(key)):self.settings[key]=normalise_mac(saved[key])
+                elif key=='bitrate_memory':self.settings[key]=valid_bitrate_memory(saved.get(key))  # 1.0.0.15
+                elif key=='smooth_power':self.settings[key]=valid_power_record(saved.get(key))  # 1.0.0.15
                 elif key=='network_tests' and isinstance(saved.get(key),dict):
                     self.settings[key]={name:value for name,value in list(saved[key].items())[:8] if isinstance(name,str) and len(name)<=64 and isinstance(value,dict)}
                 elif key=='headset_profiles' and isinstance(saved.get(key),dict):
@@ -416,7 +425,11 @@ class Application:
         if self.session_tuning:
             threading.Thread(target=self.session_tuning.recover,daemon=True,name='VROSTBridge-tuning-recover').start()
         self.async_reprojection=AsyncReprojectionCheck(log=self.log,state_directory=self.log_path.parent) if role=='client' else None
-        self.network_settings=NetworkSettings(log=self.log) if role=='client' else None  # 1.0.0.14: one network twice, the receive buffer
+        # 1.0.0.14: one network twice, the receive buffer. 1.0.0.15: Wi-Fi adapters a session paused still count.
+        self.network_settings=NetworkSettings(log=self.log,paused=lambda:(self.other_wifi.status().get('paused') or []) if getattr(self,'other_wifi',None) else []) if role=='client' else None
+        # 1.0.0.15: the headset's USB (too many hubs deep, dropping out) and controllers that can't see the base stations.
+        self.headset_watch=headset_hardware.HeadsetWatch() if role=='client' else None
+        self.usb_depth=(0.0,{'state':'ok','message':'','hubs':[]});self.hardware_note=None
         self.video_path_warned=False;self.video_path_checked=0.0;self.video_path=None
         self.headset_audio=HeadsetAudio(log=self.log) if role=='client' else None
         self.wifi_diagnostics=WifiDiagnostics(log=self.log) if role=='client' else None
@@ -513,7 +526,7 @@ class Application:
             self.refresh_host_settings()
             try:self.session_link=SessionHost(self.log_path.parent,self.start_host_session,self.stop_host_session,self.host_control.snapshot,self.allow_session_pairing,self.log,allow_start=self.private_session_allowed,capabilities=self.session_capabilities,telemetry=self.session_telemetry,
                                               features=self.session_features,link_test=self.host_link_test,host_info=self.session_host_info,report=self.receive_client_report,
-                                              fovea=self.fovea_view.update,bitrate=self.host_control.set_bitrate)
+                                              fovea=self.fovea_view.update,bitrate=self.host_control.set_bitrate,unblock=self.remote_unblock_driver)
             except OSError as error:self.startup_error='Cannot open the session listener: '+str(error);self.log(self.startup_error)
         else:
             self.session_link=SessionClient(self.log_path.parent,self.log)
@@ -792,7 +805,39 @@ class Application:
                        'sleep_after':self._plain((self.sleep_after_stop.status() if self.sleep_after_stop else {}).get('minutes'))}}
         parked=self.parked
         if parked:info['resume']={'parked':True,'remaining_s':max(0,int(parked['deadline']-time.monotonic()))}
+        driver=self.steamvr_driver_status()  # 1.0.0.15: the headset PC offers to turn it back on
+        if driver.get('state') in ('safe-mode','disabled'):info['steamvr_driver']={'state':driver['state'],'can_fix':bool(driver.get('can_fix'))}
         return info
+    DRIVER_STATUS_S=5
+    def steamvr_open(self):
+        """Whether SteamVR runs on this host PC (VROSTBridge's own session, or one opened by hand)."""
+        if self.host_control and self.host_control.active:return True
+        try:return bool(self.host_control.process_ids()) if self.host_control else False
+        except Exception:return False
+    def steamvr_driver_status(self,fresh=False):
+        """1.0.0.15: whether SteamVR will load VROSTBridge's driver (host/steamvr_driver.py), read at most every 5 s."""
+        now=time.monotonic();cached=getattr(self,'_driver_status',None)
+        if not fresh and cached and now-cached[0]<self.DRIVER_STATUS_S:return dict(cached[1])
+        try:block=steamvr_driver.driver_block(self.host_control.driver_settings() if self.host_control else None)
+        except Exception:block=None
+        value={'state':block['reason'],'message':block['message'],'can_fix':not self.steamvr_open()} if block else {'state':'on'}
+        self._driver_status=(now,value)
+        return dict(value)
+    def unblock_driver(self):
+        """1.0.0.15: turn VROSTBridge's driver back on in SteamVR, while SteamVR is closed."""
+        result=steamvr_driver.clear_driver_block(self.host_control.driver_settings() if self.host_control else None,steamvr_running=self.steamvr_open())
+        self._driver_status=None
+        self.log("VROSTBridge's driver turned back on in SteamVR (it was "+('blocked by an earlier safe-mode start' if result.get('reason')=='safe-mode' else 'turned off in its add-ons')+').'
+                 if result.get('changed') else result['message'])
+        if result.get('changed') and self.startup_error in steamvr_driver.REASONS.values():self.startup_error=''
+        return result
+    def remote_unblock_driver(self):
+        """The same for a paired headset PC (launcher/session_link.py /unblock): never waits behind a start or stop."""
+        if not self.action_lock.acquire(timeout=2):raise ValueError('The host is starting or stopping a session; try again in a moment.')
+        try:
+            if self.running():raise ValueError('A session is running on the host; stop it first.')
+            return self.unblock_driver()['message']
+        finally:self.action_lock.release()
     @staticmethod
     def _plain(value):
         return value if isinstance(value,(str,int,float,bool,type(None))) else None
@@ -935,6 +980,9 @@ class Application:
         notice=self.graphics_status().get('short','') if time.monotonic()<self.graphics_notice_until else ''
         if time.monotonic()<self.power_notice_until:  # 1.0.0.4: the processor held back comes first
             notice=self.power_status().get('short','') or notice
+        watch=getattr(self,'headset_watch',None)
+        hands=watch.short() if watch else ''
+        if hands:notice=hands  # 1.0.0.15: a controller SteamVR can't see is what to fix first, and it's fixed in the headset
         notice=notice.replace(' · ','|')  # the client's own separator for the quality line
         if notice:
             if notice!=self.hud_text and self.native_command('hud '+notice):self.hud_text=notice
@@ -1026,12 +1074,14 @@ class Application:
             extra['graphics']=self.graphics_status()
             extra['power_balance']=self.power_status()
             extra['runtime_restart']=self.runtime_restart_status()
+            extra['headset_hardware']=self.headset_hardware_status()  # 1.0.0.15
             # RC4.5: outside self.lock: eye tracking has its own locks and its camera helper logs.
             extra['eye_tracking']=self.eye_status()
         else:
             extra['received_reports']=self.received_reports.list() if self.received_reports else []
             extra['host_microphone']=self.microphone_setup.status() if self.microphone_setup else None
             extra['fovea']=self.host_fovea_status()
+            extra['steamvr_driver']=self.steamvr_driver_status()  # 1.0.0.15
         with self.lock:
             if self.role=='host':self.refresh_host_settings()
             running=self.running()
@@ -1398,6 +1448,18 @@ class Application:
             if number is not None:value[key]=round(number,1) if kind is float else number
         return value
 
+    USB_DEPTH_S=10
+    def headset_hardware_status(self,fresh=False):
+        """1.0.0.15: the headset's USB and the controllers' tracking (launcher/headset_hardware.py) for the pages,
+        Game Mode and reports. The USB tree (Linux) is read at most every 10 s."""
+        if self.role!='client':return None
+        stamp,depth=self.usb_depth
+        if fresh or time.monotonic()-stamp>=self.USB_DEPTH_S:
+            try:depth=headset_hardware.usb_depth()
+            except Exception:depth={'state':'ok','message':'','hubs':[]}
+            self.usb_depth=(time.monotonic(),depth)
+        return headset_hardware.summary(getattr(self,'headset_watch',None),depth)
+
     def log(self,line):
         # Do not include live gaze or world poses. Static optical geometry may
         # be recorded for projection diagnosis and included in the host report.
@@ -1413,6 +1475,10 @@ class Application:
             self.lines.append(line.rstrip())
             if getattr(self,'game_mode_log',None):self.game_mode_log.line(line.rstrip())
             if self.client_identity:self.client_identity.observe(line)
+            watch=getattr(self,'headset_watch',None)
+            if watch is not None and line.startswith(('HEAD_TRACKING ','CONTROLLER_STATE ','INPUT ')):
+                event=watch.observe(line)  # 1.0.0.15; logged by monitor_session, outside this lock
+                if event:self.hardware_note=watch.log_text(event)
             if line.startswith('PLAYSPACE '):
                 try:
                     area=json.loads(line[10:]);area['sequence']=self.playspace.get('sequence',0)+1;self.playspace=area
@@ -1506,6 +1572,10 @@ class Application:
     FATAL_RUNTIME_WAIT_S=15  # a crashed compositor can stay in /proc while its core is written
 
     def native_failure(self,process,message):
+        # 1.0.0.15: SteamVR refusing frames because the headset's USB dropped out just before ("texture submission
+        # failed: 105"): say what happened (launcher/headset_hardware.py). The native error stays in the log.
+        watch=getattr(self,'headset_watch',None)
+        if watch is not None:message=watch.fatal_message(message)
         if self.role=='client' and getattr(self,'stream_ever_up',False):
             # RC4.4: when it failed because SteamVR on this PC did, restart instead of stopping. The
             # error shows at once; the usual stop follows if SteamVR here still runs after the wait.
@@ -1553,7 +1623,8 @@ class Application:
             self.graphics_limit.reset();self.graphics_event=None;self.reaim_paused=False;self.graphics_notice_until=0
             self.output_scale.reset();self.scale_event=None
             self.gpu_clocks.reset()
-            self.cpu_clocks.reset();self.power_notice_until=0;self.power_held=None
+            if getattr(self,'headset_watch',None):self.headset_watch.reset()
+            self.cpu_clocks.reset();self.power_notice_until=0;self.power_held=None;self.power_lower=None;self.smooth_power_kept=False
             self.power_history={'held_samples':0,'lowest_cpu_mhz':None}
             self.timeline.reset();self.timeline_sample=None
             # An earlier automatic restart's message belongs to that session, unless this is the restart.
@@ -1582,6 +1653,10 @@ class Application:
             if self.host_control.snapshot().get('runtime_state')=='stopped':self.evidence.finish()
             if self.keep_awake:self.keep_awake.release()
             return
+        try:self.remember_bitrate()  # 1.0.0.15: before the next Start resets the governor
+        except Exception as error:self.log('Settled bitrate: '+str(error)[:160])
+        try:self.remember_smooth_power()  # 1.0.0.15: likewise the power a smooth session drew
+        except Exception as error:self.log('Smooth session power: '+str(error)[:160])
         if self.session_link:
             try:self.session_link.stop()
             except (OSError,ValueError,subprocess.SubprocessError) as error:self.log('Remote stop: '+str(error))
@@ -1606,6 +1681,9 @@ class Application:
         if getattr(self,'other_wifi',None):
             try:self.other_wifi.end()
             except Exception as error:self.log('Other Wi-Fi adapter restore: '+str(error)[:200])
+            # 1.0.0.15: check the network settings again once a reconnected adapter has its address back.
+            if getattr(self,'network_settings',None):
+                recheck=threading.Timer(self.NETWORK_RECHECK_S,lambda:self.network_settings.check());recheck.daemon=True;recheck.start()
         if getattr(self,'ap_lock',None):
             try:self.ap_lock.end()
             except Exception as error:self.log('Wi-Fi access-point lock release: '+str(error)[:200])
@@ -1613,6 +1691,7 @@ class Application:
         self.end_client_session_helpers()
         if not self.running():self.close_gaze()
     QUIT_WAIT_S=8
+    NETWORK_RECHECK_S=20
     def quit_native(self,process):
         """Windows has no SIGTERM, and TerminateProcess skips the native client's clean-up (SteamVR's scene,
         the transport): ask it to quit on its command pipe, then close the pipe, which stops it too (1.0.0.7).
@@ -1736,7 +1815,8 @@ class Application:
                           bitrate_control=self.bitrate_status(),
                           game_audio=self.game_audio_status(),  # 1.0.0.9
                           session_tuning=self.session_tuning.status() if self.session_tuning else None,
-                          base_stations=self.base_stations.status() if self.base_stations else None)
+                          base_stations=self.base_stations.status() if self.base_stations else None,
+                          headset_hardware=self.headset_hardware_status(fresh=True))  # 1.0.0.15
             try:result['steam_shortcut']=self.steam_shortcut.status() if self.steam_shortcut else None
             except Exception as error:result['steam_shortcut']={'error':str(error)[:160]}
         if self.role=='host':
@@ -1828,6 +1908,7 @@ class Application:
         """1.0.0.4: the processor held far below its minimum by the shared power limit. The first time in a
         session: a log line, a short line in the headset and steamos-manager's settings read in the background."""
         if not self.cpu_clocks.observe(sample):return
+        self.check_lower_power()  # 1.0.0.15
         row=self.cpu_clocks.samples[-1]
         if self.cpu_clocks.held(row):
             history=self.power_history;history['held_samples']+=1
@@ -1846,6 +1927,37 @@ class Application:
                  +(' ('+held['gpu_level']+')' if held.get('gpu_level') else '')+(', '+str(held['power_w'])+' W' if held.get('power_w') else '')
                  +': '+held['cause'])
         self.read_steamos_settings()
+    def short_of_frames(self):
+        """1.0.0.15: this PC's graphics hold the stream below the refresh rate now (fresh frames, or the limit state)."""
+        timings=getattr(self,'timings',None) or {}
+        fps=timing_number(timings,'unique_fps');refresh=timing_number(timings,'refresh_hz')
+        try:limited=self.graphics_limit.snapshot().get('state')=='limited'
+        except Exception:limited=False
+        return limited or bool(fps is not None and refresh and fps<POWER_SHORT_SHARE*refresh and timings.get('cadence')=='client_throttled')
+    def check_lower_power(self):
+        """1.0.0.15: a session drawing much less power than the last smooth one while short of frames (a lower power
+        limit than before): the first time in a session, a log line and a short line in the headset."""
+        if self.role!='client' or not self.running():return
+        lower=lower_power(recent_power(self.cpu_clocks.samples),self.settings.get('smooth_power'),self.short_of_frames())
+        first=lower and not getattr(self,'power_lower',None)
+        if lower or not self.short_of_frames():self.power_lower=lower
+        if not first:return
+        self.power_notice_until=time.monotonic()+GRAPHICS_NOTICE_S
+        self.log('POWER_BALANCE drawing '+str(lower['power_w'])+' W against '+str(lower['good_power_w'])+' W in the last smooth session, '
+                 'with the stream short of frames: a lower power limit (TDP) than before.')
+        self.read_steamos_settings()
+    def remember_smooth_power(self):
+        """1.0.0.15: at the end of a smooth session, the power this PC drew in it (launcher/power_balance.py)."""
+        if self.role!='client' or getattr(self,'smooth_power_kept',False):return
+        try:rows=(self.timeline.snapshot() or {}).get('rows') or []
+        except Exception:return
+        refresh=timing_number(getattr(self,'timings',None) or {},'refresh_hz') or (self.video or {}).get('refresh_hz')
+        smooth,power=smooth_session(rows,refresh)
+        if not smooth:return
+        self.settings['smooth_power']={'power_w':round(power,1),'utc':time.time()};self.smooth_power_kept=True
+        try:self.save_settings()
+        except OSError:return
+        self.log('Smooth session: this PC drew about '+str(int(round(power)))+' W; a later session short of frames while drawing much less says so.')
     def read_steamos_settings(self):
         """steamos-manager's power settings, read in the background (it can take a second)."""
         def read():
@@ -1875,6 +1987,8 @@ class Application:
         """The shared power limit for the pages, Game Mode, the headset and reports (1.0.0.4)."""
         held=self.cpu_clocks.starved() if self.role=='client' and self.running() else None
         result=power_advice(held,self.steamos_settings)
+        lower=getattr(self,'power_lower',None) if self.role=='client' and self.running() else None
+        if result.get('state')=='ok' and lower:result=dict(lower)  # 1.0.0.15: held back by a lower limit than before
         result['cpu']=self.cpu_clocks.latest() if self.role=='client' and self.running() else None
         result['history']=dict(self.power_history)
         result['steamos']=dict(self.steamos_settings or {})
@@ -2031,6 +2145,9 @@ class Application:
             note=getattr(self,'bitrate_note',None)  # 1.0.0.8: written by the TIMING parser, logged outside its lock
             if note:
                 self.bitrate_note=None;self.log(note)
+            note=getattr(self,'hardware_note',None)  # 1.0.0.15: the headset's USB or the controllers' tracking
+            if note:
+                self.hardware_note=None;self.log(note)
             if self.role=='client':
                 try:self.sample_timeline()
                 except Exception as error:self.log('Session timeline: '+str(error)[:200])
@@ -2044,6 +2161,10 @@ class Application:
                     link=self.session_link.snapshot()
                     if self.running() and link['state'] in ('error','waiting'):
                         self.log('Rendering host ended this session: '+link.get('message',''))
+                        # 1.0.0.15: its reason stays on the pages and the card after the stop (SteamVR's safe mode on the
+                        # rendering PC, for one), rather than a plain Ready to start.
+                        if link['state']=='error' and link.get('message') and not self.startup_error:
+                            self.startup_error=str(link['message'])[:500]
                         try:self.stop()
                         except (OSError,ValueError,subprocess.SubprocessError) as error:self.log('Session cleanup: '+str(error))
 
@@ -2288,6 +2409,10 @@ class Application:
 
     def host_side_start(self,quality,cancel):
         """Wake the host if needed, choose the network path, prepare Wi-Fi and obtain the host session lease."""
+        # 1.0.0.15: a USB hub nested too deep (Linux) leaves the headset or its controllers half there: say so first.
+        hardware=self.headset_hardware_status(fresh=True) or {}
+        if hardware.get('state')=='deep':
+            self.log('USB: '+hardware['message']+' Refused: '+', '.join(hub['path']+(' ('+hub['id']+')' if hub.get('id') else '') for hub in hardware.get('hubs',[]))+'.')
         self.ensure_host_awake(cancel)
         if cancel.is_set():raise ValueError('Session start cancelled.')
         if self.settings['auto_bitrate']:self.ensure_network_test(cancel)
@@ -2410,6 +2535,25 @@ class Application:
             if result.get('foveation'):width,height=foveated_size(width,height,result['foveation'])
             return quality_ceiling_mbps(result['codec'],2*width,height,headset['refresh_hz'])
         except (ValueError,KeyError,TypeError):return None
+    def bitrate_key(self,result):
+        """1.0.0.15: this stream's key in the remembered bitrates (codec, encoded size, refresh, wired or Wi-Fi)."""
+        try:
+            headset=headset_metadata(result.get('headset'))
+            width,height=stream_size(result['codec'],result.get('resolution','compatibility'),headset)
+            if result.get('foveation'):width,height=foveated_size(width,height,result['foveation'])
+            return bitrate_memory_key(result['codec'],2*width,height,headset['refresh_hz'],result.get('network'))
+        except (ValueError,KeyError,TypeError):return None
+    def remember_bitrate(self):
+        """1.0.0.15: at the end of a session, where its bitrate settled, for the next session of the same stream."""
+        governor=getattr(self,'bitrate_governor',None);key=getattr(self,'bitrate_memory_key',None)
+        settled=governor.settled() if governor is not None and key else None
+        if not settled:return
+        self.bitrate_memory_key=None
+        self.settings['bitrate_memory']=remember_settled_bitrate(self.settings.get('bitrate_memory'),key,settled,time.time())
+        try:self.save_settings()
+        except OSError as error:self.log('Settled bitrate not saved: '+str(error)[:160]);return
+        self.log('Bitrate settled at '+str(settled['mbps'])+' Mbit/s for this stream ('+str(settled['seconds'])+' s judged'
+                 +('; decoding followed the picture size, not the bitrate' if settled['decode_bound'] else '')+'): the next session starts there.')
     def governed_bitrate(self):
         """The bitrate the governor wants now (heartbeats to 'bitrate-control' hosts), or None."""
         governor=getattr(self,'bitrate_governor',None)
@@ -2448,8 +2592,15 @@ class Application:
         if self.settings['auto_bitrate'] and result['pacing_mbps'] and link.get('kind')=='wired':
             result['bitrate']=max(10,min(result['bitrate'],max(LINK_MIN_MBPS,int(LINK_SEND_FRACTION*result['pacing_mbps']//5*5))))
         # The bitrate follows the session only where the host can change it while it streams ('bitrate-control').
-        self.bitrate_governor.reset(result['bitrate'] if self.settings['auto_bitrate'] and 'bitrate-control' in features else None,
-                                    result['bitrate'],self.stream_fps())
+        # 1.0.0.15: it starts where the last session of this stream settled (launcher/stream_budget.py).
+        governed=self.settings['auto_bitrate'] and 'bitrate-control' in features
+        self.bitrate_memory_key=self.bitrate_key(result) if governed else None
+        remembered=(self.settings.get('bitrate_memory') or {}).get(self.bitrate_memory_key) if self.bitrate_memory_key else None
+        self.bitrate_governor.reset(result['bitrate'] if governed else None,result['bitrate'],self.stream_fps(),remembered=remembered)
+        if governed and self.bitrate_governor.remembered and self.bitrate_governor.mbps<result['bitrate']:
+            self.log('Bitrate: starting at '+str(self.bitrate_governor.mbps)+' Mbit/s, where the last session of this stream settled'
+                     +(' (decoding followed the picture size there, so decoding time does not lower it)' if self.bitrate_governor.decode_bound else '')+'.')
+            result['bitrate']=self.bitrate_governor.mbps
         why=''  # 1.0.0.4: why wired pacing is below the link's speed
         if result['pacing_mbps'] and link.get('kind')=='wired':
             if lossless_rate(tested)==result['pacing_mbps']:why=', the most this network path carried in its test before it lost data steadily'
@@ -2961,6 +3112,11 @@ class Application:
                 self.host_waker.discover=answered
                 result=self.host_waker.wake_and_wait(self.settings['host_mac'],wake_targets(host_ip,local_interfaces(lan_addresses())),timeout=120,cancel=self.session_cancelled)
                 self.log(result['message']);return
+            if action=='host-unblock-driver' and self.role=='client':  # 1.0.0.15: SteamVR's safe mode on the rendering PC
+                if self.running():raise ValueError('Stop the session first.')
+                message=self.session_link.unblock_driver(host_ip=self.settings['host_ip'])
+                if self.startup_error in steamvr_driver.REASONS.values() or 'safe mode' in (self.startup_error or ''):self.startup_error=''
+                self.log('Rendering host: '+(message or "VROSTBridge's driver is on again in SteamVR."));return
             if action=='fix-network' and self.role=='client':  # 1.0.0.14
                 if not self.network_settings:raise ValueError('Only the headset PC has these network settings.')
                 result=self.network_settings.repair()
@@ -3150,6 +3306,9 @@ class Application:
                         self.rollback_start();raise
                 return
             if self.role!='host':raise ValueError('This action belongs to the host')
+            if action=='unblock-driver':  # 1.0.0.15
+                if self.running():raise ValueError('Stop the session first.')
+                self.unblock_driver();return
             if action=='trust-client':self.host_control.trust(body.get('hostname'));return
             if action=='add-client':self.host_control.add(body.get('client_hostname',''),body.get('client_ip',''));return
             if action=='forget-client':

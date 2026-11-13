@@ -10,11 +10,9 @@ Attach the five packages, the three source archives and `SHA256SUMS.txt`, which 
   `VROSTBridge-1.0.0.14-bazzite-client-source.zip`
 - `SHA256SUMS.txt`
 
-Push the source first: the tag has to point at the commit the source archives were made from. See [PUBLISHING.md](PUBLISHING.md).
+Push the source first: the tag has to point at the commit the source archives were made from. See [PUBLISHING.md](../PUBLISHING.md).
 
 ---
-
-**VR outside the box.** VROSTBridge streams SteamVR games from a Windows PC to a PC VR headset plugged into a second PC somewhere else in the house, running Bazzite Linux or Windows.
 
 ### What's new
 

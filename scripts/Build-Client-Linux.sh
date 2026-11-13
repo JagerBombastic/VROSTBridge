@@ -8,10 +8,17 @@ done
 python3 scripts/fetch_upstream.py
 bash scripts/Build-FFmpeg-Linux.sh
 export PKG_CONFIG_PATH="$root/build-ffmpeg/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
-# Run from ALVR so its exact Rust toolchain is selected for the adapter too. The source folder is written into
-# the library as /src, so it carries no path from the build machine.
-(cd upstream/ALVR && RUSTFLAGS="--remap-path-prefix=$root=/src ${RUSTFLAGS:-}" \
+# Run from ALVR so its exact Rust toolchain is selected for the adapter too. The source folder and Cargo's and
+# rustup's folders are written into the library as /src, /cargo and /rustup, so it carries no path from the build
+# machine (checked below).
+cargo_home="$(realpath -m -- "${CARGO_HOME:-$HOME/.cargo}")"
+rustup_home="$(realpath -m -- "${RUSTUP_HOME:-$HOME/.rustup}")"
+(cd upstream/ALVR && RUSTFLAGS="--remap-path-prefix=$root=/src --remap-path-prefix=$cargo_home=/cargo --remap-path-prefix=$rustup_home=/rustup ${RUSTFLAGS:-}" \
     cargo build --manifest-path "$root/client/transport/Cargo.toml" --release --locked)
+transport=client/transport/target/release/libvrostbridge_transport.so
+for folder in "$root" "$cargo_home" "$rustup_home" "$HOME"; do
+    if grep -a -q -F -- "$folder/" "$transport"; then echo "The transport still names a build folder: $folder" >&2; exit 1; fi
+done
 client/transport/target/release/vrostbridge-defaults > host/default-session.json
 cmake -S . -B build-linux -DCMAKE_BUILD_TYPE=Release
 cmake --build build-linux --parallel

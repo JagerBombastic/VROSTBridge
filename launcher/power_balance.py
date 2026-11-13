@@ -25,6 +25,14 @@ own limit on it (MhzLimit) is at or below WINDOWS_HELD_SHARE of its base clock (
 again relative to the PC's own figures. A fixed GPU clock cannot be seen on Windows.
 steamos-manager does not exist there, so SteamOSPower reports unavailable and the advice
 names Windows' power mode, the charger and the maker's own tool instead of Game Mode.
+
+1.0.0.15: a power limit set lower than before (the TDP slider moved for another game, or a
+profile that applies on battery) held one session's frame rate down with neither of the
+checks above firing: the processor stayed above its minimum and the GPU was not held low
+enough to count. The power the PC draws is the plainer signal. At the end of a smooth
+session (at least three minutes with fresh frames at 95 % of the refresh rate) the headset
+PC remembers its median power draw; a session that is short of frames while drawing less
+than three quarters of that says so, with the two figures, and where the limit is raised.
 """
 from collections import deque
 import json
@@ -51,6 +59,13 @@ SAMPLES = 6
 # Windows (1.0.0.7): held back at or below this share of the processor's base clock (MaxMhz)...
 WINDOWS_HELD_SHARE = .4
 WINDOWS_BUSY = 20       # ...while the processors are at least this busy (percent of all of them)
+
+# 1.0.0.15: the power drawn in the last smooth session, and a session drawing much less while short of frames.
+LOWER_SHARE = .75        # drawing less than this share of the last smooth session's power...
+LOWER_SAMPLES = 4        # ...in this many recent samples with a power reading (5 s apart)
+SMOOTH_SHARE = .95       # a session is smooth when its fresh frame rate was at least this share of the refresh...
+SMOOTH_MIN_ROWS = 18     # ...over at least this many timeline rows (10 s each: three minutes)
+SHORT_SHARE = .9         # short of frames: fresh frames below this share of the refresh
 
 SERVICE = 'com.steampowered.SteamOSManager1'
 OBJECT = '/com/steampowered/SteamOSManager1'
@@ -171,6 +186,57 @@ class CpuClocks:
         if row.get('gpu_level'):
             result['gpu_level'] = row['gpu_level']
         return result
+
+
+def recent_power(rows, count=LOWER_SAMPLES):
+    """The median power draw (W) of the last `count` samples that have one, or None with fewer."""
+    readings = [row['power_w'] for row in list(rows) if _positive(row.get('power_w'), 2000)][-count:]
+    return _median(readings) if len(readings) >= count else None
+
+
+def smooth_session(timeline_rows, refresh_hz):
+    """1.0.0.15: (smooth, median power W) for a finished session's timeline rows (launcher/timeline.py)."""
+    rows = [row for row in timeline_rows or () if isinstance(row, dict) and _positive(row.get('fps_avg'), 1000)]
+    try:
+        refresh = float(refresh_hz)
+    except (TypeError, ValueError):
+        refresh = 0.0
+    if len(rows) < SMOOTH_MIN_ROWS or refresh <= 0:
+        return False, None
+    smooth = _median([row['fps_avg'] for row in rows]) >= SMOOTH_SHARE * refresh
+    readings = [row['power_w'] for row in rows if _positive(row.get('power_w'), 2000)]
+    power = _median(readings) if len(readings) >= SMOOTH_MIN_ROWS // 2 else None
+    return smooth and power is not None, power
+
+
+def valid_power_record(value):
+    """The remembered smooth session as saved ({'power_w', 'utc'}), or None."""
+    if not isinstance(value, dict) or not _positive(value.get('power_w'), 2000):
+        return None
+    return {'power_w': round(float(value['power_w']), 1),
+            'utc': float(value['utc']) if isinstance(value.get('utc'), (int, float)) else 0.0}
+
+
+def lower_power(current_w, record, short_of_frames):
+    """1.0.0.15: {'state': 'lower', 'message', 'short', 'power_w', 'good_power_w'} while a session short of frames
+    draws much less than the last smooth one; else None."""
+    record = valid_power_record(record)
+    if not record or not short_of_frames or not _positive(current_w, 2000):
+        return None
+    good = record['power_w']
+    if current_w >= LOWER_SHARE * good:
+        return None
+    now_w, then_w = int(round(current_w)), int(round(good))
+    if sys.platform == 'win32':
+        where = 'Connect the charger, ' + POWER_MODE_STEP + ', and raise the TDP limit in ' + VENDOR_TOOL + '.'
+    else:
+        where = ("Raise it with the charger connected: Steam's Game Mode, Quick Access menu > Performance; on the "
+                 'desktop, your power or TDP control.')
+    message = ("This PC is drawing about " + str(now_w) + ' W while streaming, against ' + str(then_w) + ' W in its last '
+               'smooth session, and the stream is short of frames: its power limit (TDP) is probably set lower than it '
+               'was. ' + where)
+    return {'state': 'lower', 'message': message, 'short': str(now_w) + ' W, was ' + str(then_w) + ' W · raise the TDP limit',
+            'actions': [], 'held': None, 'power_w': now_w, 'good_power_w': then_w}
 
 
 def _windows_held(row):

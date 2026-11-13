@@ -46,6 +46,15 @@ them. So:
 - a second in which frames never arrived at all (at least SOURCE_MISSING of them, with no
   frame lost on the network) does not count as late or uneven: those frames were never
   sent, so a lower bitrate would not have brought them sooner.
+
+1.0.0.15: every 1.0.0.14 session started at the ceiling and spent its first minute stepping
+down to where the one before had settled (89 to 45 Mbit/s, three steps, each one after
+frames were lost or decoded late), and found again each time that a lower bitrate did not
+decode faster. The headset PC now remembers, for each stream (codec, encoded size, refresh
+rate and wired or Wi-Fi), the bitrate the last session of at least two judged minutes spent
+longest at, and whether decoding followed the picture size rather than the bitrate. The next
+session starts there (never above the ceiling or below the floor), with decoding time left
+out when that was found, and steps up from there as usual when the stream runs clean.
 """
 from collections import deque
 import math
@@ -80,6 +89,8 @@ CHECK_GAIN = 0.93        # decoding at least 7 % faster means the bitrate was wh
 ARRIVAL_HISTORY_S = 60   # 1.0.0.10: seconds of arrival spread kept at the current bitrate...
 ARRIVAL_CHECK_MIN_S = 20 # ...of which a step for uneven arrival needs this many to be checked against
 ARRIVAL_CHECK_S = 12     # seconds of arrival spread compared after a step for uneven arrival
+SETTLE_MIN_S = 120       # 1.0.0.15: judged seconds before a session's bitrate is remembered...
+MEMORY_ENTRIES = 8       # ...for this many streams
 
 # What a troubled second is (shares of the headset's frame interval).
 DECODE_MEAN_SHARE = 0.42  # the decoder's mean time per frame
@@ -120,6 +131,38 @@ def quality_ceiling_mbps(codec, encoded_width, encoded_height, fps):
     return int(max(MIN_MBPS, min(MAX_MBPS, round(value))))
 
 
+def memory_key(codec, encoded_width, encoded_height, fps, network):
+    """1.0.0.15: one stream's key in the remembered bitrates: codec, encoded size, refresh and wired or Wi-Fi."""
+    width, height, rate = (_number(value) for value in (encoded_width, encoded_height, fps))
+    if not width or not height or not rate:
+        return None
+    return '%s %dx%d %g %s' % (codec, int(width), int(height), round(rate, 2),
+                               network if network in ('wired', 'wifi') else 'unknown')
+
+
+def valid_memory(value):
+    """The remembered bitrates as saved, or {} (settings files are user-editable)."""
+    if not isinstance(value, dict):
+        return {}
+    result = {}
+    for key, entry in list(value.items())[:MEMORY_ENTRIES]:
+        if (isinstance(key, str) and len(key) <= 64 and isinstance(entry, dict) and type(entry.get('mbps')) is int
+                and MIN_MBPS <= entry['mbps'] <= MAX_MBPS):
+            result[key] = {'mbps': entry['mbps'], 'decode_bound': entry.get('decode_bound') is True,
+                           'utc': float(entry['utc']) if isinstance(entry.get('utc'), (int, float)) else 0.0}
+    return result
+
+
+def remember(memory, key, settled, now):
+    """The remembered bitrates with this session's settled one for `key`, the newest MEMORY_ENTRIES kept."""
+    memory = valid_memory(memory)
+    if not key or not settled:
+        return memory
+    memory[key] = {'mbps': int(settled['mbps']), 'decode_bound': bool(settled.get('decode_bound')), 'utc': float(now)}
+    newest = sorted(memory.items(), key=lambda item: item[1]['utc'], reverse=True)[:MEMORY_ENTRIES]
+    return dict(newest)
+
+
 def floor_mbps(ceiling):
     """The lowest bitrate the governor steps down to for a ceiling."""
     return int(min(int(ceiling), max(MIN_MBPS, round(FLOOR_SHARE * int(ceiling)))))
@@ -139,7 +182,7 @@ class BitrateGovernor:
     def __init__(self):
         self.reset(None, None, 75.0)
 
-    def reset(self, start_mbps, ceiling_mbps, refresh_hz):
+    def reset(self, start_mbps, ceiling_mbps, refresh_hz, remembered=None):
         start = int(start_mbps) if start_mbps else None
         ceiling = int(ceiling_mbps) if ceiling_mbps else start
         if start is not None and ceiling is not None:
@@ -150,6 +193,15 @@ class BitrateGovernor:
         self.floor = floor_mbps(ceiling) if ceiling else None
         if self.active and self.floor > self.mbps:
             self.floor = self.mbps
+        # 1.0.0.15: where the last session of this stream settled, and whether its decoding followed the picture size.
+        self.remembered = None
+        self.seconds_at = {}
+        remembered = remembered if isinstance(remembered, dict) else None
+        if self.active and remembered and type(remembered.get('mbps')) is int:
+            settled = max(self.floor, min(self.mbps, remembered['mbps']))
+            if settled < self.mbps:
+                self.mbps = self.start = settled
+            self.remembered = {'mbps': settled, 'decode_bound': remembered.get('decode_bound') is True}
         rate = _number(refresh_hz, 75.0) or 75.0
         self.interval_ms = 1000.0 / max(30.0, min(240.0, rate))
         self.warmup = WARMUP_S
@@ -164,7 +216,7 @@ class BitrateGovernor:
         self.history = deque(maxlen=12)
         self.up_after = CLEAN_UP_S
         self.check = None          # a step down for decoding alone, until it is known whether it helped
-        self.decode_bound = False  # decoding time follows the picture size here, not the bitrate
+        self.decode_bound = bool(self.remembered and self.remembered['decode_bound'])  # follows the picture size here
         # 1.0.0.10: the same for uneven arrival (the network's timing here, not the bitrate's).
         self.arrival = deque(maxlen=ARRIVAL_HISTORY_S)
         self.arrival_check = None
@@ -219,6 +271,7 @@ class BitrateGovernor:
         if self.warmup > 0:
             self.warmup -= 1
             return None
+        self.seconds_at[self.mbps] = self.seconds_at.get(self.mbps, 0) + 1
         self.window.append(second)
         if second['arrival_ms'] > 0:
             self.arrival.append(second['arrival_ms'])
@@ -333,8 +386,18 @@ class BitrateGovernor:
             self.warmup = WARMUP_S
         return changed
 
+    def settled(self):
+        """1.0.0.15: {'mbps', 'decode_bound', 'seconds'}: the bitrate this session spent longest at (the lower one of
+        a tie), once it has been judged for SETTLE_MIN_S seconds; else None."""
+        total = sum(self.seconds_at.values())
+        if not self.active or total < SETTLE_MIN_S:
+            return None
+        mbps = max(self.seconds_at, key=lambda rate: (self.seconds_at[rate], -rate))
+        return {'mbps': int(mbps), 'decode_bound': self.decode_bound, 'seconds': total}
+
     def snapshot(self):
         return {'active': self.active, 'mbps': self.mbps, 'ceiling': self.ceiling, 'floor': self.floor,
                 'steps_down': self.steps_down, 'steps_up': self.steps_up, 'reason': self.reason,
                 'decode_bound': self.decode_bound, 'arrival_bound': self.arrival_bound,
-                'fresh_starts': self.fresh_starts, 'history': list(self.history)}
+                'fresh_starts': self.fresh_starts, 'history': list(self.history),
+                'remembered': dict(self.remembered) if self.remembered else None, 'settled': self.settled()}
